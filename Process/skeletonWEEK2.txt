@@ -1,0 +1,17 @@
+src/main/java/com/ooparkanoid/
+ ├─ Main.java                      # GUI JavaFX (đã có)
+ ├─ console/
+ │   └─ MainConsole.java           # Chạy bản console
+ ├─ core/
+ │   ├─ game/
+ │   │   ├─ GameWorld.java
+ │   │   └─ GameState.java
+ │   └─ level/
+ │       └─ LevelData.java         # level đơn giản (hardcode tuần 2)
+ ├─ entities/
+ │   ├─ Entity.java
+ │   ├─ Paddle.java
+ │   ├─ Ball.java
+ │   └─ Brick.java
+ └─ utils/
+     └─ Constants.java
