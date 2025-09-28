@@ -40,7 +40,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.ooparkanoid.Main</mainClass>
+                    <mainClass>com.ooparkanoid.console.MainConsole</mainClass>
 <!--                    <mainClass>com.ooparkanoid.Test</mainClass>-->
                 </configuration>
             </plugin>
