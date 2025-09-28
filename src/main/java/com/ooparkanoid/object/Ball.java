@@ -32,7 +32,7 @@ public class Ball extends MovableObject {
 
     @Override
     public void move(double deltaTime){
-        move(deltaTime);
+        super.move(deltaTime);
     }
 
     @Override
