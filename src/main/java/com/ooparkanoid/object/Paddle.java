@@ -1,35 +1,40 @@
+// File: src/main/java/com/ooparkanoid/object/Paddle.java
 package com.ooparkanoid.object;
 
-import com.ooparkanoid.object.MovableObject;
-//import com.ooparkanoid.entities.powerups.PowerUp;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Paddle extends MovableObject {
-    private double speed;
-//        private PowerUp currentPowerUp;
-
-    public Paddle(double x, double y, double speed, double dx, double dy) {
-        super(x, y, Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, dx, dy);
-        this.speed = speed;
+    public Paddle(double x, double y) {
+        super(x, y, Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, 0, 0);
     }
 
-    public void moveRight(double dt) {
-        dx -= speed;
-        move(dt);
-        dx = 0;
-        clamp();
+    // Thêm các phương thức setter cho dx và dy để có thể điều khiển tốc độ từ bên ngoài
+    public void setDx(double dx) {
+        this.dx = dx;
     }
 
-    private void clamp() {
+    public void setDy(double dy) {
+        this.dy = dy;
+    }
+
+    @Override
+    public void update(double dt) {
+        // Cập nhật vị trí dựa trên vận tốc và thời gian
+        x += dx * dt;
+
+        // Giới hạn thanh đỡ trong màn hình
         if (x < 0) {
             x = 0;
         }
-        if (x + width > Constants.WIDTH) x = Constants.WIDTH - width;
+        if (x + width > Constants.WIDTH) {
+            x = Constants.WIDTH - width;
+        }
     }
-    @Override public void update(double dt) {}
-    @Override public void render(GraphicsContext gc) {
+
+    @Override
+    public void render(GraphicsContext gc) {
         gc.setFill(Color.WHITE);
         gc.fillRect(x, y, width, height);
     }
