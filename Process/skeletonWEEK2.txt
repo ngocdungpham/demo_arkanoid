@@ -1,17 +1,28 @@
 src/main/java/com/ooparkanoid/
- ├─ Main.java                      # GUI JavaFX (đã có)
+ ├─ Main.java                         # GUI JavaFX
  ├─ console/
- │   └─ MainConsole.java           # Chạy bản console
+ │   └─ MainConsole.java              # Bản terminal
  ├─ core/
- │   ├─ game/
- │   │   ├─ GameWorld.java
+ │   ├─ engine/
+ │   │   ├─ GameManager.java          # = GameEngine la GameWorld cũ
  │   │   └─ GameState.java
+ │   ├─ render/
+ │   │   └─ Renderer.java             # = GameView
  │   └─ level/
- │       └─ LevelData.java         # level đơn giản (hardcode tuần 2)
- ├─ entities/
- │   ├─ Entity.java
+ │       └─ LevelData.java
+ ├─ object/
+ │   ├─ base/
+ │   │   ├─ GameObject.java
+ │   │   └─ MovableObject.java
  │   ├─ Paddle.java
  │   ├─ Ball.java
- │   └─ Brick.java
+ │   ├─ bricks/
+ │   │   ├─ Brick.java
+ │   │   ├─ NormalBrick.java
+ │   │   └─ StrongBrick.java
+ │   └─ powerups/
+ │       ├─ PowerUp.java
+ │       ├─ ExpandPaddlePowerUp.java
+ │       └─ FastBallPowerUp.java
  └─ utils/
      └─ Constants.java
