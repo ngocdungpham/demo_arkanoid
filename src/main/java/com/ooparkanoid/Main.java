@@ -88,7 +88,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import com.ooparkanoid.core.game.GameWorld;
+import com.ooparkanoid.core.engine.GameManager;
 import com.ooparkanoid.utils.Constants;
 
 public class Main extends Application {
@@ -103,7 +103,7 @@ public class Main extends Application {
         stage.show();
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        GameWorld gameWorld = new GameWorld();
+        GameManager gameWorld = new GameManager();
 
         new AnimationTimer() {
             long last = 0;

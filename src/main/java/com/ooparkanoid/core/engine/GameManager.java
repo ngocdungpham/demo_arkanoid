@@ -1,6 +1,5 @@
-package com.ooparkanoid.core.game;
+package com.ooparkanoid.core.engine;
 //import
-import com.ooparkanoid.Main;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -10,11 +9,11 @@ import javafx.scene.paint.Color;
  * - Paddle, Ball, Brick, PowerUp (sẽ thêm dần)
  * - Update() và Render()
  */
-public class GameWorld {
+public class GameManager {
     private double paddlex;
     private double paddley;
 
-    public GameWorld() {
+    public GameManager() {
         reset();
     }
 
