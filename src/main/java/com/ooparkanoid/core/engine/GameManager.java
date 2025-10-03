@@ -132,6 +132,8 @@ public class GameManager {
         }
 
 
+
+
         // Va chạm Ball-Paddle
         if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
             // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
