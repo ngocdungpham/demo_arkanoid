@@ -16,6 +16,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public class MainConsole extends Application {
     // Không còn paddle và ball trực tiếp ở đây, mà sẽ thông qua GameManager
     private GameManager gameManager;
@@ -37,20 +40,35 @@ public class MainConsole extends Application {
 
         gameManager = new GameManager(); // Khởi tạo GameManager
 
+        Deque<KeyCode> pressedStack = new ArrayDeque<>();
+
+        scene.setOnKeyPressed(e -> {
+            KeyCode code = e.getCode();
+            // tránh add trùng
+            if (!pressedStack.contains(code)) {
+                pressedStack.push(code); // đưa lên đầu stack
+            }
+        });
+
+        scene.setOnKeyReleased(e -> {
+            pressedStack.remove(e.getCode()); // xóa khỏi stack
+        });
+
+
         // Xử lý đầu vào bàn phím (sẽ gọi các phương thức trên paddle thông qua GameManager)
-        scene.setOnKeyPressed((KeyEvent event) -> {
-            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT) {
-                gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
-            } else if (event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
-                gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
-            }
-        });
-        scene.setOnKeyReleased((KeyEvent event) -> {
-            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT ||
-                    event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
-                gameManager.getPaddle().setDx(0);
-            }
-        });
+//        scene.setOnKeyPressed((KeyEvent event) -> {
+//            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT) {
+//                gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
+//            } else if (event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
+//                gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
+//            }
+//        });
+//        scene.setOnKeyReleased((KeyEvent event) -> {
+//            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT ||
+//                    event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
+//                gameManager.getPaddle().setDx(0);
+//            }
+//        });
 
         // Xử lý đầu vào chuột (sẽ gọi các phương thức trên paddle thông qua GameManager)
         scene.setOnMouseMoved((MouseEvent event) -> {
@@ -67,6 +85,19 @@ public class MainConsole extends Application {
                     last = now;
                     return;
                 }
+
+
+                if (!pressedStack.isEmpty()) {
+                    KeyCode key = pressedStack.peek(); // lấy phím mới nhất
+                    if (key == KeyCode.A || key == KeyCode.LEFT) {
+                        gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
+                    } else if (key == KeyCode.D || key == KeyCode.RIGHT) {
+                        gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
+                    }
+                } else {
+                    gameManager.getPaddle().setDx(0);
+                }
+
                 double dt = (now - last) / 1e9; // Thời gian trôi qua giữa các frame (giây)
                 last = now;
 
