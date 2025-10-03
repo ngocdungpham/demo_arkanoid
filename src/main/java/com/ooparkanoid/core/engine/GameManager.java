@@ -107,14 +107,30 @@ public class GameManager {
 
         // --- Xử lý Va chạm ---
         // Va chạm Ball-Walls (Tường trái, phải, trần)
-        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
-            // SỬA: Dùng getDx() và getDy()
+//        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
+//            // SỬA: Dùng getDx() và getDy()
+//            ball.setDirection(-ball.getDx(), ball.getDy());
+//        }
+//        if (ball.getY() <= 0) { // Va chạm trần
+//            // SỬA: Dùng getDx() và getDy()
+//            ball.setDirection(ball.getDx(), -ball.getDy());
+//        }
+        // Trái
+        if (ball.getX() <= 0) {
+            ball.setX(0);
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-        if (ball.getY() <= 0) { // Va chạm trần
-            // SỬA: Dùng getDx() và getDy()
+// Phải
+        if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
+            ball.setX(Constants.WIDTH - ball.getWidth());
+            ball.setDirection(-ball.getDx(), ball.getDy());
+        }
+// Trần
+        if (ball.getY() <= 0) {
+            ball.setY(0);
             ball.setDirection(ball.getDx(), -ball.getDy());
         }
+
 
         // Va chạm Ball-Paddle
         if (ball.istersected(paddle)) { // Sử dụng istersected của Ball

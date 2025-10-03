@@ -14,7 +14,7 @@ public class Constants {
     // Default settings
     public static final int START_LIVES = 3;
     public static final int START_LIVES_TIME = 60;
-    public static final double DEFAULT_SPEED = 250.0;
+    public static final double DEFAULT_SPEED = 500.0;
 
     // Bricks
     public static final int BRICK_WIDTH = 70;
