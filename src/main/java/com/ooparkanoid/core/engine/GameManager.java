@@ -135,13 +135,71 @@ public class GameManager {
 
 
         // Va chạm Ball-Paddle
-        if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
-            // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
-            ball.setY(paddle.getY() - ball.getHeight());
+//        if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
+//            // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
+//            ball.setY(paddle.getY() - ball.getHeight());
+//
+//            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
+//            // SỬA: Dùng getDx() và getDy()
+//            ball.setDirection(ball.getDx(), -ball.getDy());
+//        }
 
-            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
-            // SỬA: Dùng getDx() và getDy()
-            ball.setDirection(ball.getDx(), -ball.getDy());
+
+        // Va chạm Ball-Paddle
+//        if (ball.istersected(paddle)) { // Giả sử bạn có hàm intersects()
+//            // Đẩy bóng lên trên paddle một chút để tránh kẹt
+//            ball.setY(paddle.getY() - ball.getHeight() - 1);
+//
+//            // Tính toán tâm paddle và tâm bóng
+//            double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
+//            double ballCenter   = ball.getX() + ball.getWidth() / 2.0;
+//
+//            // Xác định độ lệch của bóng so với tâm paddle [-1..1]
+//            double relativeIntersect = (ballCenter - paddleCenter) / (paddle.getWidth() / 2.0);
+//
+//            // Giới hạn góc nảy tối đa (±60°)
+//            double maxBounceAngle = Math.toRadians(60);
+//            double bounceAngle = relativeIntersect * maxBounceAngle;
+//
+//            // Giữ nguyên tốc độ bóng (nên có hằng số speed hoặc hàm getSpeed())
+//            double speed = Constants.DEFAULT_SPEED;
+//
+//            // Cập nhật vận tốc mới dựa trên góc nảy
+//            double newDx = speed * Math.sin(bounceAngle);
+//            double newDy = -Math.abs(speed * Math.cos(bounceAngle)); // đảm bảo luôn đi lên
+//
+//            ball.setDirection(newDx, newDy);
+//        }
+        // Va chạm Ball - Paddle
+        if (ball.intersected(paddle)) {
+            // 1. Đẩy bóng ra khỏi paddle để tránh kẹt
+            ball.setY(paddle.getY() - ball.getHeight() - 0.5);
+
+            // 2. Tính toán tâm paddle và tâm bóng
+            double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
+            double ballCenter   = ball.getX() + ball.getWidth() / 2.0;
+
+            // 3. Độ lệch [-1..1]: -1 = mép trái, 0 = giữa, +1 = mép phải
+            double relativeIntersect = (ballCenter - paddleCenter) / (paddle.getWidth() / 2.0);
+
+            // 4. Dead-zone ở giữa: nếu gần tâm quá thì random sang trái/phải
+            double deadZone = 0.05; // ±5% chiều rộng paddle
+            if (Math.abs(relativeIntersect) < deadZone) {
+                relativeIntersect = (Math.random() < 0.5 ? -deadZone : +deadZone);
+            }
+
+            // 5. Tính góc nảy
+            double maxBounce = Math.toRadians(60);   // tối đa ±60°
+            double bounceAngle = relativeIntersect * maxBounce;
+
+            // 6. Giữ nguyên tốc độ hiện tại
+            double speed = Math.sqrt(ball.getDx() * ball.getDx() + ball.getDy() * ball.getDy());
+
+            // 7. Cập nhật vận tốc mới
+            double newDx = speed * Math.sin(bounceAngle);
+            double newDy = -Math.abs(speed * Math.cos(bounceAngle)); // luôn bật lên trên
+
+            ball.setDirection(newDx, newDy);
         }
 
         // Va chạm Ball-Bricks
@@ -150,7 +208,7 @@ public class GameManager {
         while (brickIterator.hasNext()) {
             Brick brick = brickIterator.next();
             if (!brick.isDestroyed()) { // Chỉ kiểm tra va chạm với gạch chưa bị phá hủy
-                if (ball.istersected(brick)) { // Sử dụng istersected của Ball
+                if (ball.intersected(brick)) { // Sử dụng istersected của Ball
                     brick.takeHit(); // Gạch nhận một cú đánh
                     score += 10;     // Tăng điểm
 

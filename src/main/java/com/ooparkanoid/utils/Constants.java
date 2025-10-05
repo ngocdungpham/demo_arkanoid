@@ -6,10 +6,10 @@ public class Constants {
 
     // Paddle
     public static final int PADDLE_WIDTH = 100;
-    public static final int PADDLE_HEIGHT = 16;
+    public static final int PADDLE_HEIGHT = 12;
 
     // Ball
-    public static final int BALL_RADIUS = 8;
+    public static final int BALL_RADIUS = 6;
 
     // Default settings
     public static final int START_LIVES = 3;

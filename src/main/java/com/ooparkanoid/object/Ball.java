@@ -27,7 +27,7 @@ public class Ball extends MovableObject {
     }
 
     public boolean checkCollision(GameObject other) {
-        return istersected(other);
+        return intersected(other);
     }
 
     @Override
