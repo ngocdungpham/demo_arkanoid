@@ -11,11 +11,12 @@ public class Constants {
 
     // Ball
     public static final int BALL_RADIUS = 8;
+    public static final int BALL_SPEED = 150;
 
     // Default settings
     public static final int START_LIVES = 3;
     public static final int START_LIVES_TIME = 60;
-    public static final double DEFAULT_SPEED = 100.0;
+    public static final double DEFAULT_SPEED = 400.0;
 
     // Bricks
     public static final int BRICK_WIDTH = 70;

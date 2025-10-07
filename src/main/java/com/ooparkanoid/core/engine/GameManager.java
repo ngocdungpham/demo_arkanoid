@@ -1,6 +1,8 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
 
+import com.ooparkanoid.core.state.GameState;
+import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.object.Ball;
 import com.ooparkanoid.object.Paddle;
 import com.ooparkanoid.object.bricks.Brick; // Import Brick
@@ -30,11 +32,17 @@ public class GameManager {
     private int score;
     private int lives;
     private Random random;
+    private final GameStateManager stateManager;
+    private boolean ballAttachedToPaddle = true; // mặc định dính khi new game/life
 
     public GameManager() {
+        this(new GameStateManager());
+    }
+    public GameManager(GameStateManager stateManager) {
+        this.stateManager = stateManager;
         bricks = new ArrayList<>();
         random = new Random();
-        initializeGame(); // Gọi hàm khởi tạo game
+//        initializeGame(); // Gọi hàm khởi tạo game
     }
 
     /**
@@ -53,7 +61,7 @@ public class GameManager {
                 Constants.WIDTH / 2.0,
                 Constants.HEIGHT / 2.0,
                 Constants.BALL_RADIUS,
-                Constants.DEFAULT_SPEED, // Speed từ Constants
+                Constants.BALL_SPEED, // Speed từ Constants
                 (random.nextBoolean() ? 1 : -1), // dirX ngẫu nhiên (1 hoặc -1)
                 -1 // dirY luôn hướng lên
         );
@@ -67,6 +75,8 @@ public class GameManager {
         createInitialBricks(); // Hàm tạo gạch ban đầu
 
         System.out.println("Game Initialized. Score: " + score + ", Lives: " + lives);
+        stateManager.updateStats(score, lives);
+        stateManager.setStatusMessage("Destroy all the bricks!");
     }
 
     /**
@@ -101,6 +111,9 @@ public class GameManager {
      * @param dt Thời gian trôi qua kể từ frame trước (giây)
      */
     public void update(double dt) {
+        if (!stateManager.isRunning()) {
+            return;
+        }
         // Cập nhật vị trí của Paddle và Ball
         paddle.update(dt);
         ball.move(dt); // Gọi move() của Ball
@@ -120,12 +133,12 @@ public class GameManager {
             ball.setX(0);
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-// Phải
+        // Phải
         if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
             ball.setX(Constants.WIDTH - ball.getWidth());
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-// Trần
+        // Trần
         if (ball.getY() <= 0) {
             ball.setY(0);
             ball.setDirection(ball.getDx(), -ball.getDy());
@@ -157,7 +170,7 @@ public class GameManager {
             double bounceAngle = relativeIntersect * maxBounceAngle;
 
             // Giữ nguyên tốc độ bóng (nên có hằng số speed hoặc hàm getSpeed())
-            double speed = Constants.DEFAULT_SPEED;
+            double speed = Constants.BALL_SPEED;
 
             // Cập nhật vận tốc mới dựa trên góc nảy
             double newDx = speed * Math.sin(bounceAngle);
@@ -175,7 +188,7 @@ public class GameManager {
                 if (ball.istersected(brick)) { // Sử dụng istersected của Ball
                     brick.takeHit(); // Gạch nhận một cú đánh
                     score += 10;     // Tăng điểm
-
+                    stateManager.updateStats(score, lives);
                     // Logic va chạm bóng với gạch (đơn giản, chỉ đảo ngược hướng Y)
                     // SỬA: Dùng getDx() và getDy()
                     ball.setDirection(ball.getDx(), -ball.getDy());
@@ -194,20 +207,30 @@ public class GameManager {
         if (ball.getY() + ball.getHeight() >= Constants.HEIGHT) {
             lives--;
             System.out.println("You lost a life! Lives remaining: " + lives);
+            stateManager.updateStats(score, lives);
             if (lives <= 0) {
                 System.out.println("Game Over! Final Score: " + score);
-                initializeGame(); // Reset game hoàn toàn sau khi Game Over
+//                initializeGame(); // Reset game hoàn toàn sau khi Game Over
+                stateManager.setStatusMessage("Game Over! Final Score: " + score);
+                stateManager.markGameOver();
+                return;
             } else {
+
                 // Đặt lại bóng và paddle về vị trí ban đầu sau khi mất mạng
                 resetBallAndPaddlePosition();
+                stateManager.setStatusMessage("Lives remaining: " + lives);
             }
         }
 
         // Kiểm tra tất cả gạch đã bị phá hủy (điều kiện chiến thắng)
         if (bricks.isEmpty()) {
             System.out.println("You cleared all bricks! Final Score: " + score);
-            initializeGame(); // Reset game để chơi lại
+//            initializeGame(); // Reset game để chơi lại
+            stateManager.setStatusMessage("You cleared all bricks! Final Score: " + score);
+            stateManager.markGameOver();
+            return;
         }
+
     }
 
     /**
@@ -215,7 +238,7 @@ public class GameManager {
      * Bóng sẽ bắt đầu di chuyển ngay lập tức.
      */
     private void resetBallAndPaddlePosition() {
-        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
+//        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
         paddle.setDx(0); // Dừng paddle
 
         // Khởi tạo lại bóng với constructor hiện có của bạn
@@ -223,7 +246,7 @@ public class GameManager {
                 Constants.WIDTH / 2.0,
                 Constants.HEIGHT / 2.0,
                 Constants.BALL_RADIUS,
-                Constants.DEFAULT_SPEED,
+                Constants.BALL_SPEED,
                 (random.nextBoolean() ? 1 : -1),
                 -1
         );
@@ -240,9 +263,13 @@ public class GameManager {
         g.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
 
         // Vẽ Paddle
-        paddle.render(g);
+        if (paddle != null) {
+            paddle.render(g);
+        }
         // Vẽ Ball
-        ball.render(g);
+        if (ball != null) {
+            ball.render(g);
+        }
 
         // Vẽ tất cả Bricks còn lại
         for (Brick brick : bricks) {
@@ -250,10 +277,10 @@ public class GameManager {
         }
 
         // Hiển thị thông tin game
-        g.setFill(Color.WHITE);
-        g.fillText("Score: " + score, 10, 20);
-        g.fillText("Lives: " + lives, 10, 40);
-        // Không hiển thị Level vì không có khái niệm level phức tạp
+//        g.setFill(Color.WHITE);
+//        g.fillText("Score: " + score, 10, 20);
+//        g.fillText("Lives: " + lives, 10, 40);
+//        // Không hiển thị Level vì không có khái niệm level phức tạp
     }
 
     // --- Getters cần thiết để MainConsole có thể tương tác với Paddle và Ball ---
@@ -269,7 +296,7 @@ public class GameManager {
     public int getScore() { return score; }
     public int getLives() { return lives; }
 
-//    public boolean isGameOver() {
-//
-//    }
+    public GameStateManager getStateManager() {
+        return stateManager;
+    }
 }
