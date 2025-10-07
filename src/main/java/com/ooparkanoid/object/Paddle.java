@@ -38,4 +38,11 @@ public class Paddle extends MovableObject {
         gc.setFill(Color.WHITE);
         gc.fillRect(x, y, width, height);
     }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+    public void setWidth(double width) {
+        this.width = width;
+    }
 }

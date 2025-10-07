@@ -7,6 +7,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -20,9 +21,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class MainConsole extends Application {
-    // Không còn paddle và ball trực tiếp ở đây, mà sẽ thông qua GameManager
     private GameManager gameManager;
-    // GraphicsContext vẫn giữ ở đây để MainConsole có thể truyền cho GameManager
     private GraphicsContext gc;
 
     @Override
@@ -48,6 +47,14 @@ public class MainConsole extends Application {
             if (!pressedStack.contains(code)) {
                 pressedStack.push(code); // đưa lên đầu stack
             }
+            if (code == KeyCode.ENTER) {
+                gameManager.launchBall();
+            }
+
+            // ✅ Khi nhấn B → thêm bóng mới để test
+            if (code == KeyCode.B) {
+                gameManager.spawnExtraBall();
+            }
         });
 
         scene.setOnKeyReleased(e -> {
@@ -55,26 +62,16 @@ public class MainConsole extends Application {
         });
 
 
-        // Xử lý đầu vào bàn phím (sẽ gọi các phương thức trên paddle thông qua GameManager)
-//        scene.setOnKeyPressed((KeyEvent event) -> {
-//            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT) {
-//                gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
-//            } else if (event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
-//                gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
-//            }
-//        });
-//        scene.setOnKeyReleased((KeyEvent event) -> {
-//            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT ||
-//                    event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
-//                gameManager.getPaddle().setDx(0);
-//            }
-//        });
-
         // Xử lý đầu vào chuột (sẽ gọi các phương thức trên paddle thông qua GameManager)
         scene.setOnMouseMoved((MouseEvent event) -> {
             gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
         });
 
+        scene.setOnMouseClicked(e -> {
+            if (e.getButton() == MouseButton.PRIMARY) {
+                gameManager.launchBall();
+            }
+        });
         // Vòng lặp game chính
         new AnimationTimer() {
             long last = 0;
@@ -85,7 +82,6 @@ public class MainConsole extends Application {
                     last = now;
                     return;
                 }
-
 
                 if (!pressedStack.isEmpty()) {
                     KeyCode key = pressedStack.peek(); // lấy phím mới nhất
@@ -105,6 +101,7 @@ public class MainConsole extends Application {
                 gameManager.update(dt);
                 gameManager.render(gc);
 
+<<<<<<< Updated upstream
                 // --- Logic kiểm tra "Game Over!" có thể được đưa vào GameManager ---
                 // Tuy nhiên, nếu bạn muốn giữ nó ở đây, bạn có thể gọi:
                 // if (gameManager.isGameOver()) {
@@ -112,6 +109,8 @@ public class MainConsole extends Application {
                 //     this.stop(); // Dừng AnimationTimer
                 // }
                 // Hiện tại, GameManager sẽ tự reset nếu thua.
+=======
+>>>>>>> Stashed changes
             }
         }.start();
     }
