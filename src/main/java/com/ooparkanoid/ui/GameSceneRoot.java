@@ -55,13 +55,18 @@ public class GameSceneRoot {
         gameManager = new GameManager(stateManager);
 
         root = new StackPane();
+        root.getStyleClass().add("app");
         canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
         g = canvas.getGraphicsContext2D();
         root.getChildren().add(canvas);
 
         scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
+        scene.getStylesheets().add(
+                getClass().getResource("/styles/theme.css").toExternalForm()
+        );
 
         // ---------- HUD (Score/Lives) ----------
+
         Label scoreLabel = new Label();
         scoreLabel.textProperty().bind(stateManager.scoreProperty().asString("Score: %d"));
         Label livesLabel = new Label();
@@ -72,7 +77,21 @@ public class GameSceneRoot {
         scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         livesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
+        /**
+         * CSS.
+         */
+        scoreLabel.getStyleClass().add("hud");
+        livesLabel.getStyleClass().add("hud");
+
         HBox hud = new HBox(20, scoreLabel, livesLabel);
+
+        /**
+         * Score và lives xuat hien khi running.
+         */
+        BooleanBinding hudVisible = stateManager.stateProperty().isEqualTo(GameState.RUNNING);
+        hud.visibleProperty().bind(hudVisible);
+        hud.managedProperty().bind(hudVisible);
+
         hud.setPadding(new Insets(15));
         hud.setAlignment(Pos.TOP_LEFT);
         root.getChildren().add(hud);
@@ -100,8 +119,11 @@ public class GameSceneRoot {
         messageLabel.setAlignment(Pos.CENTER);
 
         Button newGameButton = createMenuButton("New game", this::startNewGame);
+        newGameButton.getStyleClass().addAll("btn","btn-primary");
         continueButton = createMenuButton("Continue", e -> stateManager.resumeGame());
+        continueButton.getStyleClass().addAll("btn","btn-secondary");
         Button exitButton = createMenuButton("Exit game", e -> Platform.exit());
+        exitButton.getStyleClass().addAll("btn","btn-ghost");
         Button gameModeButton = createMenuButton("Game mode",
                 e -> AlertBox.display("Game mode", "Classic brick breaking mode. Destroy all bricks to win."));
         Button howToPlayButton = createMenuButton("How to play",
@@ -132,7 +154,12 @@ public class GameSceneRoot {
         menuContent.setFillWidth(true);
 
         StackPane menuOverlay = new StackPane(menuContent);
-        menuOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75);");
+
+        menuOverlay.getStyleClass().add("overlay");
+        stateLabel.getStyleClass().add("overlay-title");
+        messageLabel.getStyleClass().add("overlay-subtitle");
+
+//        menuOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75);");
         root.getChildren().add(menuOverlay);
 
         BooleanBinding menuVisible = stateManager.stateProperty().isNotEqualTo(GameState.RUNNING);

@@ -1,0 +1,82 @@
+/* theme.css (JavaFX) */
+
+/* đặt biến màu (looked-up colors) tại .root */
+.root {
+    -color-bg:           #2e4369;
+    -color-surface:      #0d9e43;
+    -color-text:         #e5e7eb;
+    -color-muted:        #9ca3af;
+    -color-primary:      #3b82f6;
+    -color-primary-900:  #16a34a;
+    -radius:             14;
+    -pad:                16;
+}
+
+/* nền app */
+.app {
+    -fx-background-color: -color-bg;
+}
+
+/* HUD */
+.hud {
+    -fx-text-fill: -color-text;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* overlay */
+.overlay {
+    -fx-background-color: rgba(0,0,0,0.7);
+    -fx-padding: 24;
+    -fx-background-radius: -radius;
+}
+.overlay-title {
+    -fx-text-fill: -color-text;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+.overlay-subtitle {
+    -fx-text-fill: -color-muted;
+    -fx-font-size: 16px;
+}
+
+/* button */
+.btn {
+    -fx-background-radius: -radius;
+    -fx-padding: 10 18 10 18;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.btn:focused {
+    /* JavaFX có :focused — IDE có thể cảnh báo nhưng chạy được */
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.15), 8, 0.2, 0, 0);
+}
+
+.btn-primary {
+    -fx-background-color: -color-primary;
+    -fx-text-fill: white;
+}
+.btn-primary:pressed {   /* JavaFX có :pressed */
+    -fx-opacity: 0.9;
+}
+.btn-primary:hover {
+    -fx-background-color: -color-primary-900;
+}
+
+.btn-secondary {
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;
+    -fx-border-color: rgba(255,255,255,0.12);
+    -fx-border-width: 1;
+    -fx-background-insets: 0, 1;
+}
+.btn-secondary:hover { -fx-background-color: #1f2937; }
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+}
+.btn-ghost:hover { -fx-background-color: rgba(255,255,255,0.06); }
+
+.hint { -fx-text-fill: -color-muted; -fx-font-size: 13px; }

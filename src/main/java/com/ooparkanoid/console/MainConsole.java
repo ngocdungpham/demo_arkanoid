@@ -123,8 +123,8 @@ public class MainConsole extends Application {
                 gameManager.render(gc);
 
                 gc.setFill(Color.WHITE);
-                gc.fillText("Score: " + stateManager.getScore(), 10, 20);
-                gc.fillText("Lives: " + stateManager.getLives(), 10, 40);
+//                gc.fillText("Score: " + stateManager.getScore(), 10, 20);
+//                gc.fillText("Lives: " + stateManager.getLives(), 10, 40);
 
                 if (stateManager.getCurrentState() == GameState.GAME_OVER) {
                     gameManager.initializeGame();
