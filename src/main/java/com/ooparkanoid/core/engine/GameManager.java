@@ -31,6 +31,7 @@ public class GameManager {
     private int lives;
     private Random random;
 
+    private boolean isBallLaunched;
     public GameManager() {
         bricks = new ArrayList<>();
         random = new Random();
@@ -46,27 +47,15 @@ public class GameManager {
                 (Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0,
                 Constants.HEIGHT - 40
         );
-
-        // Khởi tạo Ball theo constructor hiện tại của bạn
-        // Ball sẽ bắt đầu di chuyển ngay lập tức khi được tạo
-        ball = new Ball(
-                Constants.WIDTH / 2.0,
-                Constants.HEIGHT / 2.0,
-                Constants.BALL_RADIUS,
-                Constants.DEFAULT_SPEED, // Speed từ Constants
-                (random.nextBoolean() ? 1 : -1), // dirX ngẫu nhiên (1 hoặc -1)
-                -1 // dirY luôn hướng lên
-        );
-
-        // Khởi tạo thông tin game
+        isBallLaunched = false;
         score = 0;
         lives = Constants.START_LIVES; // Lấy từ Constants
 
         // Tạo gạch ban đầu
         bricks.clear(); // Xóa gạch cũ nếu có
         createInitialBricks(); // Hàm tạo gạch ban đầu
+       resetBallAndPaddlePosition();
 
-        System.out.println("Game Initialized. Score: " + score + ", Lives: " + lives);
     }
 
     /**
@@ -103,73 +92,30 @@ public class GameManager {
     public void update(double dt) {
         // Cập nhật vị trí của Paddle và Ball
         paddle.update(dt);
-        ball.move(dt); // Gọi move() của Ball
-
+       // ball.move(dt); // Gọi move() của Ball
+        if (isBallLaunched) {
+            ball.move(dt);
+        } else {
+            // Bóng đi theo paddle khi chưa được phóng
+            ball.setX(paddle.getX() + (paddle.getWidth() / 2) - Constants.BALL_RADIUS);
+        }
         // --- Xử lý Va chạm ---
-        // Va chạm Ball-Walls (Tường trái, phải, trần)
-//        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
-//            // SỬA: Dùng getDx() và getDy()
-//            ball.setDirection(-ball.getDx(), ball.getDy());
-//        }
-//        if (ball.getY() <= 0) { // Va chạm trần
-//            // SỬA: Dùng getDx() và getDy()
-//            ball.setDirection(ball.getDx(), -ball.getDy());
-//        }
         // Trái
         if (ball.getX() <= 0) {
             ball.setX(0);
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-// Phải
+    // Phải
         if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
             ball.setX(Constants.WIDTH - ball.getWidth());
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-// Trần
+    // Trần
         if (ball.getY() <= 0) {
             ball.setY(0);
             ball.setDirection(ball.getDx(), -ball.getDy());
         }
 
-
-
-
-        // Va chạm Ball-Paddle
-//        if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
-//            // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
-//            ball.setY(paddle.getY() - ball.getHeight());
-//
-//            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
-//            // SỬA: Dùng getDx() và getDy()
-//            ball.setDirection(ball.getDx(), -ball.getDy());
-//        }
-
-
-        // Va chạm Ball-Paddle
-//        if (ball.istersected(paddle)) { // Giả sử bạn có hàm intersects()
-//            // Đẩy bóng lên trên paddle một chút để tránh kẹt
-//            ball.setY(paddle.getY() - ball.getHeight() - 1);
-//
-//            // Tính toán tâm paddle và tâm bóng
-//            double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
-//            double ballCenter   = ball.getX() + ball.getWidth() / 2.0;
-//
-//            // Xác định độ lệch của bóng so với tâm paddle [-1..1]
-//            double relativeIntersect = (ballCenter - paddleCenter) / (paddle.getWidth() / 2.0);
-//
-//            // Giới hạn góc nảy tối đa (±60°)
-//            double maxBounceAngle = Math.toRadians(60);
-//            double bounceAngle = relativeIntersect * maxBounceAngle;
-//
-//            // Giữ nguyên tốc độ bóng (nên có hằng số speed hoặc hàm getSpeed())
-//            double speed = Constants.DEFAULT_SPEED;
-//
-//            // Cập nhật vận tốc mới dựa trên góc nảy
-//            double newDx = speed * Math.sin(bounceAngle);
-//            double newDy = -Math.abs(speed * Math.cos(bounceAngle)); // đảm bảo luôn đi lên
-//
-//            ball.setDirection(newDx, newDy);
-//        }
         // Va chạm Ball - Paddle
         if (ball.intersected(paddle)) {
             // 1. Đẩy bóng ra khỏi paddle để tránh kẹt
@@ -251,18 +197,26 @@ public class GameManager {
      * Bóng sẽ bắt đầu di chuyển ngay lập tức.
      */
     private void resetBallAndPaddlePosition() {
-        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
-        paddle.setDx(0); // Dừng paddle
+        isBallLaunched = false;
+        double ballX = paddle.getX() + (paddle.getWidth() / 2) - Constants.BALL_RADIUS;
+        // Vị trí Y của bóng để nằm ngay trên paddle
+        double ballY = paddle.getY() - (Constants.BALL_RADIUS * 2) - 1;
 
-        // Khởi tạo lại bóng với constructor hiện có của bạn
         ball = new Ball(
-                Constants.WIDTH / 2.0,
-                Constants.HEIGHT / 2.0,
+                ballX,
+                ballY,
                 Constants.BALL_RADIUS,
                 Constants.DEFAULT_SPEED,
-                (random.nextBoolean() ? 1 : -1),
-                -1
+                0, 0 // Tốc độ ban đầu là 0
         );
+    }
+    public void launchBall() {
+        if (!isBallLaunched) {
+            double newDx = Constants.DEFAULT_SPEED * (random.nextBoolean() ? 1 : -1);
+            double newDy = -Constants.DEFAULT_SPEED;
+            ball.setDirection(newDx, newDy);
+            isBallLaunched = true;
+        }
     }
 
     /**
