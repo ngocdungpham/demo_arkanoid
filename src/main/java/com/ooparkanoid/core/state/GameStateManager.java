@@ -37,7 +37,7 @@ public class GameStateManager {
      */
     public void  beginNewGame(int initialScore, int initialLives) {
         updateStats(initialScore, initialLives);
-        continueAvailable.set(true);
+        continueAvailable.set(false);
         statusMessage.set("Destroy all the bricks!");
         currentState.set(GameState.RUNNING);
     }
@@ -64,6 +64,7 @@ public class GameStateManager {
     public void pauseGame() {
         if (currentState.get() == GameState.RUNNING) {
             currentState.set(GameState.PAUSED);
+            continueAvailable.set(true);
             statusMessage.set("Game paused");
         }
     }
@@ -131,4 +132,9 @@ public class GameStateManager {
     }
 
 
+    public void setContinueAvailable(boolean b) {
+    }
+
+    public void setState(GameState gameState) {
+    }
 }

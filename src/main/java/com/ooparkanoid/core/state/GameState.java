@@ -7,5 +7,5 @@ public enum GameState {
     MENU,
     RUNNING,
     PAUSED,
-    GAME_OVER,
+    GAME_OVER, MODE_SELECT, HOW_TO_PLAY, INFORMATION, PAUSE,
 }

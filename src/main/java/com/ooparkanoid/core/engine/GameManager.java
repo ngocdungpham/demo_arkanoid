@@ -1,6 +1,7 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
 
+import com.ooparkanoid.core.save.SaveService;
 import com.ooparkanoid.core.state.GameState;
 import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.object.Ball;
@@ -8,6 +9,7 @@ import com.ooparkanoid.object.Paddle;
 import com.ooparkanoid.object.bricks.Brick; // Import Brick
 import com.ooparkanoid.object.bricks.NormalBrick; // Import NormalBrick
 import com.ooparkanoid.object.bricks.StrongBrick; // Import StrongBrick
+import com.ooparkanoid.core.save.SaveService;
 
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
@@ -298,5 +300,43 @@ public class GameManager {
 
     public GameStateManager getStateManager() {
         return stateManager;
+    }
+
+    // ===== Tạo snapshot để lưu =====
+    public SaveService.GameSnapshot createSnapshot() {
+        SaveService.GameSnapshot s = new SaveService.GameSnapshot();
+        s.score = getScore();
+        s.lives = getLives();
+        if (ball != null) {
+            s.ballX = ball.getX();
+            s.ballY = ball.getY();
+            s.ballDX = ball.getDx();
+            s.ballDY = ball.getDy();
+        }
+        if (paddle != null) {
+            s.paddleX = paddle.getX();
+        }
+        return s;
+    }
+
+    // ===== Khôi phục từ snapshot =====
+    public void restoreFromSnapshot(SaveService.GameSnapshot s) {
+        this.score = s.score;
+        this.lives = s.lives;
+
+        if (ball != null) {
+            ball.setPosition(s.ballX, s.ballY);
+            ball.setVelocity(s.ballDX, s.ballDY);
+        }
+        if (paddle != null) {
+            paddle.setX(s.paddleX);
+        }
+        // nếu bạn có đồng bộ scoreboard qua stateManager thì gọi:
+        // stateManager.updateStats(score, lives);
+    }
+
+    // ===== Hàm sẵn có của bạn để bắt đầu game mới =====
+    public void startNewGame() {
+        // ... reset level/score/lives, spawn ball/paddle, v.v.
     }
 }

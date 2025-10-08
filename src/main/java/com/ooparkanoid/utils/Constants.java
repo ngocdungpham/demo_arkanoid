@@ -5,8 +5,8 @@ public class Constants {
     public static final int HEIGHT = 600;
 
     // Paddle
-    public static final int PADDLE_WIDTH = 100;
-    public static final int PADDLE_HEIGHT = 16;
+    public static final int PADDLE_WIDTH = 90;
+    public static final int PADDLE_HEIGHT = 12;
     public static final double PADDLE_SPEED = 420;
 
     // Ball
