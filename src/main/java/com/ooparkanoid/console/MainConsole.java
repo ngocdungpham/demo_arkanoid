@@ -91,8 +91,13 @@ public class MainConsole extends Application {
                     KeyCode key = pressedStack.peek(); // lấy phím mới nhất
                     if (key == KeyCode.A || key == KeyCode.LEFT) {
                         gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
+
+                        System.out.println(pressedStack);
                     } else if (key == KeyCode.D || key == KeyCode.RIGHT) {
                         gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
+                        System.out.println(pressedStack);
+                    } else {
+                        gameManager.getPaddle().setDx(0);
                     }
                 } else {
                     gameManager.getPaddle().setDx(0);
@@ -107,10 +112,10 @@ public class MainConsole extends Application {
 
                 // --- Logic kiểm tra "Game Over!" có thể được đưa vào GameManager ---
                 // Tuy nhiên, nếu bạn muốn giữ nó ở đây, bạn có thể gọi:
-                // if (gameManager.isGameOver()) {
-                //     System.out.println("Game Over! Final Score: " + gameManager.getScore());
-                //     this.stop(); // Dừng AnimationTimer
-                // }
+//                 if (gameManager.isGameOver()) {
+//                     System.out.println("Game Over! Final Score: " + gameManager.getScore());
+//                     this.stop(); // Dừng AnimationTimer
+//                 }
                 // Hiện tại, GameManager sẽ tự reset nếu thua.
             }
         }.start();
