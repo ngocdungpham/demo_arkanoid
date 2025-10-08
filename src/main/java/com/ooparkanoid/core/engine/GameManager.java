@@ -13,7 +13,7 @@ import com.ooparkanoid.core.save.SaveService;
 
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
+//import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -261,9 +261,10 @@ public class GameManager {
 
     public void render(GraphicsContext g) {
         // Xóa màn hình bằng màu nền
-        g.setFill(Color.BLACK);
-        g.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
-
+//        g.setFill(Color.BLACK);
+//        g.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
+// Xóa nội dung canvas để lộ lớp nền bên dưới.
+        g.clearRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
         // Vẽ Paddle
         if (paddle != null) {
             paddle.render(g);
