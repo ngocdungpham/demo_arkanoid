@@ -1,0 +1,124 @@
+/* theme.css (JavaFX) */
+
+/* đặt biến màu (looked-up colors) tại .root */
+.root {
+    -fx-background-color: linear-gradient(to bottom right, #0b1220, #0e1b3a);
+    -fx-font-family: "Inter", "Segoe UI", Roboto, Arial;
+    -fx-text-fill: #e6eefc;
+    -color-primary:      #3b82f6;
+    -color-primary-900:  #16a34a;
+}
+
+/* nền app */
+.app {
+    -fx-background-color: -color-bg;
+}
+
+/* HUD Dùng cho các nhãn hiển thị thông tin như Score, Lives, Level, v.v. */
+.hud {
+    -fx-text-fill: -color-text;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* overlay Một lớp mờ phủ lên toàn màn hình khi hiển thị menu tạm dừng hoặc thông báo.
+ * overlay-title Đặt kiểu chữ cho tiêu đề và phụ đề của overlay.
+ */
+.overlay {
+    -fx-background-color: rgba(0,0,0,0.7);
+    -fx-padding: 24;
+    -fx-background-radius: -radius;
+}
+.overlay-title {
+    -fx-text-fill: -color-text;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+.overlay-subtitle {
+    -fx-text-fill: -color-muted;
+    -fx-font-size: 16px;
+}
+
+/* button */
+.btn {
+    -fx-background-color: linear-gradient(to right, #3478ff, #2e6cf0);
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-background-radius: 999;
+    -fx-padding: 5 18 5 18;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 8, 0.15, 0, 2);
+}
+.btn:focused {
+    /* JavaFX có :focused — IDE có thể cảnh báo nhưng chạy được */
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.15), 8, 0.2, 0, 0);
+}
+
+.btn-primary {
+    -fx-background-color: -color-primary;
+    -fx-text-fill: white;
+}
+.btn-primary:pressed {   /* JavaFX có :pressed */
+    -fx-opacity: 0.9;
+}
+.btn-primary:hover {
+    -fx-background-color: -color-primary-900;
+}
+
+.btn-secondary {
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;
+    -fx-border-color: rgba(255,255,255,0.12);
+    -fx-border-width: 1;
+    -fx-background-insets: 0, 1;
+}
+.btn-secondary:hover { -fx-background-color: #1f2937; }
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+}
+.btn-ghost:hover { -fx-background-color: rgba(255,255,255,0.06); }
+
+/*.hint { -fx-text-fill: -color-muted; -fx-font-size: 13px; }*/
+/*.btn:hover {*/
+/*    -fx-background-color: linear-gradient(to right, #3d7fff, #3372ff);*/
+/*}*/
+/*.btn:pressed {*/
+/*    -fx-translate-y: 1;*/
+/*    -fx-opacity: 0.95;*/
+/*}*/
+
+/*!* Biến thể nút phụ (viền) nếu cần *!*/
+/*.btn-ghost {*/
+/*    -fx-background-color: transparent;*/
+/*    -fx-border-color: rgba(255,255,255,0.25);*/
+/*    -fx-border-width: 1;*/
+/*    -fx-border-radius: 999;*/
+/*    -fx-text-fill: #ffffff;*/
+/*}*/
+/*.btn-ghost:hover {*/
+/*    -fx-border-color: rgba(255,255,255,0.45);*/
+/*}*/
+
+/*!* Ẩn/hiện: khi setVisible(false) thì setManaged(false) để không chừa khoảng trống *!*/
+/*.hidden { visibility: hidden; }*/
+/*!* Container thẻ menu (card) giữa màn hình *!*/
+/*.menu-card {*/
+/*    -fx-background-color: rgba(255,255,255,0.06);*/
+/*    -fx-background-radius: 24;*/
+/*    -fx-padding: 32 40 32 40;*/
+/*    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.2, 0, 8);*/
+/*}*/
+
+/* Tiêu đề, mô tả */
+.heading-xl {
+    -fx-font-size: 36px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #ffffff;
+}
+.subtitle {
+    -fx-font-size: 16px;
+    -fx-opacity: 0.85;
+}

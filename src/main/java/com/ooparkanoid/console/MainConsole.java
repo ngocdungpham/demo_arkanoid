@@ -11,6 +11,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import com.ooparkanoid.core.engine.GameManager; // Import GameManager
+import com.ooparkanoid.core.state.GameState;
+import com.ooparkanoid.ui.GameSceneRoot;
+import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -22,23 +25,33 @@ import java.util.Deque;
 public class MainConsole extends Application {
     // Không còn paddle và ball trực tiếp ở đây, mà sẽ thông qua GameManager
     private GameManager gameManager;
+    private GameStateManager stateManager;
     // GraphicsContext vẫn giữ ở đây để MainConsole có thể truyền cho GameManager
     private GraphicsContext gc;
 
     @Override
     public void start(Stage stage) {
         stage.setTitle("Arkanoid - Simple Brick Game");
+
         Group root = new Group();
+        GameSceneRoot gameSceneRoot = new GameSceneRoot();
+
         Canvas canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
         root.getChildren().add(canvas);
         Scene scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
-        stage.setScene(scene);
+
+//        stage.setScene(scene);
+        stage.setScene(gameSceneRoot.getScene());
+
         stage.setResizable(false); // Thường là không cho thay đổi kích thước cửa sổ game
         stage.show();
 
         gc = canvas.getGraphicsContext2D();
 
-        gameManager = new GameManager(); // Khởi tạo GameManager
+        stateManager = new GameStateManager();
+        gameManager = new GameManager(stateManager); // Khởi tạo GameManager
+        gameManager.initializeGame();
+        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
 
         Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
@@ -90,10 +103,10 @@ public class MainConsole extends Application {
                 if (!pressedStack.isEmpty()) {
                     KeyCode key = pressedStack.peek(); // lấy phím mới nhất
                     if (key == KeyCode.A || key == KeyCode.LEFT) {
-                        gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
+                        gameManager.getPaddle().setDx(-Constants.PADDLE_SPEED);
                         System.out.println(pressedStack);
                     } else if (key == KeyCode.D || key == KeyCode.RIGHT) {
-                        gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
+                        gameManager.getPaddle().setDx(Constants.PADDLE_SPEED);
                         System.out.println(pressedStack);
                     } else {
                         gameManager.getPaddle().setDx(0);
@@ -108,6 +121,15 @@ public class MainConsole extends Application {
                 // UỶ QUYỀN cho GameManager cập nhật và render
                 gameManager.update(dt);
                 gameManager.render(gc);
+
+                gc.setFill(Color.WHITE);
+//                gc.fillText("Score: " + stateManager.getScore(), 10, 20);
+//                gc.fillText("Lives: " + stateManager.getLives(), 10, 40);
+
+                if (stateManager.getCurrentState() == GameState.GAME_OVER) {
+                    gameManager.initializeGame();
+                    stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+                }
 
                 // --- Logic kiểm tra "Game Over!" có thể được đưa vào GameManager ---
                 // Tuy nhiên, nếu bạn muốn giữ nó ở đây, bạn có thể gọi:
