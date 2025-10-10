@@ -3,13 +3,19 @@ package com.ooparkanoid.core.engine;
 
 import com.ooparkanoid.object.Ball;
 import com.ooparkanoid.object.Paddle;
+
 import com.ooparkanoid.object.bricks.Brick; // Import Brick
 import com.ooparkanoid.object.bricks.NormalBrick; // Import NormalBrick
 import com.ooparkanoid.object.bricks.StrongBrick; // Import StrongBrick
+import com.ooparkanoid.object.bricks.IndestructibleBrick;
 
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,6 +35,7 @@ public class GameManager {
 
     private int score;
     private int lives;
+    private int currentLevel;
     private Random random;
 
     public GameManager() {
@@ -61,40 +68,85 @@ public class GameManager {
         // Khởi tạo thông tin game
         score = 0;
         lives = Constants.START_LIVES; // Lấy từ Constants
-
-        // Tạo gạch ban đầu
-        bricks.clear(); // Xóa gạch cũ nếu có
-        createInitialBricks(); // Hàm tạo gạch ban đầu
-
-        System.out.println("Game Initialized. Score: " + score + ", Lives: " + lives);
+        currentLevel = 1;
+        bricks.clear();
+        loadLevel(currentLevel); //hàm tải level từ file
+        System.out.println("Game Initialized. Level: " + currentLevel
+                + ", Score: " + score + ", Lives: " + lives);
     }
-
     /**
-     * Tạo bố cục gạch ban đầu. (Không có khái niệm level phức tạp ở đây)
+     * Tải bố cục gạch cho một level từ file.
+     * @param levelNum Số level cần tải
      */
-    private void createInitialBricks() {
-        int rows = 5; // Số hàng gạch
-        // Tính số cột gạch tối đa có thể vừa trên màn hình
-        int cols = (int)(Constants.WIDTH / (Constants.BRICK_WIDTH + Constants.BRICK_PADDING_X));
+    private void loadLevel(int levelNum) {
+        bricks.clear(); // Xóa tất cả gạch cũ
 
-        // Tính toán vị trí X bắt đầu để canh giữa các hàng gạch trên màn hình
-        double totalBricksWidth = cols * Constants.BRICK_WIDTH + (cols - 1) * Constants.BRICK_PADDING_X;
-        double startX = (Constants.WIDTH - totalBricksWidth) / 2;
+        // Tên file map, ví dụ: "/levels/level1.txt"
+        String levelFilePath = Constants.LEVELS_FOLDER + "level" + levelNum + ".txt";
 
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                double brickX = startX + c * (Constants.BRICK_WIDTH + Constants.BRICK_PADDING_X);
-                double brickY = Constants.BRICK_OFFSET_TOP + r * (Constants.BRICK_HEIGHT + Constants.BRICK_PADDING_Y);
+        try (InputStream is = getClass().getResourceAsStream(levelFilePath);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
 
-                // Xen kẽ NormalBrick và StrongBrick
-                if (r % 2 == 0) {
-                    bricks.add(new NormalBrick(brickX, brickY));
-                } else {
-                    bricks.add(new StrongBrick(brickX, brickY));
-                }
+            if (is == null) {
+                throw new IllegalArgumentException("Level file not found: " + levelFilePath);
             }
+
+            String line;
+            int row = 0;
+            // Tính toán vị trí X bắt đầu để canh giữa các hàng gạch trên màn hình
+            // Lấy một dòng bất kỳ để tính chiều rộng map (giả định các dòng có cùng độ dài)
+            reader.mark(1000); // Đánh dấu vị trí hiện tại của reader
+            String firstLine = reader.readLine();
+            reader.reset(); // Quay lại đầu file
+
+            if (firstLine == null) {
+                System.out.println("Level file is empty: " + levelFilePath);
+                return;
+            }
+            int colsInMap = firstLine.trim().length();
+            double totalBricksWidth = colsInMap * Constants.BRICK_WIDTH + (colsInMap - 1) * Constants.BRICK_PADDING_X;
+            double startX = (Constants.WIDTH - totalBricksWidth) / 2;
+
+            while ((line = reader.readLine()) != null) {
+                for (int col = 0; col < line.length(); col++) {
+                    char brickChar = line.charAt(col);
+                    double brickX = startX + col * (Constants.BRICK_WIDTH + Constants.BRICK_PADDING_X);
+                    double brickY = Constants.BRICK_OFFSET_TOP + row * (Constants.BRICK_HEIGHT + Constants.BRICK_PADDING_Y);
+
+                    Brick newBrick = null;
+                    switch (brickChar) {
+                        case 'N':
+                            newBrick = new NormalBrick(brickX, brickY);
+                            break;
+                        case 'S':
+                            newBrick = new StrongBrick(brickX, brickY);
+                            break;
+                        case '#': // Gạch không phá hủy
+                            newBrick = new IndestructibleBrick(brickX, brickY);
+                            break;
+                        case ' ': // Ô trống
+                            // Không làm gì, không tạo gạch
+                            break;
+                        default:
+                            System.err.println("Unknown brick char in level " + levelNum + ": " + brickChar);
+                            break;
+                    }
+                    if (newBrick != null) {
+                        bricks.add(newBrick);
+                    }
+                }
+                row++;
+            }
+            System.out.println("Level " + levelNum + " loaded successfully from " + levelFilePath);
+
+        } catch (Exception e) {
+            System.err.println("Error loading level " + levelNum + ": " + e.getMessage());
+            // Nếu có lỗi khi tải level, có thể reset game hoặc chuyển sang Game Over
+            // Để đơn giản, chúng ta sẽ in lỗi và tiếp tục.
+            // Có thể dùng initializeGame() để reset game nếu không tải được level.
         }
     }
+
 
     /**
      * Phương thức cập nhật logic game mỗi frame.
@@ -167,24 +219,22 @@ public class GameManager {
         }
 
         // Va chạm Ball-Bricks
-        // Sử dụng Iterator để có thể xóa gạch an toàn trong vòng lặp
         Iterator<Brick> brickIterator = bricks.iterator();
         while (brickIterator.hasNext()) {
             Brick brick = brickIterator.next();
-            if (!brick.isDestroyed()) { // Chỉ kiểm tra va chạm với gạch chưa bị phá hủy
-                if (ball.istersected(brick)) { // Sử dụng istersected của Ball
-                    brick.takeHit(); // Gạch nhận một cú đánh
-                    score += 10;     // Tăng điểm
-
-                    // Logic va chạm bóng với gạch (đơn giản, chỉ đảo ngược hướng Y)
-                    // SỬA: Dùng getDx() và getDy()
-                    ball.setDirection(ball.getDx(), -ball.getDy());
-
+            if (!brick.isDestroyed()) {
+                if (ball.istersected(brick)) {
+                    brick.takeHit();
+                    // Chỉ tăng điểm nếu gạch bị phá hủy (không phải gạch không phá hủy)
                     if (brick.isDestroyed()) {
+                        score += 10;
                         System.out.println("Brick destroyed! Score: " + score);
-                        brickIterator.remove(); // Xóa gạch đã bị phá hủy khỏi danh sách
+                        brickIterator.remove(); // Xóa gạch đã bị phá hủy
+                    } else if (brick.getType() == Brick.BrickType.INDESTRUCTIBLE) {
+                        System.out.println("Indestructible brick hit!");
                     }
-                    // Giả định bóng chỉ va chạm với một gạch mỗi frame để đơn giản
+
+                    ball.setDirection(ball.getDx(), -ball.getDy()); // Nảy bóng
                     break;
                 }
             }
@@ -204,11 +254,29 @@ public class GameManager {
         }
 
         // Kiểm tra tất cả gạch đã bị phá hủy (điều kiện chiến thắng)
-        if (bricks.isEmpty()) {
-            System.out.println("You cleared all bricks! Final Score: " + score);
-            initializeGame(); // Reset game để chơi lại
+        boolean allDestroyableBricksDestroyed = true;
+        for (Brick brick : bricks) {
+            if (brick.getType() != Brick.BrickType.INDESTRUCTIBLE && !brick.isDestroyed()) {
+                allDestroyableBricksDestroyed = false;
+                break;
+            }
+        }
+        if (allDestroyableBricksDestroyed) {
+            System.out.println("You cleared all destroyable bricks! Final Score: " + score);
+            // Chuyển level
+            currentLevel++;
+            if (currentLevel > Constants.MAX_LEVELS) { // Kiểm tra nếu đã hết các level
+                System.out.println("Congratulations! All levels completed!");
+                initializeGame(); // Reset game
+            } else {
+                bricks.clear(); // Xóa gạch cũ
+                loadLevel(currentLevel); // Tải level mới
+                resetBallAndPaddlePosition(); // Đặt lại bóng/paddle cho level mới
+                System.out.println("Starting Level " + currentLevel);
+            }
         }
     }
+
 
     /**
      * Đặt lại vị trí của bóng và paddle sau khi mất mạng.
