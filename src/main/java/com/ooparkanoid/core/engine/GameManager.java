@@ -3,6 +3,7 @@ package com.ooparkanoid.core.engine;
 
 import com.ooparkanoid.object.Ball;
 import com.ooparkanoid.object.Paddle;
+import com.ooparkanoid.object.PowerUp.ExpandPaddlePowerUp;
 import com.ooparkanoid.object.PowerUp.FastBallPowerUp;
 import com.ooparkanoid.object.PowerUp.PowerUp;
 import com.ooparkanoid.object.bricks.Brick; // Import Brick
@@ -144,7 +145,7 @@ public class GameManager {
                 // Đẩy bóng lên trên paddle một chút để tránh kẹt
                 ball.setY(paddle.getY() - ball.getHeight() - 1);
 
-<<<<<<< Updated upstream
+
         // --- Xử lý Va chạm ---
         // Va chạm Ball-Walls (Tường trái, phải, trần)
         if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
@@ -165,7 +166,7 @@ public class GameManager {
             // SỬA: Dùng getDx() và getDy()
             ball.setDirection(ball.getDx(), -ball.getDy());
         }
-=======
+
                 // Tính toán tâm paddle và tâm bóng
                 double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
                 double ballCenter   = ball.getX() + ball.getWidth() / 2.0;
@@ -197,10 +198,14 @@ public class GameManager {
                         brick.takeHit(); // Gạch nhận một cú đánh
                         if (brick.isDestroyed()) {
                             // 30% tỉ lệ sinh powerup
-                            if (Math.random() < 1) {
+                            if (Math.random() < 0.3) {
                                 PowerUp p = new FastBallPowerUp(
                                         brick.getX(), brick.getY(), 50, 20, 8.0
                                 );
+                                powerUps.add(p);
+                            } else if (Math.random() < 0.7) {
+                                PowerUp p = new ExpandPaddlePowerUp(brick.getX(),
+                                        brick.getY(), 50, 20, 8.0);
                                 powerUps.add(p);
                             }
                             brickIterator.remove();
@@ -209,7 +214,6 @@ public class GameManager {
 
                         // Logic va chạm bóng với gạch (đơn giản, chỉ đảo ngược hướng Y)
                         ball.setDirection(ball.getDx(), -ball.getDy());
->>>>>>> Stashed changes
 
                         if (brick.isDestroyed()) {
                             System.out.println("Brick destroyed! Score: " + score);
@@ -234,12 +238,12 @@ public class GameManager {
             p.update(dt);
 
             if (!p.isActive() && !p.isCollected() && paddle.istersected(p)) {
-                p.applyEffect(paddle);
+                p.applyEffect();
             }
 
             // Nếu PowerUp đã hết duration -> removeEffect + xóa object
             if (p.isExpired()) {
-                p.removeEffect(paddle);
+                p.removeEffect();
                 it.remove();
             }
 
@@ -348,11 +352,10 @@ public class GameManager {
         );
 
         if (ballLaunched) {
-            newBall.setDirection(Math.random() > 0.5 ? 1 : -1, -1);
+            newBall.setDirection(Math.random() > 0.5 ? 0 : 0, -1);
         }
 
         balls.add(newBall);
-        System.out.println("Extra ball added! Total: " + balls.size());
     }
     public List<Ball> getBalls() { return balls; }
     public int getScore() { return score; }

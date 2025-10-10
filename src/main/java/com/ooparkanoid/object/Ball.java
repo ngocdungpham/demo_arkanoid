@@ -23,9 +23,7 @@ public class Ball extends MovableObject {
     }
 
     public void bounceOff (GameObject other) {
-
     }
-
     public boolean checkCollision(GameObject other) {
         return istersected(other);
     }

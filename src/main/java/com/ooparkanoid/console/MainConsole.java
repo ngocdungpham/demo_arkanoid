@@ -101,16 +101,7 @@ public class MainConsole extends Application {
                 gameManager.update(dt);
                 gameManager.render(gc);
 
-<<<<<<< Updated upstream
-                // --- Logic kiểm tra "Game Over!" có thể được đưa vào GameManager ---
-                // Tuy nhiên, nếu bạn muốn giữ nó ở đây, bạn có thể gọi:
-                // if (gameManager.isGameOver()) {
-                //     System.out.println("Game Over! Final Score: " + gameManager.getScore());
-                //     this.stop(); // Dừng AnimationTimer
-                // }
-                // Hiện tại, GameManager sẽ tự reset nếu thua.
-=======
->>>>>>> Stashed changes
+
             }
         }.start();
     }

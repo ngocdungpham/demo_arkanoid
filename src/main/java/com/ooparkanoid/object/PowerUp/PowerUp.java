@@ -1,5 +1,4 @@
 package com.ooparkanoid.object.PowerUp;
-
 import com.ooparkanoid.object.GameObject;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -16,19 +15,14 @@ public abstract class PowerUp extends GameObject {
         this.duration = duration;
     }
 
-    // Áp dụng hiệu ứng lên bất kỳ GameObject nào (Ball, Paddle, v.v.)
-    public abstract void applyEffect(GameObject target);
-
-    // Gỡ bỏ hiệu ứng
-    public abstract void removeEffect(GameObject target);
+    public abstract void applyEffect();
+    public abstract void removeEffect();
 
     // Cập nhật trạng thái power-up
     public void update(double deltaTime) {
         if (!active) {
-            // Khi chưa nhặt thì rơi xuống
             y += fallSpeed * deltaTime;
         } else {
-            // Khi đã nhặt thì đếm thời gian hiệu ứng
             timer += deltaTime;
         }
     }
