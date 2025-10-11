@@ -22,6 +22,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -229,6 +230,13 @@ public class GameSceneRoot {
                 return;
             }
 
+            if (code == KeyCode.SPACE) {
+                if (stateManager.isRunning()) {
+                    gameManager.releaseBall();
+                }
+                return;
+            }
+
             if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
             if (!pressedStack.contains(code)) {
                 pressedStack.push(code); // đưa phím mới lên đầu
@@ -245,6 +253,12 @@ public class GameSceneRoot {
                 boolean stillMoving = pressedStack.stream().anyMatch(k ->
                         k == KeyCode.A || k == KeyCode.D || k == KeyCode.LEFT || k == KeyCode.RIGHT);
                 if (!stillMoving) gameManager.getPaddle().setDx(0);
+            }
+        });
+
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (stateManager.isRunning() && event.getButton() == MouseButton.PRIMARY) {
+                gameManager.releaseBall();
             }
         });
 
@@ -296,11 +310,11 @@ public class GameSceneRoot {
         }
     }
 
-        private void handleMouseMoved(MouseEvent event) {
-            if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
-                return;
+    private void handleMouseMoved(MouseEvent event) {
+        if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
+            return;
         }
-            gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
+        gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
     }
     private void startNewGame(ActionEvent event) {
         gameManager.initializeGame();

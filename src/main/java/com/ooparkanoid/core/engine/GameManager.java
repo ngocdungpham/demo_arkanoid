@@ -36,6 +36,7 @@ public class GameManager {
     private Random random;
     private final GameStateManager stateManager;
     private boolean ballAttachedToPaddle = true; // mặc định dính khi new game/life
+    private boolean isBallLaunched;
 
     public GameManager() {
         this(new GameStateManager());
@@ -57,16 +58,23 @@ public class GameManager {
                 Constants.HEIGHT - 40
         );
 
-        // Khởi tạo Ball theo constructor hiện tại của bạn
-        // Ball sẽ bắt đầu di chuyển ngay lập tức khi được tạo
+        // Khởi tạo Ball và đặt lên paddle, chờ tín hiệu bắt đầu
         ball = new Ball(
-                Constants.WIDTH / 2.0,
-                Constants.HEIGHT / 2.0,
+//                Constants.WIDTH / 2.0,
+//                Constants.HEIGHT / 2.0,
+                paddle.getX() + paddle.getWidth() / 2.0,
+                paddle.getY() - Constants.BALL_RADIUS,
                 Constants.BALL_RADIUS,
                 Constants.BALL_SPEED, // Speed từ Constants
-                (random.nextBoolean() ? 1 : -1), // dirX ngẫu nhiên (1 hoặc -1)
-                -1 // dirY luôn hướng lên
+//                (random.nextBoolean() ? 1 : -1), // dirX ngẫu nhiên (1 hoặc -1)
+//                -1 // dirY luôn hướng lên
+//                Constants.BALL_SPEED
+                0,
+                -1
         );
+        attachBallToPaddle();
+
+        isBallLaunched = false;
 
         // Khởi tạo thông tin game
         score = 0;
@@ -75,6 +83,7 @@ public class GameManager {
         // Tạo gạch ban đầu
         bricks.clear(); // Xóa gạch cũ nếu có
         createInitialBricks(); // Hàm tạo gạch ban đầu
+        resetBallAndPaddlePosition();
 
         System.out.println("Game Initialized. Score: " + score + ", Lives: " + lives);
         stateManager.updateStats(score, lives);
@@ -116,9 +125,22 @@ public class GameManager {
         if (!stateManager.isRunning()) {
             return;
         }
-        // Cập nhật vị trí của Paddle và Ball
+        // Cập nhật vị trí của Paddle
         paddle.update(dt);
-        ball.move(dt); // Gọi move() của Ball
+//        ball.move(dt); // Gọi move() của Ball
+
+        if (ball == null) {
+            return;
+        }
+
+        if (ballAttachedToPaddle) {
+            alignBallWithPaddle();
+            return;
+        }
+
+        // Cập nhật vị trí của Ball khi đang bay
+        ball.move(dt);
+
 
         // --- Xử lý Va chạm ---
         // Va chạm Ball-Walls (Tường trái, phải, trần)
@@ -245,14 +267,49 @@ public class GameManager {
 
         // Khởi tạo lại bóng với constructor hiện có của bạn
         ball = new Ball(
-                Constants.WIDTH / 2.0,
-                Constants.HEIGHT / 2.0,
+//                Constants.WIDTH / 2.0,
+//                Constants.HEIGHT / 2.0,
+                paddle.getX() + paddle.getWidth() / 2.0,
+                paddle.getY() - Constants.BALL_RADIUS,
                 Constants.BALL_RADIUS,
                 Constants.BALL_SPEED,
-                (random.nextBoolean() ? 1 : -1),
+//                (random.nextBoolean() ? 1 : -1),
+                0,
                 -1
         );
+
+        attachBallToPaddle();
     }
+
+    private void attachBallToPaddle() {
+        ballAttachedToPaddle = true;
+        alignBallWithPaddle();
+    }
+
+    private void alignBallWithPaddle() {
+        if (ball == null || paddle == null) {
+            return;
+        }
+
+        double ballX = paddle.getX() + paddle.getWidth() / 2.0 - ball.getWidth() / 2.0;
+        double ballY = paddle.getY() - ball.getHeight();
+        ball.setPosition(ballX, ballY);
+        ball.setVelocity(0, 0);
+    }
+//    private void resetBallAndPaddlePosition() {
+//        isBallLaunched = false;
+//        double ballX = paddle.getX() + (paddle.getWidth() / 2) - Constants.BALL_RADIUS;
+//        // Vị trí Y của bóng để nằm ngay trên paddle
+//        double ballY = paddle.getY() - (Constants.BALL_RADIUS * 2) - 1;
+//
+//        ball = new Ball(
+//                ballX,
+//                ballY,
+//                Constants.BALL_RADIUS,
+//                Constants.DEFAULT_SPEED,
+//                0, 0 // Tốc độ ban đầu là 0
+//        );
+//    }
 
     /**
      * Phương thức chính để vẽ tất cả các đối tượng game lên màn hình
@@ -293,6 +350,20 @@ public class GameManager {
 
     public Ball getBall() { // Trả về ball để MainConsole có thể đọc/ghi trực tiếp nếu cần
         return ball;
+    }
+
+    public boolean isBallAttachedToPaddle() {
+        return ballAttachedToPaddle;
+    }
+
+    public void releaseBall() {
+        if (ball == null || paddle == null || !stateManager.isRunning() || !ballAttachedToPaddle) {
+            return;
+        }
+
+        ballAttachedToPaddle = false;
+        double dirX = random.nextBoolean() ? 1 : -1;
+        ball.setDirection(dirX, -1);
     }
 
     // Các getters để MainConsole có thể đọc thông tin game (score, lives)
