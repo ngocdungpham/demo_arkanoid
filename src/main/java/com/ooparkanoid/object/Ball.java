@@ -65,8 +65,12 @@ public class Ball extends MovableObject {
     }
 
     public void setPosition(double ballX, double ballY) {
+        this.x = ballX;
+        this.y = ballY;
     }
 
     public void setVelocity(double ballDX, double ballDY) {
+        this.dx = ballDX;
+        this.dy = ballDY;
     }
 }

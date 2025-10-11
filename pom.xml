@@ -41,7 +41,7 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.ooparkanoid.console.MainConsole</mainClass>
-<!--                    <mainClass>com.ooparkanoid.Test</mainClass>-->
+<!--                    <mainClass>com.ooparkanoid.ui.GameSceneRoot</mainClass>-->
                 </configuration>
             </plugin>
         </plugins>
