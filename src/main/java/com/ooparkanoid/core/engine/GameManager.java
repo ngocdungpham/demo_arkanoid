@@ -148,23 +148,63 @@ public class GameManager {
 
         // --- Xử lý Va chạm ---
         // Va chạm Ball-Walls (Tường trái, phải, trần)
-        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
-            // SỬA: Dùng getDx() và getDy()
+//        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
+//            // SỬA: Dùng getDx() và getDy()
+//            ball.setDirection(-ball.getDx(), ball.getDy());
+//        }
+//        if (ball.getY() <= 0) { // Va chạm trần
+//            // SỬA: Dùng getDx() và getDy()
+//            ball.setDirection(ball.getDx(), -ball.getDy());
+//        }
+        // Trái
+        if (ball.getX() <= 0) {
+            ball.setX(0);
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-        if (ball.getY() <= 0) { // Va chạm trần
-            // SỬA: Dùng getDx() và getDy()
+// Phải
+        if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
+            ball.setX(Constants.WIDTH - ball.getWidth());
+            ball.setDirection(-ball.getDx(), ball.getDy());
+        }
+// Trần
+        if (ball.getY() <= 0) {
+            ball.setY(0);
             ball.setDirection(ball.getDx(), -ball.getDy());
         }
 
         // Va chạm Ball-Paddle
-        if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
-            // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
-            ball.setY(paddle.getY() - ball.getHeight());
+//        if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
+//            // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
+//            ball.setY(paddle.getY() - ball.getHeight());
+//
+//            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
+//            // SỬA: Dùng getDx() và getDy()
+//            ball.setDirection(ball.getDx(), -ball.getDy());
+//        }
+        // Va chạm Ball-Paddle
+        if (ball.istersected(paddle)) { // Giả sử bạn có hàm intersects()
+            // Đẩy bóng lên trên paddle một chút để tránh kẹt
+            ball.setY(paddle.getY() - ball.getHeight() - 1);
 
-            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
-            // SỬA: Dùng getDx() và getDy()
-            ball.setDirection(ball.getDx(), -ball.getDy());
+            // Tính toán tâm paddle và tâm bóng
+            double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
+            double ballCenter   = ball.getX() + ball.getWidth() / 2.0;
+
+            // Xác định độ lệch của bóng so với tâm paddle [-1..1]
+            double relativeIntersect = (ballCenter - paddleCenter) / (paddle.getWidth() / 2.0);
+
+            // Giới hạn góc nảy tối đa (±60°)
+            double maxBounceAngle = Math.toRadians(60);
+            double bounceAngle = relativeIntersect * maxBounceAngle;
+
+            // Giữ nguyên tốc độ bóng (nên có hằng số speed hoặc hàm getSpeed())
+            double speed = Constants.DEFAULT_SPEED;
+
+            // Cập nhật vận tốc mới dựa trên góc nảy
+            double newDx = speed * Math.sin(bounceAngle);
+            double newDy = -Math.abs(speed * Math.cos(bounceAngle)); // đảm bảo luôn đi lên
+
+            ball.setDirection(newDx, newDy);
         }
 
                 // Tính toán tâm paddle và tâm bóng
@@ -360,4 +400,8 @@ public class GameManager {
     public List<Ball> getBalls() { return balls; }
     public int getScore() { return score; }
     public int getLives() { return lives; }
+
+//    public boolean isGameOver() {
+//
+//    }
 }
