@@ -54,4 +54,34 @@ public class Ball extends MovableObject {
     public double getSpeed() {
         return speed;
     }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+
+    public double getDirX() {
+        return dirX;
+    }
+
+    public void setDirX(double dirX) {
+        this.dirX = dirX;
+    }
+
+    public double getDirY() {
+        return dirY;
+    }
+
+    public void setDirY(double dirY) {
+        this.dirY = dirY;
+    }
+
+    public void setPosition(double ballX, double ballY) {
+    }
+
+    public void setVelocity(double ballDX, double ballDY) {
+    }
 }
