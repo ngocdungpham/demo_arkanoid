@@ -39,4 +39,38 @@ public class Ball extends MovableObject {
     public void render(GraphicsContext gc) {
         gc.fillOval(x, y, width, height);
     }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+
+    public double getDirX() {
+        return dirX;
+    }
+
+    public void setDirX(double dirX) {
+        this.dirX = dirX;
+    }
+
+    public double getDirY() {
+        return dirY;
+    }
+
+    public void setDirY(double dirY) {
+        this.dirY = dirY;
+    }
+
+    public void setPosition(double ballX, double ballY) {
+        this.x = ballX;
+        this.y = ballY;
+    }
+
+    public void setVelocity(double ballDX, double ballDY) {
+        this.dx = ballDX;
+        this.dy = ballDY;
+    }
 }

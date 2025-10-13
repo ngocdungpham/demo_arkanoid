@@ -1,18 +1,19 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
-import com.ooparkanoid.ui.MenuScene;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import com.ooparkanoid.core.engine.GameManager; // Import GameManager
+import com.ooparkanoid.core.state.GameState;
+import com.ooparkanoid.ui.GameSceneRoot;
+import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -24,41 +25,33 @@ import java.util.Deque;
 public class MainConsole extends Application {
     // Không còn paddle và ball trực tiếp ở đây, mà sẽ thông qua GameManager
     private GameManager gameManager;
+    private GameStateManager stateManager;
     // GraphicsContext vẫn giữ ở đây để MainConsole có thể truyền cho GameManager
     private GraphicsContext gc;
-    private AnimationTimer gameLoop;
+
     @Override
     public void start(Stage stage) {
-//        stage.setTitle("Arkanoid - Simple Brick Game");
-//        Group root = new Group();
-//        Canvas canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
-//        root.getChildren().add(canvas);
-//        Scene scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
-//        stage.setScene(scene);
-//        stage.setResizable(false); // Thường là không cho thay đổi kích thước cửa sổ game
-//        stage.show();
-        gameManager = new GameManager();
+        stage.setTitle("Arkanoid - Simple Brick Game");
 
-        // Tạo màn hình menu
-        MenuScene menuScene = new MenuScene(stage, () -> {
-            stage.setScene(createScene(stage));
-        });
-
-        // Hiển thị menu ban đầu
-        stage.setScene(menuScene);
-        stage.setTitle("Arkanoid Plus");
-        stage.setResizable(false);
-        stage.show();
-    }
-    private Scene createScene(Stage stage) {
         Group root = new Group();
+        GameSceneRoot gameSceneRoot = new GameSceneRoot();
+
         Canvas canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
         root.getChildren().add(canvas);
         Scene scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
+
+//        stage.setScene(scene);
+        stage.setScene(gameSceneRoot.getScene());
+
+        stage.setResizable(false); // Thường là không cho thay đổi kích thước cửa sổ game
+        stage.show();
+
         gc = canvas.getGraphicsContext2D();
 
-        //gameManager = new GameManager(); // Khởi tạo GameManager
+        stateManager = new GameStateManager();
+        gameManager = new GameManager(stateManager); // Khởi tạo GameManager
         gameManager.initializeGame();
+        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
 
         Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
@@ -68,27 +61,35 @@ public class MainConsole extends Application {
             if (!pressedStack.contains(code)) {
                 pressedStack.push(code); // đưa lên đầu stack
             }
-            if (code == KeyCode.SPACE) {
-                gameManager.launchBall();
-            }
         });
 
         scene.setOnKeyReleased(e -> {
             pressedStack.remove(e.getCode()); // xóa khỏi stack
         });
 
-        scene.setOnMouseClicked((MouseEvent event) -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                gameManager.launchBall();
-            }
-        });
+
+        // Xử lý đầu vào bàn phím (sẽ gọi các phương thức trên paddle thông qua GameManager)
+//        scene.setOnKeyPressed((KeyEvent event) -> {
+//            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT) {
+//                gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
+//            } else if (event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
+//                gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
+//            }
+//        });
+//        scene.setOnKeyReleased((KeyEvent event) -> {
+//            if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT ||
+//                    event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
+//                gameManager.getPaddle().setDx(0);
+//            }
+//        });
+
         // Xử lý đầu vào chuột (sẽ gọi các phương thức trên paddle thông qua GameManager)
         scene.setOnMouseMoved((MouseEvent event) -> {
             gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
         });
 
         // Vòng lặp game chính
-        gameLoop = new AnimationTimer() {
+        new AnimationTimer() {
             long last = 0;
 
             @Override
@@ -97,13 +98,17 @@ public class MainConsole extends Application {
                     last = now;
                     return;
                 }
+
+
                 if (!pressedStack.isEmpty()) {
                     KeyCode key = pressedStack.peek(); // lấy phím mới nhất
                     if (key == KeyCode.A || key == KeyCode.LEFT) {
-                        gameManager.getPaddle().setDx(-Constants.DEFAULT_SPEED);
+                        gameManager.getPaddle().setDx(-Constants.PADDLE_SPEED);
+                        System.out.println(pressedStack);
                     } else if (key == KeyCode.D || key == KeyCode.RIGHT) {
-                        gameManager.getPaddle().setDx(Constants.DEFAULT_SPEED);
-                    }else{
+                        gameManager.getPaddle().setDx(Constants.PADDLE_SPEED);
+                        System.out.println(pressedStack);
+                    } else {
                         gameManager.getPaddle().setDx(0);
                     }
                 } else {
@@ -117,19 +122,26 @@ public class MainConsole extends Application {
                 gameManager.update(dt);
                 gameManager.render(gc);
 
+                gc.setFill(Color.WHITE);
+//                gc.fillText("Score: " + stateManager.getScore(), 10, 20);
+//                gc.fillText("Lives: " + stateManager.getLives(), 10, 40);
+
+                if (stateManager.getCurrentState() == GameState.GAME_OVER) {
+                    gameManager.initializeGame();
+                    stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+                }
+
                 // --- Logic kiểm tra "Game Over!" có thể được đưa vào GameManager ---
                 // Tuy nhiên, nếu bạn muốn giữ nó ở đây, bạn có thể gọi:
-                // if (gameManager.isGameOver()) {
-                //     System.out.println("Game Over! Final Score: " + gameManager.getScore());
-                //     this.stop(); // Dừng AnimationTimer
-                // }
+//                 if (gameManager.isGameOver()) {
+//                     System.out.println("Game Over! Final Score: " + gameManager.getScore());
+//                     this.stop(); // Dừng AnimationTimer
+//                 }
                 // Hiện tại, GameManager sẽ tự reset nếu thua.
-
             }
-        };
-        gameLoop.start();
-        return scene;
+        }.start();
     }
+
     public static void main(String[] args) {
         launch();
     }
