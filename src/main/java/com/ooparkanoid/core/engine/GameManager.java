@@ -16,7 +16,7 @@ import com.ooparkanoid.core.save.SaveService;
 
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
-//import javafx.scene.paint.Color;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +44,6 @@ public class GameManager {
     private boolean ballAttachedToPaddle = true; // mặc định dính khi new game/life
 
     public GameManager() {
-        instance = this;
         this(new GameStateManager());
     }
     public GameManager(GameStateManager stateManager) {
@@ -307,7 +306,6 @@ public class GameManager {
                 stateManager.setStatusMessage("Game Over! Final Score: " + score);
                 stateManager.markGameOver();
                 return;
-                initializeGame();
             } else {
 
                 // Đặt lại bóng và paddle về vị trí ban đầu sau khi mất mạng

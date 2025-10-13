@@ -226,9 +226,13 @@ public class GameSceneRoot {
                     gameManager.initializeGame();
                     stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
                 }
+                gameManager.launchBall();
                 return;
             }
-
+            if (code == KeyCode.B) {
+                gameManager.spawnExtraBall();
+                return;
+            }
             if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
             if (!pressedStack.contains(code)) {
                 pressedStack.push(code); // đưa phím mới lên đầu
