@@ -243,7 +243,7 @@ public class GameManager {
         g.setFill(Color.WHITE);
         g.fillText("Score: " + score, 10, 20);
         g.fillText("Lives: " + lives, 10, 40);
-        // Không hiển thị Level vì không có khái niệm level phức tạp
+        // Không higển thị Level vì không có khái niệm level phức tạp
     }
 
     // --- Getters cần thiết để MainConsole có thể tương tác với Paddle và Ball ---
