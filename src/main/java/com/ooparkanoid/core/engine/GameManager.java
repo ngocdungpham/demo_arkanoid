@@ -371,7 +371,7 @@ public class GameManager {
      * Bóng sẽ bắt đầu di chuyển ngay lập tức.
      */
     private void resetBallAndPaddlePosition() {
-//        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
+        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
         paddle.setDx(0); // Dừng paddle
 
         // Khởi tạo lại bóng với constructor hiện có của bạn
