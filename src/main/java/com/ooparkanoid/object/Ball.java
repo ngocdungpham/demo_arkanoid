@@ -5,7 +5,6 @@ import javafx.scene.canvas.GraphicsContext;
 public class Ball extends MovableObject {
     private double speed;
     private double dirX, dirY;      // Normalized Direction Vector;
-    private boolean isSticky = false;// dích paddle
     // Constructor
     public Ball(double x, double y, double radius,  double speed, double dirX, double dirY) {
         super(x - radius, y - radius, radius*2, radius*2, 0, 0);
@@ -21,19 +20,6 @@ public class Ball extends MovableObject {
         this.dx = dirX * speed;
         this.dy = dirY * speed;
     }
-
-    public void bounceOff (GameObject other) {
-    }
-    public boolean checkCollision(GameObject other) {
-        return istersected(other);
-    }
-
-    @Override
-    public void move(double deltaTime){
-        x += deltaTime * dx;
-        y += deltaTime * dy;
-    }
-
     @Override
     public void update(double deltaTime){
         move(deltaTime);
@@ -72,8 +58,12 @@ public class Ball extends MovableObject {
     }
 
     public void setPosition(double ballX, double ballY) {
+        this.x = ballX;
+        this.y = ballY;
     }
 
     public void setVelocity(double ballDX, double ballDY) {
+        this.dx = ballDX;
+        this.dy = ballDY;
     }
 }

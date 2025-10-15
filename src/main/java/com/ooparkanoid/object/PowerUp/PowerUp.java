@@ -3,49 +3,54 @@ import com.ooparkanoid.object.GameObject;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public abstract class PowerUp extends GameObject {
-    protected boolean active = false;     // Đang có hiệu lực hay không
-    protected boolean collected = false;  // Đã được nhặt chưa
-    protected double duration;            // Thời gian hiệu ứng còn lại
-    protected double timer = 0;           // Đếm thời gian trôi
-    protected double fallSpeed = 100;     // Tốc độ rơi xuống
+public class PowerUp extends GameObject {
+    private final PowerUpEffect effect;
+    private final Color color;
+    private final double duration;
+    private boolean collected = false;
+    private double fallSpeed = 100;
 
-    public PowerUp(double x, double y, double w, double h, double duration) {
+    public PowerUp(double x, double y, double w, double h,
+                   PowerUpEffect effect, Color color, double duration) {
         super(x, y, w, h);
+        this.effect = effect;
+        this.color = color;
         this.duration = duration;
     }
 
-    public abstract void applyEffect();
-    public abstract void removeEffect();
-
-    // Cập nhật trạng thái power-up
     public void update(double deltaTime) {
-        if (!active) {
+        if (!collected) {
             y += fallSpeed * deltaTime;
-        } else {
-            timer += deltaTime;
         }
     }
 
-    // Kiểm tra xem hiệu ứng đã hết thời gian chưa
-    public boolean isExpired() {
-        return active && timer >= duration;
-    }
-
-    // Kích hoạt khi được nhặt
     public void collect() {
-        this.collected = true;
-        this.active = true;
-        this.timer = 0;
+        collected = true;
     }
 
-    public boolean isActive() { return active; }
-    public boolean isCollected() { return collected; }
+    public boolean isCollected() {
+        return collected;
+    }
+
+    public PowerUpEffect getEffect() {
+        return effect;
+    }
+
+    public double getDuration() {
+        return duration;
+    }
 
     @Override
     public void render(GraphicsContext gc) {
-        if (collected) return; // Không vẽ nếu đã được nhặt
-        gc.setFill(Color.BLUE);
-        gc.fillRect(x, y, width, height);
+        if (!collected) {
+            // Vẽ nền
+            gc.setFill(color);
+            gc.fillRect(x, y, width, height);
+
+            // Vẽ border trắng
+            gc.setStroke(Color.WHITE);
+            gc.setLineWidth(2);
+            gc.strokeRect(x, y, width, height);
+        }
     }
 }

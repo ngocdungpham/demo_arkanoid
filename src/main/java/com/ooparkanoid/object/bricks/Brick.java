@@ -13,6 +13,7 @@ public abstract class Brick extends GameObject {
         NORMAL,
         STRONG,
         // TODO: Thêm các loại gạch đặc biệt khác ở đây (ví dụ: INDESTRUCTIBLE, EXPLOSIVE)
+        INDESTRUCTIBLE //Thêm loại gạch mới
     }
 
     protected int hitPoints;
@@ -27,7 +28,8 @@ public abstract class Brick extends GameObject {
     }
 
     public void takeHit() {
-        if (!destroyed) {
+        //Chỉ giảm hitPoints nếu không phải INDESTRUCTIBLE
+        if (!destroyed && type != BrickType.INDESTRUCTIBLE) {
             hitPoints--;
             if (hitPoints <= 0) {
                 destroyed = true;

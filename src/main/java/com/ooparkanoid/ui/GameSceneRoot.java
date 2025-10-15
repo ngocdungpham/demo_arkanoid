@@ -254,6 +254,11 @@ public class GameSceneRoot {
 
         scene.setOnMouseMoved(this::handleMouseMoved);
         // đảm bảo scene có focus khi đóng overlay
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            if (e.isPrimaryButtonDown() && stateManager.isRunning()) {
+                gameManager.launchBall();
+            }
+        });
         scene.getRoot().requestFocus();
     }
 
