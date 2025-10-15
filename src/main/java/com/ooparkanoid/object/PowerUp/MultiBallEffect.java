@@ -37,8 +37,6 @@ public class MultiBallEffect implements PowerUpEffect {
             currentBalls.add(newBall);
             spawnedBalls.add(newBall);
         }
-
-        System.out.println("🎱 MultiBall: Spawned " + extraBalls + " extra balls!");
     }
 
     @Override

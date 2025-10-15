@@ -28,7 +28,6 @@ public class PowerUpFactory {
      */
     public static PowerUp createRandomPowerUp(double x, double y) {
         boolean isBuff = random.nextDouble() < 0.75; // 75% buff
-
         if (isBuff) {
             PowerUpType[] buffs = {
                     PowerUpType.FAST_BALL,

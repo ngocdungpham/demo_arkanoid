@@ -19,7 +19,6 @@ public class ExpandPaddleEffect implements PowerUpEffect {
         }
         // Set width dựa trên original width
         paddle.setWidth(originalWidth * scaleFactor);
-        System.out.println("🟢 ExpandPaddle effect applied!");
     }
 
     @Override
@@ -29,7 +28,6 @@ public class ExpandPaddleEffect implements PowerUpEffect {
             paddle.setWidth(originalWidth);
         }
         originalWidth = -1;
-        System.out.println("🟢 ExpandPaddle effect removed!");
     }
 
     @Override

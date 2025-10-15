@@ -24,7 +24,6 @@ public class FastBallEffect implements PowerUpEffect {
             // Set tốc độ mới dựa trên tốc độ GỐC (không phải tốc độ hiện tại)
             ball.setSpeed(originalSpeeds.get(ball) * speedMultiplier);
         }
-        System.out.println("⚡ FastBall effect applied!");
     }
 
     @Override
@@ -38,7 +37,6 @@ public class FastBallEffect implements PowerUpEffect {
             }
         }
         originalSpeeds.clear();
-        System.out.println("⚡ FastBall effect removed!");
     }
 
     @Override

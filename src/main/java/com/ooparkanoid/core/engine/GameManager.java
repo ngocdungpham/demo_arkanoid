@@ -62,7 +62,7 @@ public class GameManager {
         this.stateManager = stateManager;
         bricks = new ArrayList<>();
         random = new Random();
-        initializeGame(); // Gọi hàm khởi tạo game
+        initializeGame();
     }
 
     public static GameManager getInstance() {
@@ -333,7 +333,7 @@ public class GameManager {
 
     }
 
-    // ===== POWERUP UPDATE LOGIC =====
+    // POWERUP UPDATE LOGIC
     private void updatePowerUps(double dt) {
         Iterator<PowerUp> it = powerUps.iterator();
 
@@ -410,10 +410,6 @@ public class GameManager {
         for (PowerUp p : powerUps) {
             p.render(g);
         }
-        // Hiển thị thông tin game
-        g.setFill(Color.WHITE);
-        g.fillText("Score: " + score, 10, 20);
-        g.fillText("Lives: " + lives, 10, 40);
 
         // Không hiển thị Level vì không có khái niệm level phức tạp
         // ===== DISPLAY ACTIVE EFFECTS =====

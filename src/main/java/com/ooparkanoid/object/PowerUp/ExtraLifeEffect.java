@@ -10,7 +10,6 @@ public class ExtraLifeEffect implements PowerUpEffect {
     @Override
     public void apply(GameContext context) {
         context.addLives(livesToAdd);
-        System.out.println("❤️ Extra Life! +" + livesToAdd + " lives");
     }
 
     @Override

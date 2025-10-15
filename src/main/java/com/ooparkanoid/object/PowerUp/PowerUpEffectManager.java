@@ -17,12 +17,10 @@ public class PowerUpEffectManager {
         if (existing != null) {
             // Chỉ reset timer, KHÔNG apply lại effect
             existing.resetTimer(duration);
-            System.out.println("🔄 " + type + " refreshed! Duration reset to " + duration + "s");
         } else {
             // Apply effect mới
             effect.apply(context);
             activeEffects.put(type, new ActiveEffect(effect, duration));
-            System.out.println("✨ " + type + " activated! Duration: " + duration + "s");
         }
     }
 
@@ -53,7 +51,6 @@ public class PowerUpEffectManager {
             entry.getValue().getEffect().remove(context);
         }
         activeEffects.clear();
-        System.out.println("🧹 All effects cleared");
     }
 
     public boolean isEffectActive(String effectType) {

@@ -22,7 +22,6 @@ public class SlowBallEffect implements PowerUpEffect {
             }
             ball.setSpeed(originalSpeeds.get(ball) * speedMultiplier);
         }
-        System.out.println("🐌 SlowBall effect applied!");
     }
 
     @Override
@@ -36,7 +35,6 @@ public class SlowBallEffect implements PowerUpEffect {
             }
         }
         originalSpeeds.clear();
-        System.out.println("🐌 SlowBall effect removed!");
     }
 
     @Override
