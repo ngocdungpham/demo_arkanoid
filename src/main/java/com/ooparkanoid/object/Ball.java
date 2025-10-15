@@ -46,6 +46,9 @@ public class Ball extends MovableObject {
 
     public void setSpeed(double speed) {
         this.speed = speed;
+        // Maintain the current direction when adjusting the speed
+        this.dx = dirX * speed;
+        this.dy = dirY * speed;
     }
 
     public double getDirX() {

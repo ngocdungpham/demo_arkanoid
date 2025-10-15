@@ -10,6 +10,7 @@ public class PowerUp extends GameObject {
     private boolean collected = false;
     private double fallSpeed = 100;
 
+
     public PowerUp(double x, double y, double w, double h,
                    PowerUpEffect effect, Color color, double duration) {
         super(x, y, w, h);
@@ -18,6 +19,7 @@ public class PowerUp extends GameObject {
         this.duration = duration;
     }
 
+    @Override
     public void update(double deltaTime) {
         if (!collected) {
             y += fallSpeed * deltaTime;

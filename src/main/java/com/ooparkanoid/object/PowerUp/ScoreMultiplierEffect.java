@@ -9,11 +9,13 @@ public class ScoreMultiplierEffect implements PowerUpEffect {
 
     @Override
     public void apply(GameContext context) {
+        context.setScoreMultiplier(multiplier);
         System.out.println("💰 Score Multiplier x" + multiplier + " activated!");
     }
 
     @Override
     public void remove(GameContext context) {
+        context.setScoreMultiplier(1.0);
         System.out.println("💰 Score Multiplier expired!");
     }
 
