@@ -206,7 +206,6 @@ public class GameManager {
         }
         // Cập nhật vị trí của Paddle
         paddle.update(dt);
-//        ball.move(dt); // Gọi move() của Ball
 
         if (ball == null) {
             return;
@@ -217,50 +216,32 @@ public class GameManager {
             return;
         }
 
-        // Cập nhật vị trí của Ball khi đang bay
-        ball.move(dt);
+        // Tính toán vị trí tiếp theo của bóng
+        double nextBallX = ball.getX() + ball.getDx() * dt;
+        double nextBallY = ball.getY() + ball.getDy() * dt;
 
+        // --- Xử lý Va chạm với Tường và Paddle ---
 
-        // --- Xử lý Va chạm ---
-        // Va chạm Ball-Walls (Tường trái, phải, trần)
-//        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= Constants.WIDTH) {
-//            // SỬA: Dùng getDx() và getDy()
-//            ball.setDirection(-ball.getDx(), ball.getDy());
-//        }
-//        if (ball.getY() <= 0) { // Va chạm trần
-//            // SỬA: Dùng getDx() và getDy()
-//            ball.setDirection(ball.getDx(), -ball.getDy());
-//        }
-        // Trái
-        if (ball.getX() <= 0) {
+        // Va chạm với Tường
+        if (nextBallX <= 0) {
             ball.setX(0);
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-        // Phải
-        if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
+        if (nextBallX + ball.getWidth() >= Constants.WIDTH) {
             ball.setX(Constants.WIDTH - ball.getWidth());
             ball.setDirection(-ball.getDx(), ball.getDy());
         }
-        // Trần
-        if (ball.getY() <= 0) {
+        if (nextBallY <= 0) {
             ball.setY(0);
             ball.setDirection(ball.getDx(), -ball.getDy());
         }
 
-        // Va chạm Ball-Paddle
-//        if (ball.istersected(paddle)) { // Sử dụng istersected của Ball
-//            // Đảm bảo bóng không bị kẹt trong paddle bằng cách đẩy bóng lên
-//            ball.setY(paddle.getY() - ball.getHeight());
-//
-//            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
-//            // SỬA: Dùng getDx() và getDy()
-//            ball.setDirection(ball.getDx(), -ball.getDy());
-//        }
-        // Va chạm Ball-Paddle
-        if (ball.intersected(paddle)) { // Giả sử bạn có hàm intersects()
-            // Đẩy bóng lên trên paddle một chút để tránh kẹt
+        // Va chạm với Paddle (Sử dụng kiểm tra va chạm liên tục)
+        if (ball.getDy() > 0 && nextBallY + ball.getHeight() >= paddle.getY() && ball.intersected(paddle)) {
+            // Đẩy bóng lên trên một chút để tránh kẹt
             ball.setY(paddle.getY() - ball.getHeight() - 1);
 
+            // Tính toán góc nảy (đơn giản, chỉ đảo hướng Y)
             // Tính toán tâm paddle và tâm bóng
             double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
             double ballCenter   = ball.getX() + ball.getWidth() / 2.0;
@@ -282,34 +263,29 @@ public class GameManager {
             ball.setDirection(newDx, newDy);
         }
 
-        // Va chạm Ball-Bricks
-        // Sử dụng Iterator để có thể xóa gạch an toàn trong vòng lặp
+        // Cập nhật vị trí của Ball khi đang bay
+        ball.move(dt);
+
+        // --- Va chạm với Bricks ---
         Iterator<Brick> brickIterator = bricks.iterator();
         while (brickIterator.hasNext()) {
             Brick brick = brickIterator.next();
-            if (!brick.isDestroyed()) { // Chỉ kiểm tra va chạm với gạch chưa bị phá hủy
-                if (ball.intersected(brick)) { // Sử dụng istersected của Ball
-                    brick.takeHit(); // Gạch nhận một cú đánh
+            if (!brick.isDestroyed()) {
+                // Kiểm tra va chạm với brick
+                if (ball.intersected(brick)) {
+                    // Xử lý va chạm
+                    brick.takeHit();
                     if (brick.isDestroyed()) {
-                        score += 10;     // Tăng điểm
+                        score += 10;
                         stateManager.updateStats(score, lives);
                         System.out.println("Brick destroyed! Score: " + score);
-                        brickIterator.remove(); // Xóa gạch đã bị phá hủy
+                        brickIterator.remove();
                     } else if (brick.getType() == Brick.BrickType.INDESTRUCTIBLE) {
                         System.out.println("Indestructible brick hit!");
                     }
 
-
-                    // Logic va chạm bóng với gạch (đơn giản, chỉ đảo ngược hướng Y)
-                    // SỬA: Dùng getDx() và getDy()
+                    // Đảo ngược hướng Y của bóng sau khi va chạm
                     ball.setDirection(ball.getDx(), -ball.getDy());
-
-//                    if (brick.isDestroyed()) {
-//                        System.out.println("Brick destroyed! Score: " + score);
-//                        brickIterator.remove(); // Xóa gạch đã bị phá hủy khỏi danh sách
-//                    }
-                    // Giả định bóng chỉ va chạm với một gạch mỗi frame để đơn giản
-                    break;
                 }
             }
         }
@@ -321,27 +297,16 @@ public class GameManager {
             stateManager.updateStats(score, lives);
             if (lives <= 0) {
                 System.out.println("Game Over! Final Score: " + score);
-//                initializeGame(); // Reset game hoàn toàn sau khi Game Over
                 stateManager.setStatusMessage("Game Over! Final Score: " + score);
                 stateManager.markGameOver();
                 return;
             } else {
-
-                // Đặt lại bóng và paddle về vị trí ban đầu sau khi mất mạng
                 resetBallAndPaddlePosition();
                 stateManager.setStatusMessage("Lives remaining: " + lives);
             }
         }
 
         // Kiểm tra tất cả gạch đã bị phá hủy (điều kiện chiến thắng)
-//        if (bricks.isEmpty()) {
-//            System.out.println("You cleared all bricks! Final Score: " + score);
-////            initializeGame(); // Reset game để chơi lại
-//            stateManager.setStatusMessage("You cleared all bricks! Final Score: " + score);
-//            stateManager.markGameOver();
-//            return;
-//        }
-
         boolean allDestroyableBricksDestroyed = true;
         for (Brick brick : bricks) {
             if (brick.getType() != Brick.BrickType.INDESTRUCTIBLE && !brick.isDestroyed()) {
@@ -351,19 +316,17 @@ public class GameManager {
         }
         if (allDestroyableBricksDestroyed) {
             System.out.println("You cleared all destroyable bricks! Final Score: " + score);
-            // Chuyển level
             currentLevel++;
-            if (currentLevel > Constants.MAX_LEVELS) { // Kiểm tra nếu đã hết các level
+            if (currentLevel > Constants.MAX_LEVELS) {
                 System.out.println("Congratulations! All levels completed!");
-                initializeGame(); // Reset game
+                initializeGame();
             } else {
-                bricks.clear(); // Xóa gạch cũ
-                loadLevel(currentLevel); // Tải level mới
-                resetBallAndPaddlePosition(); // Đặt lại bóng/paddle cho level mới
+                bricks.clear();
+                loadLevel(currentLevel);
+                resetBallAndPaddlePosition();
                 System.out.println("Starting Level " + currentLevel);
             }
         }
-
     }
 
     /**

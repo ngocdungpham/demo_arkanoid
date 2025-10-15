@@ -30,10 +30,10 @@ public class MainConsole extends Application {
     private Stage stage;
     private GameSceneRoot gameSceneRoot;
     // Không còn paddle và ball trực tiếp ở đây, mà sẽ thông qua GameManager
-   // private GameManager gameManager;
- //   private GameStateManager stateManager;
+    // private GameManager gameManager;
+    //   private GameStateManager stateManager;
     // GraphicsContext vẫn giữ ở đây để MainConsole có thể truyền cho GameManager
-  //  private GraphicsContext gc;
+    //  private GraphicsContext gc;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -89,7 +89,6 @@ public class MainConsole extends Application {
     private void startGame() {
         gameSceneRoot = new GameSceneRoot();
         stage.setScene(gameSceneRoot.getScene());
-        gameSceneRoot.startLoop();
 
     }
 

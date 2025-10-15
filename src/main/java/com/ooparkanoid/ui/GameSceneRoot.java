@@ -56,13 +56,10 @@ public class GameSceneRoot {
     private Label messageLabel;
     private Button continueButton;
 
-
     private StackPane menuOverlay;
 
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
     WritableImage cachedFrame;
-
-
 
     public GameSceneRoot() {
         stateManager = new GameStateManager();
@@ -83,10 +80,7 @@ public class GameSceneRoot {
         setupStateListeners();
         setupInputHandlers();
 
-      //  gameLoop = createGameLoop();
-
-        stateManager.resetToMenu();
-      //  gameLoop.start();
+        gameLoop = createGameLoop();
     }
 
     private void configureBackground() {
@@ -151,15 +145,18 @@ public class GameSceneRoot {
         messageLabel.setAlignment(Pos.CENTER);
         messageLabel.getStyleClass().add("overlay-subtitle");
 
-        Button newGameButton = createMenuButton("New game", this::startNewGame);
-        Button gameModeButton = createMenuButton("Game mode", e ->
-                AlertBox.display("Game mode", "Classic brick breaking mode. Destroy all bricks to win."));
-        Button howToPlayButton = createMenuButton("How to play", e ->
-                AlertBox.display("How to play", "Use A/D or the arrow keys to move the paddle. Keep the ball from falling!\nPress ESC to pause."));
-        Button infoButton = createMenuButton("Information", e ->
-                AlertBox.display("About", "Arkanoid demo built with JavaFX."));
-        Button exitButton = createMenuButton("Exit game", e -> Platform.exit());
-        continueButton = createMenuButton("Continue", e -> stateManager.resumeGame());
+        Button newGameButton = UiKit.btnPrimary("New game");
+        newGameButton.setOnAction(this::startNewGame);
+        Button gameModeButton = UiKit.btnPrimary("Game mode");
+        gameModeButton.setOnAction(e -> AlertBox.display("Game mode", "Classic brick breaking mode. Destroy all bricks to win."));
+        Button howToPlayButton = UiKit.btnPrimary("How to play");
+        howToPlayButton.setOnAction(e -> AlertBox.display("How to play", "Use A/D or the arrow keys to move the paddle. Keep the ball from falling!\nPress ESC to pause."));
+        Button infoButton = UiKit.btnPrimary("Information");
+        infoButton.setOnAction(e -> AlertBox.display("About", "Arkanoid demo built with JavaFX."));
+        Button exitButton = UiKit.btnPrimary("Exit game");
+        exitButton.setOnAction(e -> Platform.exit());
+        continueButton = UiKit.btnPrimary("Continue");
+        continueButton.setOnAction(e -> stateManager.resumeGame());
 
         BooleanBinding canContinue = Bindings.createBooleanBinding(
                 stateManager::canContinue,
@@ -209,6 +206,13 @@ public class GameSceneRoot {
                     stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
                 }
             }
+
+            // Bắt đầu hoặc dừng vòng lặp trò chơi dựa trên trạng thái mới
+            if (newState == GameState.RUNNING) {
+                gameLoop.start();
+            } else {
+                gameLoop.stop();
+            }
         });
     }
 
@@ -245,10 +249,12 @@ public class GameSceneRoot {
             if (!pressedStack.contains(code)) {
                 pressedStack.push(code); // đưa phím mới lên đầu
             }
+
         });
 
         scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
-            pressedStack.remove(e.getCode());
+                    pressedStack.remove(e.getCode());
+
             // nếu nhả A/D/LEFT/RIGHT mà không còn phím di chuyển nào -> dừng paddle
             if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
             KeyCode code = e.getCode();
@@ -271,82 +277,41 @@ public class GameSceneRoot {
         scene.getRoot().requestFocus();
     }
 
-    public void startLoop() {
-        gameLoop = new AnimationTimer() {
-            long last = 0;
+    // Đã thay thế startLoop() bằng createGameLoop() và gọi nó trong setupStateListeners()
+    private AnimationTimer createGameLoop() {
+        return new AnimationTimer() {
+            private long lastUpdate = 0L;
 
             @Override
             public void handle(long now) {
-                if (last == 0) {
-                    last = now;
+                if (lastUpdate == 0L) {
+                    lastUpdate = now;
                     return;
                 }
-                double dt = (now - last) / 1e9;
+
+                double dt = (now - lastUpdate) / 1e9;
                 update(dt);
                 render();
-                last = now;
+                lastUpdate = now;
             }
         };
-        gameLoop.start();
     }
 
-    public void stopLoop() {
-        if (gameLoop != null) gameLoop.stop();
-    }
-
-//    private AnimationTimer createGameLoop() {
-//        return new AnimationTimer() {
-//            private long lastUpdate = 0L;
-//            @Override
-//            public void handle(long now) {
-//                if (lastUpdate == 0L) {
-//                    lastUpdate = now;
-//                    gameManager.render(graphicsContext);
-//                    return;
-//                }
-//
-//                if (stateManager.isRunning()) {
-//                    updatePaddleVelocity();
-//                    double dt = (now - lastUpdate) / 1e9;
-//                    gameManager.update(dt);
-//                }
-//
-//                lastUpdate = now;
-//                gameManager.render(graphicsContext);
-//            }
-//        };
-//    }
-public void update(double dt) {
-    if (stateManager.isRunning()) {
-        updatePaddleVelocity();
+    public void update(double dt) {
+        // Chỉ cập nhật logic khi trò chơi đang chạy
+        if (stateManager.isRunning()) {
+            updatePaddleVelocity(); // << thêm dòng này
+        }
         gameManager.update(dt);
     }
-}
 
     public void render() {
-        //System.out.println("Render frame - state: " + stateManager.getCurrentState());
-
-       // gameManager.render(graphicsContext);
-        if (stateManager.isRunning()) {
-            gameManager.render(graphicsContext);
-
-            // ✅ Bật alpha transparency cho snapshot
-            SnapshotParameters params = new SnapshotParameters();
-            params.setFill(Color.TRANSPARENT);
-            cachedFrame = canvas.snapshot(params, null);
-        }
-        else if (cachedFrame != null) {
-            // ✅ Làm tối nhẹ (dim) và blur ảnh tạm
-            graphicsContext.save();
-            graphicsContext.drawImage(cachedFrame, 0, 0);
-
-            // phủ lớp đen mờ 40%
-            graphicsContext.setGlobalAlpha(0.001);
-            graphicsContext.setFill(Color.BLACK);
-            graphicsContext.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
-            graphicsContext.restore();
-        }
+        // Xóa canvas
+        graphicsContext.clearRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
+        // Vẽ lại các đối tượng
+        gameManager.render(graphicsContext);
     }
+
     private void updatePaddleVelocity() {
         if (gameManager.getPaddle() == null) {
             return;
@@ -373,20 +338,13 @@ public void update(double dt) {
         }
         gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
     }
+
     private void startNewGame(ActionEvent event) {
         gameManager.initializeGame();
         stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
-        gameManager.render(graphicsContext);
     }
 
-    private Button createMenuButton(String text, EventHandler<ActionEvent> action) {
-        Button button = new Button(text);
-        button.setMaxWidth(200);
-        button.getStyleClass().addAll("btn", "btn-primary");
-        button.setOnAction(action);
-        return button;
-    }
-
+    // Đã thay thế createMenuButton() bằng cách gọi UiKit
     private Optional<Image> loadImage(String path) {
         URL url = getClass().getResource(path);
         if (url == null) {
