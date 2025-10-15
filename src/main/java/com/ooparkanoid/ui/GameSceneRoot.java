@@ -227,16 +227,13 @@ public class GameSceneRoot {
                     gameManager.initializeGame();
                     stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
                 }
+                gameManager.launchBall();
                 return;
             }
-
-            if (code == KeyCode.SPACE) {
-                if (stateManager.isRunning()) {
-                    gameManager.releaseBall();
-                }
+            if (code == KeyCode.B) {
+                gameManager.spawnExtraBall();
                 return;
             }
-
             if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
             if (!pressedStack.contains(code)) {
                 pressedStack.push(code); // đưa phím mới lên đầu
@@ -256,14 +253,13 @@ public class GameSceneRoot {
             }
         });
 
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (stateManager.isRunning() && event.getButton() == MouseButton.PRIMARY) {
-                gameManager.releaseBall();
-            }
-        });
-
         scene.setOnMouseMoved(this::handleMouseMoved);
         // đảm bảo scene có focus khi đóng overlay
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            if (e.isPrimaryButtonDown() && stateManager.isRunning()) {
+                gameManager.launchBall();
+            }
+        });
         scene.getRoot().requestFocus();
     }
 
@@ -310,11 +306,11 @@ public class GameSceneRoot {
         }
     }
 
-    private void handleMouseMoved(MouseEvent event) {
-        if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
-            return;
+        private void handleMouseMoved(MouseEvent event) {
+            if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
+                return;
         }
-        gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
+            gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
     }
     private void startNewGame(ActionEvent event) {
         gameManager.initializeGame();
