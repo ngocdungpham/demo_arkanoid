@@ -15,7 +15,7 @@ public abstract class GameObject {
      public abstract void update(double dt);
      public abstract void render(GraphicsContext gc);
 
-     public boolean istersected(GameObject other){
+     public boolean intersected(GameObject other){
          return x < other.x + other.width && x + width > other.x &&
                  y < other.y + other.height && y + height > other.y;
      }

@@ -14,11 +14,13 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -44,7 +46,7 @@ public class GameSceneRoot {
     private final GraphicsContext graphicsContext;
     private final GameManager gameManager;
     private final GameStateManager stateManager;
-    private final AnimationTimer gameLoop;
+    private AnimationTimer gameLoop;
 
     private final Canvas canvas;
     private final SceneLayoutFactory.LayeredScene layeredScene;
@@ -58,6 +60,8 @@ public class GameSceneRoot {
     private StackPane menuOverlay;
 
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
+    WritableImage cachedFrame;
+
 
 
     public GameSceneRoot() {
@@ -79,10 +83,10 @@ public class GameSceneRoot {
         setupStateListeners();
         setupInputHandlers();
 
-        gameLoop = createGameLoop();
+      //  gameLoop = createGameLoop();
 
         stateManager.resetToMenu();
-        gameLoop.start();
+      //  gameLoop.start();
     }
 
     private void configureBackground() {
@@ -267,29 +271,82 @@ public class GameSceneRoot {
         scene.getRoot().requestFocus();
     }
 
-    private AnimationTimer createGameLoop() {
-        return new AnimationTimer() {
-            private long lastUpdate = 0L;
+    public void startLoop() {
+        gameLoop = new AnimationTimer() {
+            long last = 0;
+
             @Override
             public void handle(long now) {
-                if (lastUpdate == 0L) {
-                    lastUpdate = now;
-                    gameManager.render(graphicsContext);
+                if (last == 0) {
+                    last = now;
                     return;
                 }
-
-                if (stateManager.isRunning()) {
-                    updatePaddleVelocity();
-                    double dt = (now - lastUpdate) / 1e9;
-                    gameManager.update(dt);
-                }
-
-                lastUpdate = now;
-                gameManager.render(graphicsContext);
+                double dt = (now - last) / 1e9;
+                update(dt);
+                render();
+                last = now;
             }
         };
+        gameLoop.start();
     }
 
+    public void stopLoop() {
+        if (gameLoop != null) gameLoop.stop();
+    }
+
+//    private AnimationTimer createGameLoop() {
+//        return new AnimationTimer() {
+//            private long lastUpdate = 0L;
+//            @Override
+//            public void handle(long now) {
+//                if (lastUpdate == 0L) {
+//                    lastUpdate = now;
+//                    gameManager.render(graphicsContext);
+//                    return;
+//                }
+//
+//                if (stateManager.isRunning()) {
+//                    updatePaddleVelocity();
+//                    double dt = (now - lastUpdate) / 1e9;
+//                    gameManager.update(dt);
+//                }
+//
+//                lastUpdate = now;
+//                gameManager.render(graphicsContext);
+//            }
+//        };
+//    }
+public void update(double dt) {
+    if (stateManager.isRunning()) {
+        updatePaddleVelocity();
+        gameManager.update(dt);
+    }
+}
+
+    public void render() {
+        //System.out.println("Render frame - state: " + stateManager.getCurrentState());
+
+       // gameManager.render(graphicsContext);
+        if (stateManager.isRunning()) {
+            gameManager.render(graphicsContext);
+
+            // ✅ Bật alpha transparency cho snapshot
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+            cachedFrame = canvas.snapshot(params, null);
+        }
+        else if (cachedFrame != null) {
+            // ✅ Làm tối nhẹ (dim) và blur ảnh tạm
+            graphicsContext.save();
+            graphicsContext.drawImage(cachedFrame, 0, 0);
+
+            // phủ lớp đen mờ 40%
+            graphicsContext.setGlobalAlpha(0.001);
+            graphicsContext.setFill(Color.BLACK);
+            graphicsContext.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
+            graphicsContext.restore();
+        }
+    }
     private void updatePaddleVelocity() {
         if (gameManager.getPaddle() == null) {
             return;

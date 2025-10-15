@@ -257,7 +257,7 @@ public class GameManager {
 //            ball.setDirection(ball.getDx(), -ball.getDy());
 //        }
         // Va chạm Ball-Paddle
-        if (ball.istersected(paddle)) { // Giả sử bạn có hàm intersects()
+        if (ball.intersected(paddle)) { // Giả sử bạn có hàm intersects()
             // Đẩy bóng lên trên paddle một chút để tránh kẹt
             ball.setY(paddle.getY() - ball.getHeight() - 1);
 
@@ -288,7 +288,7 @@ public class GameManager {
         while (brickIterator.hasNext()) {
             Brick brick = brickIterator.next();
             if (!brick.isDestroyed()) { // Chỉ kiểm tra va chạm với gạch chưa bị phá hủy
-                if (ball.istersected(brick)) { // Sử dụng istersected của Ball
+                if (ball.intersected(brick)) { // Sử dụng istersected của Ball
                     brick.takeHit(); // Gạch nhận một cú đánh
                     if (brick.isDestroyed()) {
                         score += 10;     // Tăng điểm
