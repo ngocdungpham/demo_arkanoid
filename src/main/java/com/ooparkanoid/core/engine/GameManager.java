@@ -293,6 +293,8 @@ public class GameManager {
         // Kiểm tra bóng rơi khỏi màn hình (mất mạng)
         if (balls.isEmpty()) {
             lives--;
+            effectManager.clearAll();
+            powerUps.clear();
             System.out.println("You lost a life! Lives remaining: " + lives);
             stateManager.updateStats(score, lives);
             if (lives <= 0) {
@@ -302,7 +304,6 @@ public class GameManager {
                 return;
             } else {
                 resetBallAndPaddlePosition();
-                effectManager.clearAll();
                 stateManager.setStatusMessage("Lives remaining: " + lives);
             }
         }
