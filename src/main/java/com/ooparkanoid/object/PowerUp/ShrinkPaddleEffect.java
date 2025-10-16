@@ -1,6 +1,7 @@
 package com.ooparkanoid.object.PowerUp;
 
 import com.ooparkanoid.object.Paddle;
+import com.ooparkanoid.utils.Constants;
 
 public class ShrinkPaddleEffect implements PowerUpEffect {
     private final double scaleFactor;
@@ -14,7 +15,7 @@ public class ShrinkPaddleEffect implements PowerUpEffect {
     public void apply(GameContext context) {
         Paddle paddle = context.getPaddle();
         if (originalWidth < 0) {
-            originalWidth = paddle.getWidth();
+            originalWidth = Constants.PADDLE_WIDTH;
         }
         paddle.setWidth(originalWidth * scaleFactor);
         System.out.println("→← ShrinkPaddle effect applied!");
