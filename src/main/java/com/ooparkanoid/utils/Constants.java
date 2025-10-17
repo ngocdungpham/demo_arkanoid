@@ -25,5 +25,6 @@ public class Constants {
     public static final int BRICK_PADDING_Y = 5;  // Khoảng cách giữa các gạch theo chiều dọc
     public static final int BRICK_OFFSET_TOP = 50; // Khoảng cách từ đỉnh màn hình đến hàng gạch đầu tiên
     public static final String LEVELS_FOLDER = "/levels/"; // Thư mục chứa các file level
-    public static final int MAX_LEVELS = 4; // Số lượng level tối đa bạn đã tạo file
+    public static final int MAX_LEVELS = 4;
+    public static final double POWERUP_DROP_CHANCE = 0.25;// Số lượng level tối đa bạn đã tạo file
 }

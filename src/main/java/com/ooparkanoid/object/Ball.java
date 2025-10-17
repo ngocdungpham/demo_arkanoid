@@ -12,6 +12,7 @@ public class Ball extends MovableObject {
         this.setDirection(dirX,dirY);
     }
 
+
     public void setDirection (double nx, double ny) {
         double len = Math.sqrt(nx * nx + ny * ny);
         if (len == 0) return;

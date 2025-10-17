@@ -15,7 +15,7 @@ public class MainConsole extends Application {
     public void start(Stage stage) {
         stage.setTitle("Arkanoid - Simple Brick Game");
         GameSceneRoot gameSceneRoot = new GameSceneRoot();
-        stage.setScene(gameSceneRoot.getScene());  // ✅ chỉ cần dòng này thôi
+        stage.setScene(gameSceneRoot.getScene());  //
         stage.setResizable(false);
         stage.show();
     }
