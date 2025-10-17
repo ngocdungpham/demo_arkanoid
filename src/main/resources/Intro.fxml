@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Label?>
+
+<Pane fx:id="introRoot"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ooparkanoid.ui.IntroController"
+      prefHeight="720.0" prefWidth="1280.0">
+
+    <children>
+        <ImageView fitHeight="720.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@picture/net.jpeg" />
+            </image>
+        </ImageView>
+
+        <Pane prefHeight="720.0" prefWidth="1280.0">
+            <children>
+                <ImageView fx:id="logo" fitHeight="555.0" fitWidth="1065.0" layoutX="136.0" layoutY="-4.0"
+                           pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@picture/logo.png" />
+                    </image>
+                </ImageView>
+
+                <Label fx:id="start" alignment="CENTER" layoutX="507.0" layoutY="566.0"
+                       prefHeight="68.0" prefWidth="286.0"
+                       text="PRESS SPACE TO START" textAlignment="CENTER"
+                        textFill="white">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
+            </children>
+        </Pane>
+    </children>
+</Pane>

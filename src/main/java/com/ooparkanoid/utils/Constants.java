@@ -1,11 +1,11 @@
 package com.ooparkanoid.utils;
 
 public class Constants {
-    public static final int WIDTH = 800;
-    public static final int HEIGHT = 600;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
 
     // Paddle
-    public static final int PADDLE_WIDTH = 800;
+    public static final int PADDLE_WIDTH = 500;
     public static final int PADDLE_HEIGHT = 12;
     public static final double PADDLE_SPEED = 420;
 
