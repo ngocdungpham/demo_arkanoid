@@ -13,7 +13,10 @@ public abstract class Brick extends GameObject {
         NORMAL,
         STRONG,
         // TODO: Thêm các loại gạch đặc biệt khác ở đây (ví dụ: INDESTRUCTIBLE, EXPLOSIVE)
-        INDESTRUCTIBLE //Thêm loại gạch mới
+        INDESTRUCTIBLE,
+        FLICKER,
+        EXPLOSIVE//Thêm loại gạch mới
+
     }
 
     protected int hitPoints;
