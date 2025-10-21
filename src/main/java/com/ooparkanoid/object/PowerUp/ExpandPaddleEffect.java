@@ -30,7 +30,7 @@ public class ExpandPaddleEffect implements PowerUpEffect {
         }
         originalWidth = -1;
     }
-
+b
     @Override
     public String getEffectType() {
         return "EXPAND_PADDLE";
