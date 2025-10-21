@@ -50,12 +50,12 @@ public class GameSceneRoot {
     private final SceneLayoutFactory.LayeredScene layeredScene;
     private final BackgroundLayer backgroundLayer;
 
-    private Label stateLabel;
-    private Label messageLabel;
-    private Button continueButton;
-
-
-    private StackPane menuOverlay;
+//    private Label stateLabel;
+//    private Label messageLabel;
+//    private Button continueButton;
+//
+//
+//    private StackPane menuOverlay;
 
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
@@ -71,17 +71,19 @@ public class GameSceneRoot {
         backgroundLayer = layeredScene.backgroundLayer();
 
         scene = new Scene(layeredScene.root(), Constants.WIDTH, Constants.HEIGHT);
-        scene.getStylesheets().add("/styles/theme.css");
+      //  scene.getStylesheets().add("/styles/theme.css");
 
         configureBackground();
         buildHud();
-        buildMenuOverlay();
+       // buildMenuOverlay();
         setupStateListeners();
         setupInputHandlers();
 
         gameLoop = createGameLoop();
 
-        stateManager.resetToMenu();
+      //  stateManager.resetToMenu();
+        gameManager.initializeGame();
+        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
         gameLoop.start();
     }
 
@@ -125,69 +127,69 @@ public class GameSceneRoot {
         StackPane.setAlignment(hud, Pos.TOP_LEFT);
     }
 
-    private void buildMenuOverlay() {
-        stateLabel = new Label();
-        stateLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            GameState current = stateManager.getCurrentState();
-            return switch (current) {
-                case MENU -> "Arkanoid";
-                case PAUSED -> "Paused";
-                case GAME_OVER -> "Game Over";
-                case RUNNING, MODE_SELECT, HOW_TO_PLAY, INFORMATION, PAUSE -> "";
-            };
-        }, stateManager.stateProperty()));
-        stateLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-        stateLabel.setTextFill(Color.WHITE);
-        stateLabel.getStyleClass().add("overlay-title");
-
-        messageLabel = new Label();
-        messageLabel.textProperty().bind(stateManager.statusMessageProperty());
-        messageLabel.setWrapText(true);
-        messageLabel.setTextFill(Color.WHITE);
-        messageLabel.setAlignment(Pos.CENTER);
-        messageLabel.getStyleClass().add("overlay-subtitle");
-
-        Button newGameButton = createMenuButton("New game", this::startNewGame);
-        Button gameModeButton = createMenuButton("Game mode", e ->
-                AlertBox.display("Game mode", "Classic brick breaking mode. Destroy all bricks to win."));
-        Button howToPlayButton = createMenuButton("How to play", e ->
-                AlertBox.display("How to play", "Use A/D or the arrow keys to move the paddle. Keep the ball from falling!\nPress ESC to pause."));
-        Button infoButton = createMenuButton("Information", e ->
-                AlertBox.display("About", "Arkanoid demo built with JavaFX."));
-        Button exitButton = createMenuButton("Exit game", e -> Platform.exit());
-        continueButton = createMenuButton("Continue", e -> stateManager.resumeGame());
-
-        BooleanBinding canContinue = Bindings.createBooleanBinding(
-                stateManager::canContinue,
-                stateManager.stateProperty(),
-                stateManager.continueAvailableProperty()
-        );
-        continueButton.visibleProperty().bind(canContinue);
-        continueButton.managedProperty().bind(continueButton.visibleProperty());
-
-        VBox menuContent = new VBox(14,
-                stateLabel,
-                messageLabel,
-                newGameButton,
-                continueButton,
-                gameModeButton,
-                howToPlayButton,
-                infoButton,
-                exitButton
-        );
-
-        menuContent.setAlignment(Pos.CENTER);
-        menuContent.setPadding(new Insets(40));
-        menuContent.setFillWidth(true);
-        menuOverlay = new StackPane(menuContent);
-        menuOverlay.getStyleClass().add("overlay");
-        layeredScene.registerOverlay("menu", menuOverlay);
-
-        BooleanBinding menuVisible = stateManager.stateProperty().isNotEqualTo(GameState.RUNNING);
-        menuOverlay.visibleProperty().bind(menuVisible);
-        menuOverlay.managedProperty().bind(menuVisible);
-        menuOverlay.mouseTransparentProperty().bind(menuVisible.not());
-    }
+//    private void buildMenuOverlay() {
+//        stateLabel = new Label();
+//        stateLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+//            GameState current = stateManager.getCurrentState();
+//            return switch (current) {
+//                case MENU -> "Arkanoid";
+//                case PAUSED -> "Paused";
+//                case GAME_OVER -> "Game Over";
+//                case RUNNING, MODE_SELECT, HOW_TO_PLAY, INFORMATION, PAUSE -> "";
+//            };
+//        }, stateManager.stateProperty()));
+//        stateLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+//        stateLabel.setTextFill(Color.WHITE);
+//        stateLabel.getStyleClass().add("overlay-title");
+//
+//        messageLabel = new Label();
+//        messageLabel.textProperty().bind(stateManager.statusMessageProperty());
+//        messageLabel.setWrapText(true);
+//        messageLabel.setTextFill(Color.WHITE);
+//        messageLabel.setAlignment(Pos.CENTER);
+//        messageLabel.getStyleClass().add("overlay-subtitle");
+//
+//        Button newGameButton = createMenuButton("New game", this::startNewGame);
+//        Button gameModeButton = createMenuButton("Game mode", e ->
+//                AlertBox.display("Game mode", "Classic brick breaking mode. Destroy all bricks to win."));
+//        Button howToPlayButton = createMenuButton("How to play", e ->
+//                AlertBox.display("How to play", "Use A/D or the arrow keys to move the paddle. Keep the ball from falling!\nPress ESC to pause."));
+//        Button infoButton = createMenuButton("Information", e ->
+//                AlertBox.display("About", "Arkanoid demo built with JavaFX."));
+//        Button exitButton = createMenuButton("Exit game", e -> Platform.exit());
+//        continueButton = createMenuButton("Continue", e -> stateManager.resumeGame());
+//
+//        BooleanBinding canContinue = Bindings.createBooleanBinding(
+//                stateManager::canContinue,
+//                stateManager.stateProperty(),
+//                stateManager.continueAvailableProperty()
+//        );
+//        continueButton.visibleProperty().bind(canContinue);
+//        continueButton.managedProperty().bind(continueButton.visibleProperty());
+//
+//        VBox menuContent = new VBox(14,
+//                stateLabel,
+//                messageLabel,
+//                newGameButton,
+//                continueButton,
+//                gameModeButton,
+//                howToPlayButton,
+//                infoButton,
+//                exitButton
+//        );
+//
+//        menuContent.setAlignment(Pos.CENTER);
+//        menuContent.setPadding(new Insets(40));
+//        menuContent.setFillWidth(true);
+//        menuOverlay = new StackPane(menuContent);
+//        menuOverlay.getStyleClass().add("overlay");
+//        layeredScene.registerOverlay("menu", menuOverlay);
+//
+//        BooleanBinding menuVisible = stateManager.stateProperty().isNotEqualTo(GameState.RUNNING);
+//        menuOverlay.visibleProperty().bind(menuVisible);
+//        menuOverlay.managedProperty().bind(menuVisible);
+//        menuOverlay.mouseTransparentProperty().bind(menuVisible.not());
+//    }
 
     private void setupStateListeners() {
         stateManager.stateProperty().addListener((obs, oldState, newState) -> {
