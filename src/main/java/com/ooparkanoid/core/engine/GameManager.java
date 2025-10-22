@@ -341,13 +341,13 @@ public class GameManager {
             System.out.println("You cleared all destroyable bricks! Final Score: " + score);
             // Chuyển level
             currentLevel++;
+            powerUps.clear();
+            effectManager.clearAll();
             if (currentLevel > Constants.MAX_LEVELS) { // Kiểm tra nếu đã hết các level
                 System.out.println("Congratulations! All levels completed!");
                 initializeGame(); // Reset game
             } else {
                 bricks.clear(); // Xóa gạch cũ
-                powerUps.clear();
-                effectManager.clearAll();
                 loadLevel(currentLevel); // Tải level mới
                 resetBallAndPaddlePosition(); // Đặt lại bóng/paddle cho level mới
                 System.out.println("Starting Level " + currentLevel);
