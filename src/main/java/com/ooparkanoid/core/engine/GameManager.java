@@ -198,7 +198,7 @@ public class GameManager {
                 ball.setY(paddle.getY() - ball.getHeight() - 2);
                 continue; // bỏ qua phần move & va chạm
             }
-            ball.move(dt);
+            ball.update(dt);
             // Trái
             if (ball.getX() <= 0) {
                 ball.setX(0);
