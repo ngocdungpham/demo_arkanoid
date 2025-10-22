@@ -14,8 +14,8 @@ public class FlickerBrick extends Brick {
     private boolean visible;
 
     // Khoảng thời gian nhấp nháy ngẫu nhiên
-    private final double MIN_DURATION = 1.5; // Tối thiểu 1 giây
-    private final double MAX_DURATION = 5.0; // Tối đa 3 giây
+    private final double MIN_DURATION = 1.5; // Tối thiểu 1.5 giây
+    private final double MAX_DURATION = 5.0; // Tối đa 5 giây
 
     private double currentVisibleDuration; // Thời gian hiển thị hiện tại cho viên gạch này
     private double currentHiddenDuration;  // Thời gian ẩn hiện tại cho viên gạch này

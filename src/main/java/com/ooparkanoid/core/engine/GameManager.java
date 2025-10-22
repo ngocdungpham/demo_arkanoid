@@ -11,11 +11,11 @@ import com.ooparkanoid.object.PowerUp.GameContext;
 import com.ooparkanoid.object.PowerUp.PowerUp;
 import com.ooparkanoid.object.PowerUp.PowerUpEffectManager;
 import com.ooparkanoid.object.PowerUp.PowerUpFactory;
-import com.ooparkanoid.object.bricks.Brick; // Import Brick
-import com.ooparkanoid.object.bricks.NormalBrick; // Import NormalBrick
-import com.ooparkanoid.object.bricks.StrongBrick; // Import StrongBrick
+import com.ooparkanoid.object.bricks.Brick;
+import com.ooparkanoid.object.bricks.NormalBrick;
+import com.ooparkanoid.object.bricks.StrongBrick;
 import com.ooparkanoid.object.bricks.IndestructibleBrick;
-import com.ooparkanoid.object.bricks.FlickerBrick; // <--- Import FlickerBrick
+import com.ooparkanoid.object.bricks.FlickerBrick;
 import com.ooparkanoid.object.bricks.ExplosiveBrick;
 import com.ooparkanoid.object.bricks.CollisionArea;
 
@@ -42,7 +42,7 @@ public class GameManager {
     private static GameManager instance;
     private Paddle paddle;
     private Ball ball;
-    private List<Brick> bricks; // Danh sách các khối gạch
+    private List<Brick> bricks;
     private List<Ball> balls = new ArrayList<>();
 
     private List<PowerUp> powerUps = new ArrayList<>();
@@ -245,7 +245,7 @@ public class GameManager {
             while (brickIterator.hasNext()) {
                 Brick brick = brickIterator.next();
                 brick.update(dt);
-                if (!brick.isDestroyed() && ball.istersected(brick)) {
+                if (!brick.isDestroyed() && ball.collidesWith(brick)) {
 
                     Brick.BrickType hitBrickType = brick.getType();
                     boolean brickWasDestroyed = brick.isDestroyed(); // Lưu trạng thái trước khi takeHit
@@ -253,7 +253,6 @@ public class GameManager {
 
 
                     if (!brickWasDestroyed && brick.isDestroyed()) { // Chỉ khi gạch MỚI BỊ PHÁ HỦY
-                        // ===== CHECK SCORE MULTIPLIER =====
                         int multiplier = 1;
                         double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
                         if (scoreMultTime > 0) {
@@ -264,12 +263,11 @@ public class GameManager {
                         stateManager.updateStats(score, lives);
                         System.out.println(hitBrickType + " Brick destroyed! Score: " + score);
 
-                        // --- XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK ---
+                        // XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             System.out.println("Explosive Brick detonated!");
                             handleExplosion(brick.getX(), brick.getY()); // Gọi hàm xử lý nổ
                         }
-                        // ----------------------------------------
 
                         // ===== SPAWN POWERUP (25% chance) =====
                         if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
@@ -355,12 +353,7 @@ public class GameManager {
         }
 
     }
-    /**
-     * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
-     * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
-     * @param explosionX Tọa độ X của tâm vụ nổ (gạch nổ)
-     * @param explosionY Tọa độ Y của tâm vụ nổ (gạch nổ)
-     */
+
     /**
      * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
      * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
