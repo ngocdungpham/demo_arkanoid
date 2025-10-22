@@ -355,12 +355,7 @@ public class GameManager {
         }
 
     }
-    /**
-     * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
-     * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
-     * @param explosionX Tọa độ X của tâm vụ nổ (gạch nổ)
-     * @param explosionY Tọa độ Y của tâm vụ nổ (gạch nổ)
-     */
+
     /**
      * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
      * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
