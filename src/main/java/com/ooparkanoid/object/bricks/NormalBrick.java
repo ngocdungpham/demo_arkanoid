@@ -12,11 +12,16 @@ public class NormalBrick extends Brick {
     @Override
     public void render(GraphicsContext gc) {
         if (!isDestroyed()) {
-            gc.setFill(Color.BLUE);
-            gc.fillRect(x, y, width, height);
-            gc.setStroke(Color.BLACK);
-            gc.setLineWidth(1);
-            gc.strokeRect(x, y, width, height);
+            if (texture != null) {
+                gc.drawImage(texture, x, y, width, height);
+            }
+            else{
+                gc.setFill(Color.BLUE);
+                gc.fillRect(x, y, width, height);
+                gc.setStroke(Color.BLACK);
+                gc.setLineWidth(1);
+                gc.strokeRect(x, y, width, height);
+            }
         }
     }
 }

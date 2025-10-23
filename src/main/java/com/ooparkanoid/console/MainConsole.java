@@ -49,7 +49,6 @@ public class MainConsole extends Application {
             if (event.getCode() == KeyCode.SPACE) {
                 startTransition();
             }
-
         };
 
         introMouseHandler = event -> {
