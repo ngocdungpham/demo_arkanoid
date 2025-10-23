@@ -1,5 +1,6 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
+import com.ooparkanoid.sound.SoundManager;
 import javafx.geometry.Rectangle2D;
 
 import com.ooparkanoid.core.save.SaveService;
@@ -97,6 +98,8 @@ public class GameManager {
         effectManager = new PowerUpEffectManager(gameContext);
         powerUps.clear();
 
+        SoundManager.getInstance().playMusic("background.mp3");
+
         score = 0;
         lives = Constants.START_LIVES; // Lấy từ Constants
         bricks.clear(); // Xóa gạch cũ nếu có
@@ -174,9 +177,6 @@ public class GameManager {
             System.out.println("Level " + levelNum + " loaded successfully from " + levelFilePath);
         } catch (Exception e) {
             System.err.println("Error loading level " + levelNum + ": " + e.getMessage());
-            // Nếu có lỗi khi tải level, có thể reset game hoặc chuyển sang Game Over
-            // Để đơn giản, chúng ta sẽ in lỗi và tiếp tục.
-            // Có thể dùng initializeGame() để reset game nếu không tải được level.
         }
     }
     /**
@@ -203,16 +203,19 @@ public class GameManager {
             if (ball.getX() <= 0) {
                 ball.setX(0);
                 ball.setDirection(-ball.getDx(), ball.getDy());
+                SoundManager.getInstance().play("bounce");
             }
             // Phải
             if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
                 ball.setX(Constants.WIDTH - ball.getWidth());
                 ball.setDirection(-ball.getDx(), ball.getDy());
+                SoundManager.getInstance().play("bounce");
             }
             // Trần
             if (ball.getY() <= 0) {
                 ball.setY(0);
                 ball.setDirection(ball.getDx(), -ball.getDy());
+                SoundManager.getInstance().play("bounce");
             }
             if (ball.istersected(paddle)) { // Giả sử bạn có hàm intersects()
                 // Đẩy bóng lên trên paddle một chút để tránh kẹt
@@ -235,6 +238,7 @@ public class GameManager {
                 double newDy = -Math.abs(speed * Math.cos(bounceAngle)); // đảm bảo luôn đi lên
 
                 ball.setDirection(newDx, newDy);
+                SoundManager.getInstance().play("bounce");
             }
 
             // Va chạm Ball-Bricks
@@ -262,7 +266,7 @@ public class GameManager {
                         score += 10 * multiplier; // Tăng điểm cho gạch bị phá hủy
                         stateManager.updateStats(score, lives);
                         System.out.println(hitBrickType + " Brick destroyed! Score: " + score);
-
+                        SoundManager.getInstance().play("break");
                         // XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             System.out.println("Explosive Brick detonated!");
@@ -315,6 +319,7 @@ public class GameManager {
             lives--;
             effectManager.clearAll();
             powerUps.clear();
+            SoundManager.getInstance().play("lose_life");
             System.out.println("You lost a life! Lives remaining: " + lives);
             stateManager.updateStats(score, lives);
             if (lives <= 0) {
@@ -390,6 +395,7 @@ public class GameManager {
                         score += 10; // Tăng điểm cho mỗi gạch bị nổ
                         stateManager.updateStats(score, lives);
                         System.out.println("Brick destroyed by explosion! Score: " + score);
+                        SoundManager.getInstance().play("break");
                         it.remove(); // Xóa gạch khỏi danh sách
 
                         // Có thể spawn PowerUp từ các gạch bị nổ phụ nếu muốn
@@ -397,8 +403,6 @@ public class GameManager {
                             spawnPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight() / 2);
                         }
                     }
-                    // Nếu gạch không bị phá hủy (ví dụ StrongBrick còn nhiều HP), nó sẽ không bị xóa khỏi danh sách
-                    // và chỉ mất 1 hitpoint.
                 }
             }
         }
@@ -415,6 +419,7 @@ public class GameManager {
             // Check collision with paddle
             if (!powerUp.isCollected() && powerUp.istersected(paddle)) {
                 powerUp.collect();
+                SoundManager.getInstance().play("powerup");
                 effectManager.activateEffect(
                         powerUp.getEffect(),
                         powerUp.getDuration()
