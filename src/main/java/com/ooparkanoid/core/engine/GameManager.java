@@ -595,6 +595,9 @@ public class GameManager {
      */
 
     public void render(GraphicsContext g) {
+        if (paddle == null || balls == null || effectManager == null) {
+            return; // chưa khởi tạo xong -> tránh crash
+        }
         g.clearRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
         // Vẽ Paddle
         if (paddle != null) {
