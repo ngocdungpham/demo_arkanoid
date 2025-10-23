@@ -175,7 +175,7 @@ public class Ball extends MovableObject {
     // Reset mặc định
     public void resetTrainEffect() {
         trail.setColor(Color.CYAN);
-        trail.setMaxLength(20);
+        trail.setMaxLength(30);
         trail.setGlowIntensity(1.0);
         setGlow(false, Color.CYAN);
     }
