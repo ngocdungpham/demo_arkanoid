@@ -591,7 +591,12 @@ public class GameSceneRoot {
 
             if (code == KeyCode.SPACE) {
                 if (stateManager.isRunning()) {
-                    gameManager.launchBall();
+                    if (gameManager.getPaddle().isLaserEnabled()) {
+                        gameManager.getPaddle().shootLaser();
+                    }
+                    else {
+                        gameManager.launchBall();
+                    }
                 }
                 return;
             }
@@ -613,11 +618,19 @@ public class GameSceneRoot {
                         k == KeyCode.A || k == KeyCode.D || k == KeyCode.LEFT || k == KeyCode.RIGHT);
                 if (!stillMoving) gameManager.getPaddle().setDx(0);
             }
+            if (code == KeyCode.B) {
+                gameManager.spawnExtraBall();
+            }
         });
 
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (stateManager.isRunning() && event.getButton() == MouseButton.PRIMARY) {
-                gameManager.launchBall();
+                if (gameManager.getPaddle().isLaserEnabled()) {
+                    gameManager.getPaddle().shootLaser();
+                }
+                else {
+                    gameManager.launchBall();
+                }
             }
         });
 
