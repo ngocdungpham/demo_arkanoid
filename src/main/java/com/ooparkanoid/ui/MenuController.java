@@ -260,7 +260,7 @@ public class MenuController implements Initializable {
     }
 
     private void onSelect() {
-        // System.out.println("Selected: " + items.get(cur));
+       // System.out.println("Selected: " + items.get(cur));
         // TODO: chuyển scene/game state tại đây
         String selection = items.get(cur);
         System.out.println("Selected: " + selection);

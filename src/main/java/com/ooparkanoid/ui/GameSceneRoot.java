@@ -366,10 +366,14 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringBinding;
+import javafx.beans.value.ObservableNumberValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -381,12 +385,20 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
+//import javafx.scene.paint.CycleMethod;
+//import javafx.scene.paint.LinearGradient;
+//import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -402,6 +414,9 @@ public class GameSceneRoot {
     private final GameManager gameManager;
     private final GameStateManager stateManager;
     private final AnimationTimer gameLoop;
+    private StackPane leftBackgroundSection;
+    private StackPane centerBackgroundSection;
+    private StackPane rightBackgroundSection;
 
     private final Canvas canvas;
     private final SceneLayoutFactory.LayeredScene layeredScene;
@@ -445,43 +460,204 @@ public class GameSceneRoot {
     }
 
     private void configureBackground() {
-        LinearGradient gradient = new LinearGradient(
-                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0.0, Color.rgb(14, 27, 64)),
-                new Stop(1.0, Color.rgb(8, 8, 24))
-        );
-        backgroundLayer.setFill(gradient);
+//        LinearGradient gradient = new LinearGradient(
+//                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+//                new Stop(0.0, Color.rgb(14, 27, 64)),
+//                new Stop(1.0, Color.rgb(8, 8, 24))
+//        );
+//        backgroundLayer.setFill(gradient);
 
-        loadImage("/picture/space1.jpg")
-                .map(BackgroundLayer::cover)
-                .ifPresent(backgroundLayer::addImageLayer);
+        backgroundLayer.setFill(Color.BLACK);
+        backgroundLayer.setImageLayers(null);
+        backgroundLayer.getChildren().clear();
+
+        leftBackgroundSection = createBackgroundSection(Constants.LEFT_PANEL_WIDTH, "background-left");
+        centerBackgroundSection = createBackgroundSection(Constants.PLAYFIELD_WIDTH, "background-center");
+        rightBackgroundSection = createBackgroundSection(Constants.RIGHT_PANEL_WIDTH, "background-right");
+
+        BackgroundFill sideFill = new BackgroundFill(Color.rgb(8, 12, 28, 0.88), CornerRadii.EMPTY, Insets.EMPTY);
+        leftBackgroundSection.setBackground(new Background(sideFill));
+        rightBackgroundSection.setBackground(new Background(sideFill));
+
+        BackgroundFill centerFill = new BackgroundFill(Color.rgb(6, 10, 30), CornerRadii.EMPTY, Insets.EMPTY);
+        Optional<Image> backdrop = loadImage("/picture/space1.png");
+        if (backdrop.isPresent()) {
+            BackgroundImage coverImage = BackgroundLayer.cover(backdrop.get());
+            centerBackgroundSection.setBackground(new Background(
+                    new BackgroundFill[]{centerFill},
+                    new BackgroundImage[]{coverImage}
+            ));
+        } else {
+            centerBackgroundSection.setBackground(new Background(centerFill));
+        }
+
+        // Ảnh cho bên trái
+        Optional<Image> leftImage = loadImage("/picture/menu1.jpg");
+        if (leftImage.isPresent()) {
+            BackgroundImage leftBg = BackgroundLayer.cover(leftImage.get());
+            leftBackgroundSection.setBackground(new Background(
+                    new BackgroundFill[]{sideFill},
+                    new BackgroundImage[]{leftBg}
+            ));
+        } else {
+            leftBackgroundSection.setBackground(new Background(sideFill));
+        }
+
+        // Ảnh cho bên phải
+        Optional<Image> rightImage = loadImage("/picture/menu1.jpg");
+        if (rightImage.isPresent()) {
+            BackgroundImage rightBg = BackgroundLayer.cover(rightImage.get());
+            rightBackgroundSection.setBackground(new Background(
+                    new BackgroundFill[]{sideFill},
+                    new BackgroundImage[]{rightBg}
+            ));
+        } else {
+            rightBackgroundSection.setBackground(new Background(sideFill));
+        }
+
+//        loadImage("/picture/space1.jpg")
+//                .map(BackgroundLayer::cover)
+//                .ifPresent(backgroundLayer::addImageLayer);
+        HBox backgroundSections = new HBox(leftBackgroundSection, centerBackgroundSection, rightBackgroundSection);
+        backgroundSections.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
+        backgroundSections.setMinSize(Constants.WIDTH, Constants.HEIGHT);
+        backgroundSections.setMaxSize(Constants.WIDTH, Constants.HEIGHT);
+        backgroundSections.setMouseTransparent(true);
+
+        backgroundLayer.getChildren().add(backgroundSections);
     }
 
     private void buildHud() {
-        Label scoreLabel = new Label();
-        scoreLabel.textProperty().bind(stateManager.scoreProperty().asString("Score: %d"));
-        scoreLabel.setTextFill(Color.WHITE);
-        scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        scoreLabel.getStyleClass().add("hud");
+//        Label scoreLabel = new Label();
+//        scoreLabel.textProperty().bind(stateManager.scoreProperty().asString("Score: %d"));
+//        scoreLabel.setTextFill(Color.WHITE);
+//        scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+//        scoreLabel.getStyleClass().add("hud");
+        Label pointsLabel = createHudValueLabel();
+        pointsLabel.textProperty().bind(stateManager.scoreProperty().asString("Point: %d"));
 
-        Label livesLabel = new Label();
+//        Label livesLabel = new Label();
+//        livesLabel.textProperty().bind(stateManager.livesProperty().asString("Lives: %d"));
+        Label roundTimeLabel = createHudValueLabel();
+        roundTimeLabel.textProperty().bind(formatDurationBinding(stateManager.roundTimeProperty(), "Time round"));
+
+//        livesLabel.setTextFill(Color.WHITE);
+//        livesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        Label totalTimeLabel = createHudValueLabel();
+        totalTimeLabel.textProperty().bind(formatDurationBinding(stateManager.totalTimeProperty(), "All time"));
+
+//        livesLabel.getStyleClass().add("hud");
+        Label livesLabel = createHudValueLabel();
         livesLabel.textProperty().bind(stateManager.livesProperty().asString("Lives: %d"));
 
-        livesLabel.setTextFill(Color.WHITE);
-        livesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+//        HBox hud = new HBox(20, scoreLabel, livesLabel);
+//        hud.setPadding(new Insets(15));
+//        hud.setAlignment(Pos.TOP_LEFT);
+        VBox leftPanel = new VBox(12, createHudTitleLabel(), pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
+        leftPanel.setAlignment(Pos.TOP_LEFT);
+        leftPanel.setPadding(new Insets(24, 18, 24, 24));
+        leftPanel.setSpacing(12);
+        leftPanel.setBackground(createPanelBackground());
+        leftPanel.setPrefWidth(Constants.LEFT_PANEL_WIDTH);
+        leftPanel.setMinWidth(Constants.LEFT_PANEL_WIDTH);
+        leftPanel.setMaxWidth(Constants.LEFT_PANEL_WIDTH);
 
-        livesLabel.getStyleClass().add("hud");
+        Label currentRoundTitle = createHudTitleLabel();
+        Label currentRoundValue = createHudValueLabel();
+        currentRoundValue.textProperty().bind(stateManager.roundProperty().asString("Round %d"));
 
-        HBox hud = new HBox(20, scoreLabel, livesLabel);
-        hud.setPadding(new Insets(15));
-        hud.setAlignment(Pos.TOP_LEFT);
+        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
+        rightPanel.setAlignment(Pos.TOP_RIGHT);
+        rightPanel.setPadding(new Insets(24, 24, 24, 18));
+        rightPanel.setBackground(createPanelBackground());
+        rightPanel.setPrefWidth(Constants.RIGHT_PANEL_WIDTH);
+        rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
+        rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
+
+        GridPane hudGrid = new GridPane();
+        hudGrid.setMouseTransparent(true);
+        hudGrid.setPickOnBounds(false);
+        hudGrid.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        hudGrid.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
+
+        ColumnConstraints leftColumn = createColumn(Constants.SIDE_PANEL_RATIO);
+        ColumnConstraints centerColumn = createColumn(Constants.PLAYFIELD_RATIO);
+        ColumnConstraints rightColumn = createColumn(Constants.SIDE_PANEL_RATIO);
+        hudGrid.getColumnConstraints().addAll(leftColumn, centerColumn, rightColumn);
+
+        Pane centerSpacer = new Pane();
+        centerSpacer.setMinSize(0, 0);
+        centerSpacer.setMouseTransparent(true);
+        centerSpacer.setStyle("-fx-border-color: rgba(255,255,255,0.18); -fx-border-width: 0 2 0 2;");
+
+        GridPane.setHalignment(leftPanel, HPos.LEFT);
+        GridPane.setValignment(leftPanel, VPos.TOP);
+        GridPane.setHalignment(rightPanel, HPos.RIGHT);
+        GridPane.setValignment(rightPanel, VPos.TOP);
+        GridPane.setHgrow(centerSpacer, Priority.ALWAYS);
+        GridPane.setHgrow(leftPanel, Priority.NEVER);
+        GridPane.setHgrow(rightPanel, Priority.NEVER);
+        GridPane.setFillWidth(leftPanel, true);
+        GridPane.setFillWidth(rightPanel, true);
+
+        hudGrid.add(leftPanel, 0, 0);
+        hudGrid.add(centerSpacer, 1, 0);
+        hudGrid.add(rightPanel, 2, 0);
 
         BooleanBinding hudVisible = stateManager.stateProperty().isEqualTo(GameState.RUNNING);
-        hud.visibleProperty().bind(hudVisible);
-        hud.managedProperty().bind(hudVisible);
+//        hud.visibleProperty().bind(hudVisible);
+//        hud.managedProperty().bind(hudVisible);
+        hudGrid.visibleProperty().bind(hudVisible);
+        hudGrid.managedProperty().bind(hudVisible);
 
-        layeredScene.contentLayer().getChildren().add(hud);
-        StackPane.setAlignment(hud, Pos.TOP_LEFT);
+        layeredScene.contentLayer().getChildren().add(hudGrid);
+        StackPane.setAlignment(hudGrid, Pos.CENTER);
+    }
+
+    private Background createPanelBackground() {
+        return new Background(new BackgroundFill(Color.color(0, 0, 0, 0.55), new CornerRadii(12), Insets.EMPTY));
+    }
+
+    private StackPane createBackgroundSection(double width, String styleClass) {
+        StackPane section = new StackPane();
+        section.setPrefSize(width, Constants.HEIGHT);
+        section.setMinSize(width, Constants.HEIGHT);
+        section.setMaxSize(width, Constants.HEIGHT);
+        section.getStyleClass().add(styleClass);
+        return section;
+    }
+
+    private Label createHudValueLabel() {
+        Label label = new Label();
+        label.setTextFill(Color.WHITE);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        label.getStyleClass().add("hud");
+        return label;
+    }
+
+    private Label createHudTitleLabel() {
+        Label label = new Label();
+        label.setTextFill(Color.LIGHTGRAY);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        return label;
+    }
+
+    private ColumnConstraints createColumn(double ratio) {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setPercentWidth(ratio * 100.0);
+        column.setHalignment(HPos.CENTER);
+        return column;
+    }
+
+//        layeredScene.contentLayer().getChildren().add(hud);
+//        StackPane.setAlignment(hud, Pos.TOP_LEFT);
+    private StringBinding formatDurationBinding(ObservableNumberValue secondsProperty, String label) {
+        return Bindings.createStringBinding(() -> {
+            long totalSeconds = (long) Math.floor(secondsProperty.doubleValue());
+            long minutes = totalSeconds / 60;
+            long seconds = totalSeconds % 60;
+            return String.format("%s: %02d:%02d", label, minutes, seconds);
+        }, secondsProperty);
     }
 
 //    private void buildMenuOverlay() {
@@ -686,8 +862,15 @@ public class GameSceneRoot {
         if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
             return;
         }
-        gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
+//        gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
+        double targetX = event.getX() - gameManager.getPaddle().getWidth() / 2;
+        double clampedX = Math.max(
+                Constants.PLAYFIELD_LEFT,
+                Math.min(targetX, Constants.PLAYFIELD_RIGHT - gameManager.getPaddle().getWidth())
+        );
+        gameManager.getPaddle().setX(clampedX);
     }
+
     private void startNewGame(ActionEvent event) {
         gameManager.initializeGame();
         stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
