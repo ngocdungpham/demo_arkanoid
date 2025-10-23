@@ -58,11 +58,15 @@ public class Paddle extends MovableObject {
         }
 
         // Giới hạn thanh đỡ trong màn hình
-        if (x < 0) {
-            x = 0;
+//        if (x < 0) {
+//            x = 0;
+        if (x < Constants.PLAYFIELD_LEFT) {
+            x = Constants.PLAYFIELD_LEFT;
         }
-        if (x + width > Constants.WIDTH) {
-            x = Constants.WIDTH - width;
+//        if (x + width > Constants.WIDTH) {
+//            x = Constants.WIDTH - width;
+        if (x + width > Constants.PLAYFIELD_RIGHT) {
+            x = Constants.PLAYFIELD_RIGHT - width;
         }
     }
 
