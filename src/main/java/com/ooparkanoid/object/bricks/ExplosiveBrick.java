@@ -3,6 +3,7 @@ package com.ooparkanoid.object.bricks;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 
 public class ExplosiveBrick extends Brick {
 
@@ -28,15 +29,13 @@ public class ExplosiveBrick extends Brick {
     @Override
     public void render(GraphicsContext gc) {
         if (!isDestroyed()) {
-            gc.setFill(EXPLOSIVE_COLOR); // Vẽ màu đỏ
-            gc.fillRect(x, y, width, height);
-            gc.setStroke(Color.ORANGE); // Viền cam để trông giống nổ hơn
-            gc.setLineWidth(2);
-            gc.strokeRect(x, y, width, height);
-            // Có thể thêm một ký hiệu nhỏ như 'X' hoặc '*' ở giữa
-            gc.setFill(Color.WHITE);
-            gc.setFont(gc.getFont().font("Arial", javafx.scene.text.FontWeight.BOLD, 10));
-            gc.fillText("X", x + width / 2 - 4, y + height / 2 + 4);
+            if (texture != null) { // <<<< SỬ DỤNG TEXTURE NẾU CÓ <<<<
+                gc.drawImage(texture, x, y, width, height);
+            } else { // Fallback (có thể xóa)
+                gc.setFill(EXPLOSIVE_COLOR); // Vẽ màu đỏ
+                gc.fillRect(x, y, width, height);
+            }
+
         }
     }
 }

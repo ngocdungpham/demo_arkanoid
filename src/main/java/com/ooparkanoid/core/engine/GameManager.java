@@ -25,6 +25,9 @@ import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
+import com.ooparkanoid.graphics.ResourceManager;
+import javafx.scene.image.Image;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,6 +53,8 @@ public class GameManager {
     private List<PowerUp> powerUps = new ArrayList<>();
     private PowerUpEffectManager effectManager;
     private GameContext gameContext;
+    private double roundTimeElapsed;
+    private double totalTimeElapsed;
 
     private int score;
     private int lives;
@@ -58,17 +63,40 @@ public class GameManager {
     private boolean ballLaunched = false;
     private final GameStateManager stateManager;
 
+    private Image normalBrickTexture;
+    private Image strongBrickTexture3; // 2 hit points remaining
+    private Image strongBrickTexture2; // 2 hit points remaining
+    private Image strongBrickTexture1; // 1 hit point remaining
+    private Image indestructibleBrickTexture;
+    private Image flickerBrickTexture1;
+    private Image flickerBrickTexture2;
+    private Image explosiveBrickTexture;
+
     public GameManager() {
         this(new GameStateManager());
         bricks = new ArrayList<>();
         random = new Random();
+        loadBrickTextures();
     }
 
     public GameManager(GameStateManager stateManager) {
         this.stateManager = stateManager;
         bricks = new ArrayList<>();
         random = new Random();
+        loadBrickTextures();
         initializeGame();
+    }
+
+    private void loadBrickTextures() {
+        ResourceManager rm = ResourceManager.getInstance();
+        normalBrickTexture = rm.loadImage("brick_normal.png");
+        strongBrickTexture3 = rm.loadImage("brick_strong_hit1.png");
+        strongBrickTexture2 = rm.loadImage("brick_strong_hit2.png");
+        strongBrickTexture1 = rm.loadImage("brick_strong_hit3.png");
+        indestructibleBrickTexture = rm.loadImage("brick_indestructible.png");
+        flickerBrickTexture1 = rm.loadImage("brick_flicker1.png");
+        flickerBrickTexture2 = rm.loadImage("brick_flicker2.png");
+        explosiveBrickTexture = rm.loadImage("brick_explosive.png");
     }
 
     public static GameManager getInstance() {
@@ -83,8 +111,11 @@ public class GameManager {
      */
     public void initializeGame() {
         // Khởi tạo Paddle
+        double paddleStartX = Constants.PLAYFIELD_LEFT
+                + (Constants.PLAYFIELD_WIDTH - Constants.PADDLE_WIDTH) / 2.0;
         paddle = new Paddle(
-                (Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0,
+//                (Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0,
+                paddleStartX,
                 Constants.HEIGHT - 40
         );
         resetBallAndPaddlePosition();
@@ -105,12 +136,16 @@ public class GameManager {
         lives = Constants.START_LIVES; // Lấy từ Constants
         bricks.clear(); // Xóa gạch cũ nếu có
         currentLevel = 1;
+        roundTimeElapsed = 0;
+        totalTimeElapsed = 0;
         loadLevel(currentLevel); //hàm tải level từ file
 
 
         System.out.println("Game Initialized. Level: " + currentLevel
                 + ", Score: " + score + ", Lives: " + lives);
         stateManager.updateStats(score, lives);
+        stateManager.setCurrentRound(currentLevel);
+        stateManager.updateTimers(roundTimeElapsed, totalTimeElapsed);
         stateManager.setStatusMessage("Destroy all the bricks!");
     }
 
@@ -138,7 +173,8 @@ public class GameManager {
             }
             int colsInMap = firstLine.trim().length();
             double totalBricksWidth = colsInMap * Constants.BRICK_WIDTH + (colsInMap - 1) * Constants.BRICK_PADDING_X;
-            double startX = (Constants.WIDTH - totalBricksWidth) / 2;
+//            double startX = (Constants.WIDTH - totalBricksWidth) / 2;
+            double startX = Constants.PLAYFIELD_LEFT + (Constants.PLAYFIELD_WIDTH - totalBricksWidth) / 2;
 
             while ((line = reader.readLine()) != null) {
                 for (int col = 0; col < line.length(); col++) {
@@ -150,18 +186,23 @@ public class GameManager {
                     switch (brickChar) {
                         case 'N':
                             newBrick = new NormalBrick(brickX, brickY);
+                            newBrick.setTexture(normalBrickTexture);
                             break;
                         case 'S':
                             newBrick = new StrongBrick(brickX, brickY);
+                            newBrick.setTexture(strongBrickTexture1);
                             break;
                         case '#':
                             newBrick = new IndestructibleBrick(brickX, brickY);
+                            newBrick.setTexture(indestructibleBrickTexture);
                             break;
                         case 'F':
                             newBrick = new FlickerBrick(brickX, brickY);
+                            newBrick.setTexture(flickerBrickTexture1);
                             break;
                         case 'X': // <--- Thêm case cho ExplosiveBrick
                             newBrick = new ExplosiveBrick(brickX, brickY);
+                            newBrick.setTexture(explosiveBrickTexture);
                             break;
                         case ' ':
                             break;
@@ -189,6 +230,9 @@ public class GameManager {
         if (!stateManager.isRunning()) {
             return;
         }
+        roundTimeElapsed += dt;
+        totalTimeElapsed += dt;
+        stateManager.updateTimers(roundTimeElapsed, totalTimeElapsed);
         // Cập nhật vị trí của Paddle và Ball
         paddle.update(dt);
         Iterator<Ball> ballIt = balls.iterator();
@@ -201,14 +245,18 @@ public class GameManager {
             }
             ball.update(dt);
             // Trái
-            if (ball.getX() <= 0) {
-                ball.setX(0);
+//            if (ball.getX() <= 0) {
+//                ball.setX(0);
+            if (ball.getX() <= Constants.PLAYFIELD_LEFT) {
+                ball.setX(Constants.PLAYFIELD_LEFT);
                 ball.setDirection(-ball.getDx(), ball.getDy());
                 SoundManager.getInstance().play("bounce");
             }
             // Phải
-            if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
-                ball.setX(Constants.WIDTH - ball.getWidth());
+//            if (ball.getX() + ball.getWidth() >= Constants.WIDTH) {
+//                ball.setX(Constants.WIDTH - ball.getWidth());
+            if (ball.getX() + ball.getWidth() >= Constants.PLAYFIELD_RIGHT) {
+                ball.setX(Constants.PLAYFIELD_RIGHT - ball.getWidth());
                 ball.setDirection(-ball.getDx(), ball.getDy());
                 SoundManager.getInstance().play("bounce");
             }
@@ -253,28 +301,28 @@ public class GameManager {
                 if (!brick.isDestroyed() && ball.collidesWith(brick)) {
 
                     Brick.BrickType hitBrickType = brick.getType();
-                    boolean brickWasDestroyed = brick.isDestroyed(); // Lưu trạng thái trước khi takeHit
-                    brick.takeHit(); // Gạch nhận hit
+                    boolean brickWasDestroyed = brick.isDestroyed();
+                    brick.takeHit();
 
-
-                    if (!brickWasDestroyed && brick.isDestroyed()) { // Chỉ khi gạch MỚI BỊ PHÁ HỦY
+                    if (!brickWasDestroyed && brick.isDestroyed()) {
                         int multiplier = 1;
                         double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
                         if (scoreMultTime > 0) {
                             multiplier = 2;
                         }
 
-                        score += 10 * multiplier; // Tăng điểm cho gạch bị phá hủy
+                        score += 10 * multiplier;
                         stateManager.updateStats(score, lives);
                         System.out.println(hitBrickType + " Brick destroyed! Score: " + score);
+
                         SoundManager.getInstance().play("break");
                         // XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK
+
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             System.out.println("Explosive Brick detonated!");
-                            handleExplosion(brick.getX(), brick.getY()); // Gọi hàm xử lý nổ
+                            handleExplosion(brick.getX(), brick.getY());
                         }
 
-                        // ===== SPAWN POWERUP (25% chance) =====
                         if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
                             spawnPowerUp(
                                     brick.getX() + brick.getWidth() / 2,
@@ -282,21 +330,48 @@ public class GameManager {
                             );
                         }
 
-                        brickIterator.remove(); // Xóa gạch đã bị phá hủy
+                        brickIterator.remove();
                     } else if (hitBrickType == Brick.BrickType.INDESTRUCTIBLE) {
                         System.out.println("Indestructible brick hit!");
                     }
-                    // Nếu là FlickerBrick và bị đánh khi ẩn, takeHit() không làm gì.
-                    // Bóng vẫn nảy nếu không phải FireBall
+
                     if (!hasFireBall) {
-                        ball.setDirection(ball.getDx(), -ball.getDy());
-                        break; // Chỉ xử lý một va chạm với gạch mỗi frame
+                        double ballCenterX = ball.getX() + ball.getRadius();
+                        double ballCenterY = ball.getY() + ball.getRadius();
+
+                        double brickCenterX = brick.getX() + brick.getWidth() / 2;
+                        double brickCenterY = brick.getY() + brick.getHeight() / 2;
+
+                        double overlapX = (ball.getRadius() + brick.getWidth() / 2)
+                                - Math.abs(ballCenterX - brickCenterX);
+                        double overlapY = (ball.getRadius() + brick.getHeight() / 2)
+                                - Math.abs(ballCenterY - brickCenterY);
+
+                        if (overlapX < overlapY) {
+                            if (ballCenterX < brickCenterX) {
+                                ball.setX(brick.getX() - ball.getWidth() - 1);
+                            } else {
+                                ball.setX(brick.getX() + brick.getWidth() + 1);
+                            }
+                            ball.setDirection(-ball.getDx(), ball.getDy());
+                        } else {
+                            if (ballCenterY < brickCenterY) {
+                                ball.setY(brick.getY() - ball.getHeight() - 1);
+                            } else {
+                                ball.setY(brick.getY() + brick.getHeight() + 1);
+                            }
+                            ball.setDirection(ball.getDx(), -ball.getDy());
+                        }
+                        break;
                     }
                 }
             }
-            // Ball out of bounds
+            double clampedX = Math.max(
+                    Constants.PLAYFIELD_LEFT,
+                    Math.min(ball.getX(), Constants.PLAYFIELD_RIGHT - ball.getWidth())
+            );
+            ball.setX(clampedX);
             if (ball.getY() + ball.getHeight() >= Constants.HEIGHT) {
-                // ===== CHECK INVINCIBLE BALL =====
                 boolean invincible = effectManager.getRemainingTime("INVINCIBLE_BALL") > 0;
 
                 if (!invincible) {
@@ -354,6 +429,9 @@ public class GameManager {
                 bricks.clear(); // Xóa gạch cũ
                 loadLevel(currentLevel); // Tải level mới
                 resetBallAndPaddlePosition(); // Đặt lại bóng/paddle cho level mới
+                roundTimeElapsed = 0;
+                stateManager.setCurrentRound(currentLevel);
+                stateManager.updateTimers(roundTimeElapsed, totalTimeElapsed);
                 System.out.println("Starting Level " + currentLevel);
             }
         }
@@ -489,13 +567,17 @@ public class GameManager {
      * Bóng sẽ bắt đầu di chuyển ngay lập tức.
      */
     private void resetBallAndPaddlePosition() {
-        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
+//        paddle.setX((Constants.WIDTH - Constants.PADDLE_WIDTH) / 2.0); // Đặt paddle giữa màn hình
+        double paddleStartX = Constants.PLAYFIELD_LEFT
+                + (Constants.PLAYFIELD_WIDTH - Constants.PADDLE_WIDTH) / 2.0;
+        paddle.setX(paddleStartX); // Đặt paddle giữa vùng chơi
         paddle.setDx(0); // Dừng paddle
 
         // Khởi tạo lại bóng với constructor hiện có của bạn
         balls.clear();
         Ball newBall = new Ball(
-                Constants.WIDTH / 2.0,
+//                Constants.WIDTH / 2.0,
+                Constants.PLAYFIELD_LEFT + Constants.PLAYFIELD_WIDTH / 2.0,
                 Constants.HEIGHT / 2.0,
                 Constants.BALL_RADIUS,
                 Constants.DEFAULT_SPEED,
@@ -513,6 +595,9 @@ public class GameManager {
      */
 
     public void render(GraphicsContext g) {
+        if (paddle == null || balls == null || effectManager == null) {
+            return; // chưa khởi tạo xong -> tránh crash
+        }
         g.clearRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
         // Vẽ Paddle
         if (paddle != null) {
@@ -533,18 +618,23 @@ public class GameManager {
         // Không hiển thị Level vì không có khái niệm level phức tạp
         // ===== DISPLAY ACTIVE EFFECTS =====
         int yOffset = 80;
+        double effectTextX = Constants.PLAYFIELD_LEFT + 10;
+
 
         double fastTime = effectManager.getRemainingTime("FAST_BALL");
         if (fastTime > 0) {
             g.setFill(Color.RED);
             g.fillText("Fast: " + String.format("%.1f", fastTime) + "s", 10, yOffset);
+//            g.fillText("Fast: " + String.format("%.1f", fastTime) + "s", effectTextX, yOffset);
             yOffset += 20;
+
         }
 
         double slowTime = effectManager.getRemainingTime("SLOW_BALL");
         if (slowTime > 0) {
             g.setFill(Color.PURPLE);
             g.fillText("Slow: " + String.format("%.1f", slowTime) + "s", 10, yOffset);
+//            g.fillText("Slow: " + String.format("%.1f", slowTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -552,6 +642,7 @@ public class GameManager {
         if (expandTime > 0) {
             g.setFill(Color.GREEN);
             g.fillText("Expand: " + String.format("%.1f", expandTime) + "s", 10, yOffset);
+//            g.fillText("Expand: " + String.format("%.1f", expandTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -559,6 +650,7 @@ public class GameManager {
         if (shrinkTime > 0) {
             g.setFill(Color.ORANGE);
             g.fillText("Shrink: " + String.format("%.1f", shrinkTime) + "s", 10, yOffset);
+//            g.fillText("Shrink: " + String.format("%.1f", shrinkTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -566,6 +658,7 @@ public class GameManager {
         if (invincibleTime > 0) {
             g.setFill(Color.GOLD);
             g.fillText("Invincible: " + String.format("%.1f", invincibleTime) + "s", 10, yOffset);
+//            g.fillText("Invincible: " + String.format("%.1f", invincibleTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -573,6 +666,7 @@ public class GameManager {
         if (scoreMultTime > 0) {
             g.setFill(Color.LIGHTGREEN);
             g.fillText("x2 Score: " + String.format("%.1f", scoreMultTime) + "s", 10, yOffset);
+//            g.fillText("Invincible: " + String.format("%.1f", invincibleTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -580,6 +674,7 @@ public class GameManager {
         if (fireTime > 0) {
             g.setFill(Color.ORANGERED);
             g.fillText("Fire: " + String.format("%.1f", fireTime) + "s", 10, yOffset);
+//            g.fillText("Fire: " + String.format("%.1f", fireTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -587,6 +682,7 @@ public class GameManager {
         if (laserTime > 0) {
             g.setFill(Color.LIGHTBLUE);
             g.fillText("Laser: " + String.format("%.1f", laserTime) + "s", 10, yOffset);
+//            g.fillText("Laser: " + String.format("%.1f", laserTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
     }

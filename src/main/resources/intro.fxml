@@ -31,7 +31,7 @@
                 <Label fx:id="start" alignment="CENTER" layoutX="507.0" layoutY="566.0"
                        prefHeight="68.0" prefWidth="286.0"
                        text="PRESS SPACE TO START" textAlignment="CENTER"
-                       textFill="white">
+                        textFill="white">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>
