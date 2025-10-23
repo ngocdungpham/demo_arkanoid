@@ -5,14 +5,17 @@ public class Constants {
     public static final int HEIGHT = 600;
 
     // Paddle
-    public static final int PADDLE_WIDTH = 120;
-    public static final int PADDLE_HEIGHT = 12;
+    public static final int PADDLE_WIDTH = 100;
+    public static final int PADDLE_HEIGHT = 20;
     public static final double PADDLE_SPEED = 420;
 
     // Ball
     public static final int BALL_RADIUS = 8;
     public static final int BALL_SPEED = 1000;
 
+    // Laser
+    public static final int LASER_WIDTH = 4;
+    public static final int LASER_HEIGHT = 20;
     // Default settings
     public static final int START_LIVES = 3;
     public static final int START_LIVES_TIME = 60;

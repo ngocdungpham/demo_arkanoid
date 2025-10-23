@@ -21,8 +21,10 @@ public class FastBallEffect implements PowerUpEffect {
             if (!originalSpeeds.containsKey(ball)) {
                 originalSpeeds.put(ball, ball.getSpeed());
             }
-            // Set tốc độ mới dựa trên tốc độ GỐC (không phải tốc độ hiện tại)
+            // Set tốc độ mới dựa trên tốc độ gốc (không phải tốc độ hiện tại)
             ball.setSpeed(originalSpeeds.get(ball) * speedMultiplier);
+            // active trail
+            ball.activateFastBallEffect();
         }
     }
 
@@ -35,6 +37,7 @@ public class FastBallEffect implements PowerUpEffect {
             } else {
                 ball.setSpeed(Constants.DEFAULT_SPEED);
             }
+            ball.resetTrainEffect();
         }
         originalSpeeds.clear();
     }

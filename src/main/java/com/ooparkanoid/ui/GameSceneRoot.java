@@ -218,6 +218,9 @@ public class GameSceneRoot {
                 } else if (stateManager.getCurrentState() == GameState.PAUSED) {
                     stateManager.resumeGame();
                 }
+                else if (gameManager.getPaddle().isLaserEnabled()) {
+                    gameManager.getPaddle().shootLaser();
+                }
                 return;
             }
 
@@ -257,7 +260,13 @@ public class GameSceneRoot {
         // đảm bảo scene có focus khi đóng overlay
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
             if (e.isPrimaryButtonDown() && stateManager.isRunning()) {
-                gameManager.launchBall();
+                if (gameManager.getPaddle().isLaserEnabled()) {
+                    gameManager.getPaddle().shootLaser();
+                }
+                else {
+                    gameManager.launchBall();
+                }
+
             }
         });
         scene.getRoot().requestFocus();
