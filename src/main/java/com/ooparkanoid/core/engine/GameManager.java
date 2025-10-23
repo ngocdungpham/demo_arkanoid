@@ -23,6 +23,9 @@ import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
+import com.ooparkanoid.graphics.ResourceManager;
+import javafx.scene.image.Image;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -56,17 +59,40 @@ public class GameManager {
     private boolean ballLaunched = false;
     private final GameStateManager stateManager;
 
+    private Image normalBrickTexture;
+    private Image strongBrickTexture3; // 2 hit points remaining
+    private Image strongBrickTexture2; // 2 hit points remaining
+    private Image strongBrickTexture1; // 1 hit point remaining
+    private Image indestructibleBrickTexture;
+    private Image flickerBrickTexture1;
+    private Image flickerBrickTexture2;
+    private Image explosiveBrickTexture;
+
     public GameManager() {
         this(new GameStateManager());
         bricks = new ArrayList<>();
         random = new Random();
+        loadBrickTextures();
     }
 
     public GameManager(GameStateManager stateManager) {
         this.stateManager = stateManager;
         bricks = new ArrayList<>();
         random = new Random();
+        loadBrickTextures();
         initializeGame();
+    }
+
+    private void loadBrickTextures() {
+        ResourceManager rm = ResourceManager.getInstance();
+        normalBrickTexture = rm.loadImage("brick_normal.png");
+        strongBrickTexture3 = rm.loadImage("brick_strong_hit1.png");
+        strongBrickTexture2 = rm.loadImage("brick_strong_hit2.png");
+        strongBrickTexture1 = rm.loadImage("brick_strong_hit3.png");
+        indestructibleBrickTexture = rm.loadImage("brick_indestructible.png");
+        flickerBrickTexture1 = rm.loadImage("brick_flicker1.png");
+        flickerBrickTexture2 = rm.loadImage("brick_flicker2.png");
+        explosiveBrickTexture = rm.loadImage("brick_explosive.png");
     }
 
     public static GameManager getInstance() {
@@ -146,18 +172,23 @@ public class GameManager {
                     switch (brickChar) {
                         case 'N':
                             newBrick = new NormalBrick(brickX, brickY);
+                            newBrick.setTexture(normalBrickTexture);
                             break;
                         case 'S':
                             newBrick = new StrongBrick(brickX, brickY);
+                            newBrick.setTexture(strongBrickTexture1);
                             break;
                         case '#':
                             newBrick = new IndestructibleBrick(brickX, brickY);
+                            newBrick.setTexture(indestructibleBrickTexture);
                             break;
                         case 'F':
                             newBrick = new FlickerBrick(brickX, brickY);
+                            newBrick.setTexture(flickerBrickTexture1);
                             break;
                         case 'X': // <--- Thêm case cho ExplosiveBrick
                             newBrick = new ExplosiveBrick(brickX, brickY);
+                            newBrick.setTexture(explosiveBrickTexture);
                             break;
                         case ' ':
                             break;
@@ -248,28 +279,25 @@ public class GameManager {
                 if (!brick.isDestroyed() && ball.collidesWith(brick)) {
 
                     Brick.BrickType hitBrickType = brick.getType();
-                    boolean brickWasDestroyed = brick.isDestroyed(); // Lưu trạng thái trước khi takeHit
-                    brick.takeHit(); // Gạch nhận hit
+                    boolean brickWasDestroyed = brick.isDestroyed();
+                    brick.takeHit();
 
-
-                    if (!brickWasDestroyed && brick.isDestroyed()) { // Chỉ khi gạch MỚI BỊ PHÁ HỦY
+                    if (!brickWasDestroyed && brick.isDestroyed()) {
                         int multiplier = 1;
                         double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
                         if (scoreMultTime > 0) {
                             multiplier = 2;
                         }
 
-                        score += 10 * multiplier; // Tăng điểm cho gạch bị phá hủy
+                        score += 10 * multiplier;
                         stateManager.updateStats(score, lives);
                         System.out.println(hitBrickType + " Brick destroyed! Score: " + score);
 
-                        // XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             System.out.println("Explosive Brick detonated!");
-                            handleExplosion(brick.getX(), brick.getY()); // Gọi hàm xử lý nổ
+                            handleExplosion(brick.getX(), brick.getY());
                         }
 
-                        // ===== SPAWN POWERUP (25% chance) =====
                         if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
                             spawnPowerUp(
                                     brick.getX() + brick.getWidth() / 2,
@@ -277,21 +305,43 @@ public class GameManager {
                             );
                         }
 
-                        brickIterator.remove(); // Xóa gạch đã bị phá hủy
+                        brickIterator.remove();
                     } else if (hitBrickType == Brick.BrickType.INDESTRUCTIBLE) {
                         System.out.println("Indestructible brick hit!");
                     }
-                    // Nếu là FlickerBrick và bị đánh khi ẩn, takeHit() không làm gì.
-                    // Bóng vẫn nảy nếu không phải FireBall
+
                     if (!hasFireBall) {
-                        ball.setDirection(ball.getDx(), -ball.getDy());
-                        break; // Chỉ xử lý một va chạm với gạch mỗi frame
+                        double ballCenterX = ball.getX() + ball.getRadius();
+                        double ballCenterY = ball.getY() + ball.getRadius();
+
+                        double brickCenterX = brick.getX() + brick.getWidth() / 2;
+                        double brickCenterY = brick.getY() + brick.getHeight() / 2;
+
+                        double overlapX = (ball.getRadius() + brick.getWidth() / 2)
+                                - Math.abs(ballCenterX - brickCenterX);
+                        double overlapY = (ball.getRadius() + brick.getHeight() / 2)
+                                - Math.abs(ballCenterY - brickCenterY);
+
+                        if (overlapX < overlapY) {
+                            if (ballCenterX < brickCenterX) {
+                                ball.setX(brick.getX() - ball.getWidth() - 1);
+                            } else {
+                                ball.setX(brick.getX() + brick.getWidth() + 1);
+                            }
+                            ball.setDirection(-ball.getDx(), ball.getDy());
+                        } else {
+                            if (ballCenterY < brickCenterY) {
+                                ball.setY(brick.getY() - ball.getHeight() - 1);
+                            } else {
+                                ball.setY(brick.getY() + brick.getHeight() + 1);
+                            }
+                            ball.setDirection(ball.getDx(), -ball.getDy());
+                        }
+                        break;
                     }
                 }
             }
-            // Ball out of bounds
             if (ball.getY() + ball.getHeight() >= Constants.HEIGHT) {
-                // ===== CHECK INVINCIBLE BALL =====
                 boolean invincible = effectManager.getRemainingTime("INVINCIBLE_BALL") > 0;
 
                 if (!invincible) {
