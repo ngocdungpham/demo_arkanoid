@@ -7,7 +7,7 @@ public class PowerUpFactory {
     private static final Random random = new Random();
     private static final double DEFAULT_DURATION = 10.0;
     private static final double INSTANT_DURATION = 0.1; // Cho instant effects
-
+    private static final boolean USE_SPRITES = true;
     public enum PowerUpType {
         // BUFFS (Tốt)
         FAST_BALL,
@@ -17,6 +17,7 @@ public class PowerUpFactory {
         SCORE_MULTIPLIER,
         EXTRA_LIFE,
         FIRE_BALL,
+        LASER_PADDLE,
 
         // DEBUFFS (Xấu)
         SLOW_BALL,
@@ -27,7 +28,7 @@ public class PowerUpFactory {
      * Tạo random powerup với 75% buff, 25% debuff
      */
     public static PowerUp createRandomPowerUp(double x, double y) {
-        boolean isBuff = random.nextDouble() < 0.75; // 75% buff
+        boolean isBuff = random.nextDouble() < 0.6; // 75% buff
         if (isBuff) {
             PowerUpType[] buffs = {
                     PowerUpType.FAST_BALL,
@@ -36,7 +37,8 @@ public class PowerUpFactory {
                     PowerUpType.INVINCIBLE_BALL,
                     PowerUpType.SCORE_MULTIPLIER,
                     PowerUpType.EXTRA_LIFE,
-                    PowerUpType.FIRE_BALL
+                    PowerUpType.FIRE_BALL,
+                    PowerUpType.LASER_PADDLE
             };
             return createPowerUp(x, y, buffs[random.nextInt(buffs.length)]);
         } else {
@@ -53,16 +55,16 @@ public class PowerUpFactory {
      */
     public static PowerUp createPowerUp(double x, double y, PowerUpType type) {
         switch (type) {
-            // === BUFFS ===
+            // BUFFS
             case FAST_BALL:
                 return new PowerUp(x, y, 30, 30,
-                        new FastBallEffect(1.5),
+                        new FastBallEffect(1.25),
                         Color.RED,
                         DEFAULT_DURATION);
 
             case EXPAND_PADDLE:
                 return new PowerUp(x, y, 30, 30,
-                        new ExpandPaddleEffect(1.5),
+                        new ExpandPaddleEffect(1.35),
                         Color.GREEN,
                         DEFAULT_DURATION);
 
@@ -95,8 +97,13 @@ public class PowerUpFactory {
                         new FireBallEffect(),
                         Color.ORANGERED,
                         DEFAULT_DURATION);
+            case LASER_PADDLE:
+                return new PowerUp(x, y, 32, 32,
+                        new LaserPaddleEffect(),
+                        "powerups/LaserPaddle.png",
+                        DEFAULT_DURATION);
 
-            // === DEBUFFS ===
+            // DEBUFFS
             case SLOW_BALL:
                 return new PowerUp(x, y, 30, 30,
                         new SlowBallEffect(0.6),
@@ -114,7 +121,7 @@ public class PowerUpFactory {
         }
     }
 
-    // === Convenience methods ===
+    // Convenience methods
     public static PowerUp createFastBall(double x, double y) {
         return createPowerUp(x, y, PowerUpType.FAST_BALL);
     }
@@ -149,5 +156,9 @@ public class PowerUpFactory {
 
     public static PowerUp createFireBall(double x, double y) {
         return createPowerUp(x, y, PowerUpType.FIRE_BALL);
+    }
+
+    public static PowerUp createLaserPaddle(double x, double y) {
+        return createPowerUp(x, y, PowerUpType.LASER_PADDLE);
     }
 }

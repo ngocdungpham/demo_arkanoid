@@ -1,5 +1,6 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
+import com.ooparkanoid.object.Laser;
 import com.ooparkanoid.sound.SoundManager;
 import javafx.geometry.Rectangle2D;
 
@@ -304,10 +305,10 @@ public class GameManager {
                     // Bounce back if invincible
                     ball.setY(Constants.HEIGHT - ball.getHeight());
                     ball.setDirection(ball.getDx(), -Math.abs(ball.getDy()));
-                    System.out.println("🛡️ Invincible ball bounced back!");
                 }
             }
         }
+        updateLasers(dt);
         // UPDATE POWERUPS
         updatePowerUps(dt);
 
@@ -359,6 +360,48 @@ public class GameManager {
 
     }
 
+    private void updateLasers(double dt) {
+        List<Laser> lasers = paddle.getLasers();
+        if (lasers.isEmpty()) return;
+        Iterator<Laser> laserIt = lasers.iterator();
+        while (laserIt.hasNext()) {
+            Laser laser = laserIt.next();
+            Iterator<Brick> brickIt = bricks.iterator();
+            while (brickIt.hasNext()) {
+                Brick brick = brickIt.next();
+                if (!brick.isDestroyed() && laser.istersected(brick)) {
+                    Brick.BrickType hitBrickType = brick.getType();
+                    boolean brickWasDestroyed = brick.isDestroyed();
+                    brick.takeHit();
+                    lasers.remove(laser);
+                    SoundManager.getInstance().play("laser_hit");
+                    if (!brickWasDestroyed && brick.isDestroyed()) {
+                        int multiplier = 1;
+                        double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
+                        if (scoreMultTime > 0) {
+                            multiplier = 2;
+                        }
+                        score += 10 * multiplier;
+                        stateManager.updateStats(score, lives);
+                        SoundManager.getInstance().play("break");
+                        // Handle explosion
+                        if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
+                            handleExplosion(brick.getX(), brick.getY());
+                        }
+                        // Spawn powerup
+                        if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
+                            spawnPowerUp(
+                                    brick.getX() + brick.getWidth() / 2,
+                                    brick.getY() + brick.getHeight() / 2
+                            );
+                        }
+                        brickIt.remove();
+                    }
+                    break;
+                }
+            }
+        }
+    }
     /**
      * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
      * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
@@ -494,49 +537,56 @@ public class GameManager {
         double fastTime = effectManager.getRemainingTime("FAST_BALL");
         if (fastTime > 0) {
             g.setFill(Color.RED);
-            g.fillText("⚡ Fast: " + String.format("%.1f", fastTime) + "s", 10, yOffset);
+            g.fillText("Fast: " + String.format("%.1f", fastTime) + "s", 10, yOffset);
             yOffset += 20;
         }
 
         double slowTime = effectManager.getRemainingTime("SLOW_BALL");
         if (slowTime > 0) {
             g.setFill(Color.PURPLE);
-            g.fillText("🐌 Slow: " + String.format("%.1f", slowTime) + "s", 10, yOffset);
+            g.fillText("Slow: " + String.format("%.1f", slowTime) + "s", 10, yOffset);
             yOffset += 20;
         }
 
         double expandTime = effectManager.getRemainingTime("EXPAND_PADDLE");
         if (expandTime > 0) {
             g.setFill(Color.GREEN);
-            g.fillText("↔ Expand: " + String.format("%.1f", expandTime) + "s", 10, yOffset);
+            g.fillText("Expand: " + String.format("%.1f", expandTime) + "s", 10, yOffset);
             yOffset += 20;
         }
 
         double shrinkTime = effectManager.getRemainingTime("SHRINK_PADDLE");
         if (shrinkTime > 0) {
             g.setFill(Color.ORANGE);
-            g.fillText("→← Shrink: " + String.format("%.1f", shrinkTime) + "s", 10, yOffset);
+            g.fillText("Shrink: " + String.format("%.1f", shrinkTime) + "s", 10, yOffset);
             yOffset += 20;
         }
 
         double invincibleTime = effectManager.getRemainingTime("INVINCIBLE_BALL");
         if (invincibleTime > 0) {
             g.setFill(Color.GOLD);
-            g.fillText("🛡️ Invincible: " + String.format("%.1f", invincibleTime) + "s", 10, yOffset);
+            g.fillText("Invincible: " + String.format("%.1f", invincibleTime) + "s", 10, yOffset);
             yOffset += 20;
         }
 
         double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
         if (scoreMultTime > 0) {
             g.setFill(Color.LIGHTGREEN);
-            g.fillText("💰 x2 Score: " + String.format("%.1f", scoreMultTime) + "s", 10, yOffset);
+            g.fillText("x2 Score: " + String.format("%.1f", scoreMultTime) + "s", 10, yOffset);
             yOffset += 20;
         }
 
         double fireTime = effectManager.getRemainingTime("FIRE_BALL");
         if (fireTime > 0) {
             g.setFill(Color.ORANGERED);
-            g.fillText("🔥 Fire: " + String.format("%.1f", fireTime) + "s", 10, yOffset);
+            g.fillText("Fire: " + String.format("%.1f", fireTime) + "s", 10, yOffset);
+            yOffset += 20;
+        }
+
+        double laserTime = effectManager.getRemainingTime("LASER_PADDLE");
+        if (laserTime > 0) {
+            g.setFill(Color.LIGHTBLUE);
+            g.fillText("Laser: " + String.format("%.1f", laserTime) + "s", 10, yOffset);
             yOffset += 20;
         }
     }
