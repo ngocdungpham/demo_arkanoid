@@ -33,21 +33,4 @@ public class GameContext {
             livesModifier.accept(amount);
         }
     }
-
-    // GameContext.java  (thêm field và setter)
-    private double scoreMultiplier = 1.0;
-    private Runnable fireBallOn = () -> {};
-    private Runnable fireBallOff = () -> {};
-    private Runnable invincibleOn = () -> {};
-    private Runnable invincibleOff = () -> {};
-
-    public void setScoreMultiplier(double m) { scoreMultiplier = m; }
-    public double getScoreMultiplier() { return scoreMultiplier; }
-
-    public void onFireBall(Runnable rOn, Runnable rOff) { fireBallOn = rOn; fireBallOff = rOff; }
-    public void setFireBallActive(boolean active) { if (active) fireBallOn.run(); else fireBallOff.run(); }
-
-    public void onInvincible(Runnable rOn, Runnable rOff) { invincibleOn = rOn; invincibleOff = rOff; }
-    public void setInvincibleActive(boolean active) { if (active) invincibleOn.run(); else invincibleOff.run(); }
-
 }

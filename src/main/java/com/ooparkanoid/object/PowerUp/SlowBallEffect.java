@@ -21,6 +21,7 @@ public class SlowBallEffect implements PowerUpEffect {
                 originalSpeeds.put(ball, ball.getSpeed());
             }
             ball.setSpeed(originalSpeeds.get(ball) * speedMultiplier);
+            ball.activateSlowBallEffect();
         }
     }
 
@@ -33,6 +34,7 @@ public class SlowBallEffect implements PowerUpEffect {
             } else {
                 ball.setSpeed(Constants.DEFAULT_SPEED);
             }
+            ball.resetTrainEffect();
         }
         originalSpeeds.clear();
     }

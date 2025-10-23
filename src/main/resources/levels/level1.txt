@@ -1,11 +1,12 @@
-NNNNN
-  N
-
-  N
-
-  N
-
-  N
-
-  N
+##NNNNN
+ S NS
+'SS
+ S N
+#XXS
+ S NS
+SN
+SS N#S
+SSSSS
+FS
+NXNS
 
