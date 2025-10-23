@@ -13,18 +13,21 @@ public abstract class Brick extends GameObject {
         NORMAL,
         STRONG,
         // TODO: Thêm các loại gạch đặc biệt khác ở đây (ví dụ: INDESTRUCTIBLE, EXPLOSIVE)
-        INDESTRUCTIBLE //Thêm loại gạch mới
+        INDESTRUCTIBLE,
+        FLICKER,
+        EXPLOSIVE//Thêm loại gạch mới
+
     }
 
     protected int hitPoints;
     protected boolean destroyed;
-    protected BrickType type; // <--- Thuộc tính type mới
+    protected BrickType type; // Thuộc tính type mới
 
-    public Brick(double x, double y, int hitPoints, BrickType type) { // <--- Cập nhật constructor
+    public Brick(double x, double y, int hitPoints, BrickType type) { // Cập nhật constructor
         super(x, y, Constants.BRICK_WIDTH, Constants.BRICK_HEIGHT);
         this.hitPoints = hitPoints;
         this.destroyed = false;
-        this.type = type; // <--- Gán type
+        this.type = type; // Gán type
     }
 
     public void takeHit() {

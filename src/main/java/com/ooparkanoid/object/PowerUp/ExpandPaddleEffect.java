@@ -1,6 +1,7 @@
 package com.ooparkanoid.object.PowerUp;
 
 import com.ooparkanoid.object.Paddle;
+import com.ooparkanoid.utils.Constants;
 
 public class ExpandPaddleEffect implements PowerUpEffect {
     private final double scaleFactor;
@@ -15,7 +16,7 @@ public class ExpandPaddleEffect implements PowerUpEffect {
         Paddle paddle = context.getPaddle();
         // Chỉ lưu original width lần đầu
         if (originalWidth < 0) {
-            originalWidth = paddle.getWidth();
+            originalWidth = Constants.PADDLE_WIDTH;
         }
         // Set width dựa trên original width
         paddle.setWidth(originalWidth * scaleFactor);

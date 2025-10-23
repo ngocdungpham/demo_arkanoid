@@ -19,7 +19,7 @@ public class IndestructibleBrick extends Brick {
     @Override
     public void render(GraphicsContext gc) {
         // Gạch này luôn được vẽ vì không bao giờ bị phá hủy
-        gc.setFill(Color.DARKBLUE); // Màu xanh đậm cho gạch không thể phá hủy
+        gc.setFill(Color.rgb(54, 69, 79)); // Màu xanh đậm cho gạch không thể phá hủy
         gc.fillRect(x, y, width, height);
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(1);
