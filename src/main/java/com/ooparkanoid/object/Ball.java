@@ -243,31 +243,44 @@ public class Ball extends MovableObject {
         this.dx = ballDX;
         this.dy = ballDY;
     }
-    public boolean collidesWith(Brick brick) {
-        // Lấy thông tin của hình tròn
-        // x, y của GameObject (Ball) là góc trên bên trái của hộp bao quanh
-        // Tâm của bóng là (x + radius, y + radius)
-        double circleX = this.x + this.radius;
-        double circleY = this.y + this.radius;
-        double circleRadius = this.radius;
 
-        // Lấy thông tin của hình chữ nhật (gạch)
+
+    public boolean collidesWith(Brick brick) {
+        double circleCenterX = this.x + this.radius;
+        double circleCenterY = this.y + this.radius;
+
         double rectX = brick.getX();
         double rectY = brick.getY();
         double rectWidth = brick.getWidth();
         double rectHeight = brick.getHeight();
 
-        // Tìm điểm gần nhất trên hình chữ nhật đến tâm hình tròn
-        double closestX = clamp(circleX, rectX, rectX + rectWidth);
-        double closestY = clamp(circleY, rectY, rectY + rectHeight);
+        double closestX = clamp(circleCenterX, rectX, rectX + rectWidth);
+        double closestY = clamp(circleCenterY, rectY, rectY + rectHeight);
 
-        // Tính khoảng cách giữa điểm gần nhất và tâm hình tròn
-        double distX = circleX - closestX;
-        double distY = circleY - closestY;
+        double distX = circleCenterX - closestX;
+        double distY = circleCenterY - closestY;
         double distanceSquared = (distX * distX) + (distY * distY);
 
-        // Kiểm tra xem khoảng cách bình phương có nhỏ hơn hoặc bằng bán kính bình phương không
-        return distanceSquared <= (circleRadius * circleRadius);
+        return distanceSquared < (this.radius * this.radius);
+    }
+
+    public String getCollisionSide(Brick brick) {
+        double ballCenterX = this.x + this.radius;
+        double ballCenterY = this.y + this.radius;
+
+        double brickCenterX = brick.getX() + brick.getWidth() / 2;
+        double brickCenterY = brick.getY() + brick.getHeight() / 2;
+
+        double overlapX = (this.radius + brick.getWidth() / 2)
+                - Math.abs(ballCenterX - brickCenterX);
+        double overlapY = (this.radius + brick.getHeight() / 2)
+                - Math.abs(ballCenterY - brickCenterY);
+
+        if (overlapX < overlapY) {
+            return ballCenterX < brickCenterX ? "LEFT" : "RIGHT";
+        } else {
+            return ballCenterY < brickCenterY ? "TOP" : "BOTTOM";
+        }
     }
 
     private static double clamp(double value, double min, double max) {
