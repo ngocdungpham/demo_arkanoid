@@ -62,6 +62,7 @@ public class GameManager {
         this(new GameStateManager());
         bricks = new ArrayList<>();
         random = new Random();
+//        initializeGame();
     }
 
     public GameManager(GameStateManager stateManager) {
@@ -495,11 +496,11 @@ public class GameManager {
         // Khởi tạo lại bóng với constructor hiện có của bạn
         balls.clear();
         Ball newBall = new Ball(
-                Constants.WIDTH / 2.0,
-                Constants.HEIGHT / 2.0,
+                paddle.getX() + paddle.getWidth() / 2.0,
+                paddle.getY() - Constants.BALL_RADIUS,
                 Constants.BALL_RADIUS,
                 Constants.DEFAULT_SPEED,
-                0, -1
+                1, -1
         );
         ball = newBall;
         balls.add(newBall);
@@ -513,6 +514,7 @@ public class GameManager {
      */
 
     public void render(GraphicsContext g) {
+        if (!stateManager.isRunning()) return; // chưa vào game thì không vẽ gì
         g.clearRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
         // Vẽ Paddle
         if (paddle != null) {
@@ -601,7 +603,7 @@ public class GameManager {
             ballLaunched = true;
             for (Ball b : balls) {
                 // Cho bóng bay lên góc ngẫu nhiên một chút
-                b.setDirection(0, -1);
+                b.setDirection(0.7, -1);
             }
             System.out.println("Ball launched!");
         }
@@ -613,12 +615,12 @@ public class GameManager {
                 paddle.getY() - 20,
                 Constants.BALL_RADIUS,
                 Constants.DEFAULT_SPEED,
-                1, -1
+                -1, -1
         );
 
-        if (ballLaunched) {
-            newBall.setDirection(Math.random() > 0.5 ? 0 : 0, -1);
-        }
+//        if (ballLaunched) {
+//            newBall.setDirection(Math.random() > 0.5 ? 0 : 0, -1);
+//        }
 
         balls.add(newBall);
     }
