@@ -22,8 +22,8 @@ public class Constants {
     public static final double DEFAULT_SPEED = 400.0;
 
     // Bricks
-    public static final int BRICK_WIDTH = 85;
-    public static final int BRICK_HEIGHT = 30;
+    public static final int BRICK_WIDTH = 70;
+    public static final int BRICK_HEIGHT = 20;
     public static final int BRICK_PADDING_X = 5; // Khoảng cách giữa các gạch theo chiều ngang
     public static final int BRICK_PADDING_Y = 2;  // Khoảng cách giữa các gạch theo chiều dọc
     public static final int BRICK_OFFSET_TOP = 50; // Khoảng cách từ đỉnh màn hình đến hàng gạch đầu tiên
