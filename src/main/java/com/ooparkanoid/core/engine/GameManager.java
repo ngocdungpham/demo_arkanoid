@@ -6,6 +6,8 @@ import javafx.geometry.Rectangle2D;
 
 import com.ooparkanoid.core.save.SaveService;
 import com.ooparkanoid.core.state.GameState;
+import com.ooparkanoid.core.score.HighScoreRepository;
+import com.ooparkanoid.core.score.ScoreEntry;
 import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.object.Ball;
 import com.ooparkanoid.object.Paddle;
@@ -401,7 +403,9 @@ public class GameManager {
             if (lives <= 0) {
                 System.out.println("Game Over! Final Score: " + score);
                 stateManager.setStatusMessage("Game Over! Final Score: " + score);
+                recordHighScore();
                 stateManager.markGameOver();
+
                 return;
             } else {
                 resetBallAndPaddlePosition();
@@ -424,6 +428,7 @@ public class GameManager {
             effectManager.clearAll();
             if (currentLevel > Constants.MAX_LEVELS) { // Kiểm tra nếu đã hết các level
                 System.out.println("Congratulations! All levels completed!");
+                recordHighScore(Constants.MAX_LEVELS);
                 initializeGame(); // Reset game
             } else {
                 bricks.clear(); // Xóa gạch cũ
@@ -435,7 +440,25 @@ public class GameManager {
                 System.out.println("Starting Level " + currentLevel);
             }
         }
+    }
 
+    private void recordHighScore() {
+        recordHighScore(currentLevel);
+    }
+
+    private void recordHighScore(int roundsPlayed) {
+        int clampedRounds = Math.max(1, Math.min(roundsPlayed, Constants.MAX_LEVELS));
+        ScoreEntry entry = new ScoreEntry(resolvePlayerName(), score, clampedRounds, totalTimeElapsed);
+        HighScoreRepository.recordScore(entry);
+    }
+
+    private String resolvePlayerName() {
+        String systemUser = System.getProperty("user.name");
+        if (systemUser == null) {
+            return "Player";
+        }
+        String trimmed = systemUser.trim();
+        return trimmed.isEmpty() ? "Player" : trimmed;
     }
 
     private void updateLasers(double dt) {
