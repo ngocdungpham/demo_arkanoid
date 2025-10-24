@@ -1,6 +1,7 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.graphics.ResourceManager;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
