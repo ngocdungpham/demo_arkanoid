@@ -187,6 +187,9 @@ public class MainConsole extends Application {
     }
 
     public static void main(String[] args) {
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         launch();
+
     }
 }
