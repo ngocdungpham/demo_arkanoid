@@ -1,1 +1,1 @@
-"# demo_arkanoid" 
+arkanoid
