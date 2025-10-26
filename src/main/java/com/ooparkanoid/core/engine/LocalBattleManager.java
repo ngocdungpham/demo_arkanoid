@@ -104,7 +104,11 @@ public class LocalBattleManager {
         playerOnePaddle = new Paddle(fieldLeft + PADDLE_OFFSET_X, paddleStartY);
         playerOnePaddle.setWidth(PADDLE_WIDTH);
         playerOnePaddle.setHeight(PADDLE_HEIGHT);
-        playerOnePaddle.setMovementBounds(playerOnePaddle.getX(), playerOnePaddle.getX());
+//        playerOnePaddle.setMovementBounds(playerOnePaddle.getX(), playerOnePaddle.getX());
+        playerOnePaddle.setOrientation(Paddle.Orientation.VERTICAL_LEFT);
+        playerOnePaddle.lockHorizontalPosition(playerOnePaddle.getX());
+        playerOnePaddle.setMovementBounds(playerOnePaddle.getX(),
+                playerOnePaddle.getX() + playerOnePaddle.getWidth());
         playerOnePaddle.setVerticalMovementBounds(fieldTop + 24, fieldBottom - 24);
 
 //        ball = new Ball(Constants.WIDTH / 2.0,
@@ -114,7 +118,11 @@ public class LocalBattleManager {
         playerTwoPaddle = new Paddle(fieldRight - PADDLE_OFFSET_X - PADDLE_WIDTH, paddleStartY);
         playerTwoPaddle.setWidth(PADDLE_WIDTH);
         playerTwoPaddle.setHeight(PADDLE_HEIGHT);
-        playerTwoPaddle.setMovementBounds(playerTwoPaddle.getX(), playerTwoPaddle.getX());
+//        playerTwoPaddle.setMovementBounds(playerTwoPaddle.getX(), playerTwoPaddle.getX());
+        playerTwoPaddle.setOrientation(Paddle.Orientation.VERTICAL_RIGHT);
+        playerTwoPaddle.lockHorizontalPosition(playerTwoPaddle.getX());
+        playerTwoPaddle.setMovementBounds(playerTwoPaddle.getX(),
+                playerTwoPaddle.getX() + playerTwoPaddle.getWidth());
         playerTwoPaddle.setVerticalMovementBounds(fieldTop + 24, fieldBottom - 24);
 
         ball = new Ball((fieldLeft + fieldRight) / 2.0,
