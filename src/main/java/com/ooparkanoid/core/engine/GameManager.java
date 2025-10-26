@@ -97,7 +97,7 @@ public class GameManager {
         strongBrickTexture3 = rm.loadImage("brick_strong_hit1.png");
         strongBrickTexture2 = rm.loadImage("brick_strong_hit2.png");
         strongBrickTexture1 = rm.loadImage("brick_strong_hit3.png");
-        indestructibleBrickTexture = rm.loadImage("brick_indestructible.png");
+        indestructibleBrickTexture = rm.loadImage("brick_enternal.png");
         flickerBrickTexture1 = rm.loadImage("brick_flicker1.png");
         flickerBrickTexture2 = rm.loadImage("brick_flicker2.png");
         explosiveBrickTexture = rm.loadImage("brick_explosive.png");
@@ -198,7 +198,7 @@ public class GameManager {
                             break;
                         case '#':
                             newBrick = new IndestructibleBrick(brickX, brickY);
-                            newBrick.setTexture(normalBrickTexture2);
+                            newBrick.setTexture(indestructibleBrickTexture);
                             break;
                         case 'F':
                             newBrick = new FlickerBrick(brickX, brickY);
