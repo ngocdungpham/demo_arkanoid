@@ -1,5 +1,9 @@
 package com.ooparkanoid.ui;
 
+import com.ooparkanoid.core.engine.LocalBattleManager;
+import com.ooparkanoid.core.state.GameMode;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.core.engine.GameManager;
 import com.ooparkanoid.core.state.GameState;
@@ -49,12 +53,15 @@ import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
+import java.util.Set;
+import java.util.EnumSet;
 
 public class GameSceneRoot {
 
     private final Scene scene;
     private final GraphicsContext graphicsContext;
     private final GameManager gameManager;
+    private final LocalBattleManager battleManager;
     private final GameStateManager stateManager;
     private final AnimationTimer gameLoop;
     private StackPane leftBackgroundSection;
@@ -73,12 +80,15 @@ public class GameSceneRoot {
 //    private StackPane menuOverlay;
 
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
+    private final ObjectProperty<GameMode> currentMode = new SimpleObjectProperty<>(GameMode.ADVENTURE);
+    private final Set<KeyCode> activeKeys = EnumSet.noneOf(KeyCode.class);
 
 
     public GameSceneRoot() {
         stateManager = new GameStateManager();
         gameManager = new GameManager(stateManager);
-
+        battleManager = new LocalBattleManager(stateManager);
+//
         canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
         graphicsContext = canvas.getGraphicsContext2D();
 
@@ -97,8 +107,9 @@ public class GameSceneRoot {
         gameLoop = createGameLoop();
 
         //  stateManager.resetToMenu();
-        gameManager.initializeGame();
-        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+//        gameManager.initializeGame();
+//        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+        startAdventureMode();
         gameLoop.start();
     }
 
@@ -196,7 +207,68 @@ public class GameSceneRoot {
 //        HBox hud = new HBox(20, scoreLabel, livesLabel);
 //        hud.setPadding(new Insets(15));
 //        hud.setAlignment(Pos.TOP_LEFT);
-        VBox leftPanel = new VBox(12, createHudTitleLabel(), pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
+//        VBox leftPanel = new VBox(12, createHudTitleLabel(), pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
+        Label adventureTitle = createHudTitleLabel();
+        adventureTitle.setText("Adventure Stats");
+        VBox adventureStats = new VBox(12, adventureTitle, pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
+        adventureStats.setAlignment(Pos.TOP_LEFT);
+
+        Label battleTitle = createHudTitleLabel();
+        battleTitle.setText("Solo Battle");
+
+        Label playerOneLivesLabel = createHudValueLabel();
+        playerOneLivesLabel.textProperty().bind(Bindings.createStringBinding(
+                () -> String.format("Player 1 Lives: %d", battleManager.playerOneLivesProperty().get()),
+                battleManager.playerOneLivesProperty(), currentMode));
+
+        Label playerTwoLivesLabel = createHudValueLabel();
+        playerTwoLivesLabel.textProperty().bind(Bindings.createStringBinding(
+                () -> String.format("Player 2 Lives: %d", battleManager.playerTwoLivesProperty().get()),
+                battleManager.playerTwoLivesProperty(), currentMode));
+
+        Label matchTimeLabel = createHudValueLabel();
+        matchTimeLabel.textProperty().bind(formatDurationBinding(battleManager.matchTimeProperty(), "Match Time"));
+
+        Label battleScoreLabel = createHudValueLabel();
+        battleScoreLabel.textProperty().bind(Bindings.createStringBinding(
+                () -> String.format("Bricks Broken P1: %d | P2: %d",
+                        battleManager.playerOneScoreProperty().get(),
+                        battleManager.playerTwoScoreProperty().get()),
+                battleManager.playerOneScoreProperty(),
+                battleManager.playerTwoScoreProperty(),
+                currentMode));
+
+        Label servingLabel = createHudValueLabel();
+        servingLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+                    if (currentMode.get() != GameMode.LOCAL_BATTLE) {
+                        return "";
+                    }
+                    return "Serving: " +
+                            (battleManager.servingPlayerProperty().get() == LocalBattleManager.ServingPlayer.PLAYER_ONE
+                                    ? "Player 1"
+                                    : "Player 2");
+                },
+                battleManager.servingPlayerProperty(),
+                currentMode));
+
+        VBox battleStats = new VBox(12,
+                battleTitle,
+                playerOneLivesLabel,
+                playerTwoLivesLabel,
+                matchTimeLabel,
+                battleScoreLabel,
+                servingLabel);
+        battleStats.setAlignment(Pos.TOP_LEFT);
+
+        adventureStats.visibleProperty().bind(currentMode.isEqualTo(GameMode.ADVENTURE));
+        adventureStats.managedProperty().bind(adventureStats.visibleProperty());
+
+        battleStats.visibleProperty().bind(currentMode.isEqualTo(GameMode.LOCAL_BATTLE));
+        battleStats.managedProperty().bind(battleStats.visibleProperty());
+
+        VBox leftPanel = new VBox();
+        leftPanel.getChildren().addAll(adventureStats, battleStats);
+
         leftPanel.setAlignment(Pos.TOP_LEFT);
         leftPanel.setPadding(new Insets(24, 18, 24, 24));
         leftPanel.setSpacing(12);
@@ -205,11 +277,29 @@ public class GameSceneRoot {
         leftPanel.setMinWidth(Constants.LEFT_PANEL_WIDTH);
         leftPanel.setMaxWidth(Constants.LEFT_PANEL_WIDTH);
 
-        Label currentRoundTitle = createHudTitleLabel();
-        Label currentRoundValue = createHudValueLabel();
-        currentRoundValue.textProperty().bind(stateManager.roundProperty().asString("Round %d"));
+//        Label currentRoundTitle = createHudTitleLabel();
+//        Label currentRoundValue = createHudValueLabel();
+//        currentRoundValue.textProperty().bind(stateManager.roundProperty().asString("Round %d"));
+//
+//        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
+        Label modeTitle = createHudTitleLabel();
+        modeTitle.setText("Mode");
+        Label modeValue = createHudValueLabel();
+        modeValue.textProperty().bind(Bindings.createStringBinding(
+                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Solo Battle",
+                currentMode));
 
-        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
+        Label statusTitle = createHudTitleLabel();
+        statusTitle.setText("Status");
+        Label statusValue = createHudValueLabel();
+        statusValue.textProperty().bind(stateManager.statusMessageProperty());
+        statusValue.setWrapText(true);
+        statusValue.setMaxWidth(Constants.RIGHT_PANEL_WIDTH - 36);
+        statusValue.setPrefWidth(Constants.RIGHT_PANEL_WIDTH - 36);
+        statusValue.setAlignment(Pos.TOP_RIGHT);
+
+        VBox rightPanel = new VBox(12, modeTitle, modeValue, statusTitle, statusValue);
+
         rightPanel.setAlignment(Pos.TOP_RIGHT);
         rightPanel.setPadding(new Insets(24, 24, 24, 18));
         rightPanel.setBackground(createPanelBackground());
@@ -369,12 +459,22 @@ public class GameSceneRoot {
 
     private void setupStateListeners() {
         stateManager.stateProperty().addListener((obs, oldState, newState) -> {
-            if (newState != GameState.RUNNING && gameManager.getPaddle() != null) {
-                gameManager.getPaddle().setDx(0);
+//            if (newState != GameState.RUNNING && gameManager.getPaddle() != null) {
+//                gameManager.getPaddle().setDx(0);
+
+            if (newState != GameState.RUNNING) {
+                if (currentMode.get() == GameMode.ADVENTURE) {
+                    if (gameManager.getPaddle() != null) {
+                        gameManager.getPaddle().setDx(0);
+                    }
+                } else {
+                    battleManager.stopPlayers();
+                }
             }
 
             if (newState == GameState.MENU && !stateManager.continueAvailableProperty().get()) {
-                stateManager.setStatusMessage("Welcome to Arkanoid!");
+//                stateManager.setStatusMessage("Welcome to Arkanoid!");
+                stateManager.setStatusMessage("Press F1 for Adventure or F2 for Solo Battle.");
             }
 
             if (newState == GameState.GAME_OVER) {
@@ -389,6 +489,7 @@ public class GameSceneRoot {
     private void setupInputHandlers() {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             KeyCode code = e.getCode();
+            activeKeys.add(code);
 
             if (code == KeyCode.ESCAPE) {
                 if (stateManager.isRunning()) {
@@ -399,51 +500,117 @@ public class GameSceneRoot {
                 return;
             }
 
+            if (code == KeyCode.F1) {
+                startAdventureMode();
+                return;
+            }
+
+            if (code == KeyCode.F2) {
+                startBattleMode();
+                return;
+            }
+
+
             if (code == KeyCode.ENTER) {
                 if (stateManager.getCurrentState() == GameState.MENU ||
                         stateManager.getCurrentState() == GameState.GAME_OVER) {
-                    gameManager.initializeGame();
-                    stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+//                    gameManager.initializeGame();
+//                    stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+                    if (currentMode.get() == GameMode.LOCAL_BATTLE) {
+                        startBattleMode();
+                    } else {
+                        startAdventureMode();
+                    }
                 }
                 return;
             }
 
             if (code == KeyCode.SPACE) {
                 if (stateManager.isRunning()) {
-                    if (gameManager.getPaddle().isLaserEnabled()) {
-                        gameManager.getPaddle().shootLaser();
-                    }
-                    else {
-                        gameManager.launchBall();
+//                    if (gameManager.getPaddle().isLaserEnabled()) {
+//                        gameManager.getPaddle().shootLaser();
+//                    }
+//                    else {
+//                        gameManager.launchBall();
+                    if (currentMode.get() == GameMode.LOCAL_BATTLE) {
+                        battleManager.launchBall();
+                    } else if (gameManager.getPaddle() != null) {
+                        if (gameManager.getPaddle().isLaserEnabled()) {
+                            gameManager.getPaddle().shootLaser();
+                        }
+                        else {
+                            gameManager.launchBall();
+                        }
                     }
                 }
                 return;
             }
 
-            if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
-            if (!pressedStack.contains(code)) {
-                pressedStack.push(code); // đưa phím mới lên đầu
+//            if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
+//            if (!pressedStack.contains(code)) {
+//                pressedStack.push(code); // đưa phím mới lên đầu
+            if (!stateManager.isRunning()) {
+                return;
+            }
+
+            if (currentMode.get() == GameMode.ADVENTURE) {
+                if (gameManager.getPaddle() == null) {
+                    return;
+                }
+                if (!pressedStack.contains(code)) {
+                    pressedStack.push(code); // đưa phím mới lên đầu
+                }
+            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                applyBattleMovementFromKeys();
             }
         });
 
         scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
-            pressedStack.remove(e.getCode());
-            // nếu nhả A/D/LEFT/RIGHT mà không còn phím di chuyển nào -> dừng paddle
-            if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
+//            pressedStack.remove(e.getCode());
+//            // nếu nhả A/D/LEFT/RIGHT mà không còn phím di chuyển nào -> dừng paddle
+//            if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
             KeyCode code = e.getCode();
-            if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
-                // kiểm tra xem trong stack còn phím di chuyển nào không
-                boolean stillMoving = pressedStack.stream().anyMatch(k ->
-                        k == KeyCode.A || k == KeyCode.D || k == KeyCode.LEFT || k == KeyCode.RIGHT);
-                if (!stillMoving) gameManager.getPaddle().setDx(0);
+//            if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+//                // kiểm tra xem trong stack còn phím di chuyển nào không
+//                boolean stillMoving = pressedStack.stream().anyMatch(k ->
+//                        k == KeyCode.A || k == KeyCode.D || k == KeyCode.LEFT || k == KeyCode.RIGHT);
+//                if (!stillMoving) gameManager.getPaddle().setDx(0);
+            activeKeys.remove(code);
+            pressedStack.remove(code);
+
+            if (!stateManager.isRunning()) {
+                if (currentMode.get() == GameMode.LOCAL_BATTLE) {
+                    battleManager.stopPlayers();
+                }
+                return;
             }
-            if (code == KeyCode.B) {
-                gameManager.spawnExtraBall();
+//            if (code == KeyCode.B) {
+//                gameManager.spawnExtraBall();
+            if (currentMode.get() == GameMode.ADVENTURE) {
+                if (gameManager.getPaddle() == null) {
+                    return;
+                }
+                if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                    // kiểm tra xem trong stack còn phím di chuyển nào không
+                    boolean stillMoving = pressedStack.stream().anyMatch(k ->
+                            k == KeyCode.A || k == KeyCode.D || k == KeyCode.LEFT || k == KeyCode.RIGHT);
+                    if (!stillMoving) gameManager.getPaddle().setDx(0);
+                }
+                if (code == KeyCode.B) {
+                    gameManager.spawnExtraBall();
+                }
+            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                applyBattleMovementFromKeys();
             }
         });
 
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (stateManager.isRunning() && event.getButton() == MouseButton.PRIMARY) {
+//            if (stateManager.isRunning() && event.getButton() == MouseButton.PRIMARY) {
+            if (!stateManager.isRunning() || event.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
+
+            if (currentMode.get() == GameMode.ADVENTURE && gameManager.getPaddle() != null) {
                 if (gameManager.getPaddle().isLaserEnabled()) {
                     gameManager.getPaddle().shootLaser();
                 }
@@ -465,23 +632,37 @@ public class GameSceneRoot {
             public void handle(long now) {
                 if (lastUpdate == 0L) {
                     lastUpdate = now;
-                    gameManager.render(graphicsContext);
+//                    gameManager.render(graphicsContext);
+                    renderCurrentMode();
                     return;
                 }
 
+                double dt = (now - lastUpdate) / 1e9;
+
                 if (stateManager.isRunning()) {
-                    updatePaddleVelocity();
-                    double dt = (now - lastUpdate) / 1e9;
-                    gameManager.update(dt);
+//                    updatePaddleVelocity();
+//                    double dt = (now - lastUpdate) / 1e9;
+//                    gameManager.update(dt);
+                    if (currentMode.get() == GameMode.ADVENTURE) {
+                        updatePaddleVelocity();
+                        gameManager.update(dt);
+                    } else {
+                        applyBattleMovementFromKeys();
+                        battleManager.update(dt);
+                    }
                 }
 
                 lastUpdate = now;
-                gameManager.render(graphicsContext);
+//                gameManager.render(graphicsContext);
+                renderCurrentMode();
             }
         };
     }
 
     private void updatePaddleVelocity() {
+        if (currentMode.get() != GameMode.ADVENTURE) {
+            return;
+        }
         if (gameManager.getPaddle() == null) {
             return;
         }
@@ -501,8 +682,40 @@ public class GameSceneRoot {
         }
     }
 
+    private void applyBattleMovementFromKeys() {
+        if (currentMode.get() != GameMode.LOCAL_BATTLE) {
+            return;
+        }
+
+        double playerOneVelocity = 0;
+        if (activeKeys.contains(KeyCode.A) && !activeKeys.contains(KeyCode.D)) {
+            playerOneVelocity = -Constants.PADDLE_SPEED;
+        } else if (activeKeys.contains(KeyCode.D) && !activeKeys.contains(KeyCode.A)) {
+            playerOneVelocity = Constants.PADDLE_SPEED;
+        }
+
+        double playerTwoVelocity = 0;
+        if (activeKeys.contains(KeyCode.LEFT) && !activeKeys.contains(KeyCode.RIGHT)) {
+            playerTwoVelocity = -Constants.PADDLE_SPEED;
+        } else if (activeKeys.contains(KeyCode.RIGHT) && !activeKeys.contains(KeyCode.LEFT)) {
+            playerTwoVelocity = Constants.PADDLE_SPEED;
+        }
+
+        battleManager.setPlayerOneVelocity(playerOneVelocity);
+        battleManager.setPlayerTwoVelocity(playerTwoVelocity);
+    }
+
+    private void renderCurrentMode() {
+        if (currentMode.get() == GameMode.ADVENTURE) {
+            gameManager.render(graphicsContext);
+        } else {
+            battleManager.render(graphicsContext);
+        }
+    }
+
     private void handleMouseMoved(MouseEvent event) {
-        if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
+//        if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
+        if (currentMode.get() != GameMode.ADVENTURE || !stateManager.isRunning() || gameManager.getPaddle() == null) {
             return;
         }
 //        gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
@@ -515,9 +728,32 @@ public class GameSceneRoot {
     }
 
     private void startNewGame(ActionEvent event) {
+        startAdventureMode();
+    }
+
+    private void startAdventureMode() {
+        currentMode.set(GameMode.ADVENTURE);
+        pressedStack.clear();
+        activeKeys.clear();
         gameManager.initializeGame();
         stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
-        gameManager.render(graphicsContext);
+//        gameManager.render(graphicsContext);
+        stateManager.setStatusMessage("Destroy all the bricks!");
+        stateManager.setCurrentRound(1);
+        stateManager.updateTimers(0, 0);
+        renderCurrentMode();
+    }
+
+    private void startBattleMode() {
+        currentMode.set(GameMode.LOCAL_BATTLE);
+        pressedStack.clear();
+        activeKeys.clear();
+        battleManager.startMatch();
+        stateManager.beginNewGame(0, Constants.START_LIVES);
+        stateManager.setStatusMessage("Solo Battle: First to lose all lives loses! Press SPACE to launch.");
+        stateManager.setCurrentRound(1);
+        stateManager.updateTimers(0, 0);
+        renderCurrentMode();
     }
 
     private Button createMenuButton(String text, EventHandler<ActionEvent> action) {
