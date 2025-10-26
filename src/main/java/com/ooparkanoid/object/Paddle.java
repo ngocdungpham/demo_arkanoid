@@ -22,6 +22,8 @@ public class Paddle extends MovableObject {
 
     private double boundLeft = Constants.PLAYFIELD_LEFT;
     private double boundRight = Constants.PLAYFIELD_RIGHT;
+    private double boundTop = 0;
+    private double boundBottom = Constants.HEIGHT;
 
     public Paddle(double x, double y) {
         super(x, y, Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, 0, 0);
@@ -75,6 +77,17 @@ public class Paddle extends MovableObject {
         if (x + width > boundRight) {
             x = boundRight - width;
         }
+        if (y < boundTop) {
+            y = boundTop;
+        }
+        if (y + height > boundBottom) {
+            y = boundBottom - height;
+        }
+    }
+
+    public void setVerticalMovementBounds(double top, double bottom) {
+        this.boundTop = top;
+        this.boundBottom = bottom;
     }
 
     public void setMovementBounds(double left, double right) {

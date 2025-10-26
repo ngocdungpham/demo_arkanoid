@@ -1,5 +1,10 @@
 package com.ooparkanoid.ui;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.scene.layout.Region;
+import javafx.util.Duration;
 import com.ooparkanoid.core.engine.LocalBattleManager;
 import com.ooparkanoid.core.state.GameMode;
 import javafx.beans.property.ObjectProperty;
@@ -78,6 +83,12 @@ public class GameSceneRoot {
     private ColumnConstraints leftColumnConstraint;
     private ColumnConstraints centerColumnConstraint;
     private ColumnConstraints rightColumnConstraint;
+    private HBox battleScoreboard;
+    private Label battlePlayerOneLabel;
+    private Label battlePlayerTwoLabel;
+    private Timeline battlePlayerOneFlash;
+    private Timeline battlePlayerTwoFlash;
+    private static final double BATTLE_LABEL_BASE_OPACITY = 0.75;
 
     private final Canvas canvas;
     private final SceneLayoutFactory.LayeredScene layeredScene;
@@ -384,6 +395,7 @@ public class GameSceneRoot {
 
         layeredScene.contentLayer().getChildren().add(hudGrid);
         StackPane.setAlignment(hudGrid, Pos.CENTER);
+        createBattleScoreboard();
     }
 
     private Background createPanelBackground() {
@@ -412,6 +424,113 @@ public class GameSceneRoot {
         label.setTextFill(Color.LIGHTGRAY);
         label.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         return label;
+    }
+
+    private void createBattleScoreboard() {
+        battlePlayerOneLabel = createBattleCounterLabel(
+                formatBattleCounterText("P1", battleManager.playerOneLivesProperty().get()),
+                Color.web("#FF6F61"));
+        battlePlayerTwoLabel = createBattleCounterLabel(
+                formatBattleCounterText("P2", battleManager.playerTwoLivesProperty().get()),
+                Color.web("#3FA9F5"));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        battleScoreboard = new HBox(60, battlePlayerOneLabel, spacer, battlePlayerTwoLabel);
+        battleScoreboard.setAlignment(Pos.TOP_CENTER);
+        battleScoreboard.setPadding(new Insets(20, 48, 0, 48));
+        battleScoreboard.setMouseTransparent(true);
+
+        BooleanBinding battleVisible = currentMode.isEqualTo(GameMode.LOCAL_BATTLE);
+        battleScoreboard.visibleProperty().bind(battleVisible);
+        battleScoreboard.managedProperty().bind(battleVisible);
+
+        layeredScene.overlayLayer().getChildren().add(battleScoreboard);
+        StackPane.setAlignment(battleScoreboard, Pos.TOP_CENTER);
+
+        battleManager.playerOneLivesProperty().addListener((obs, oldVal, newVal) -> {
+            updateBattleLabel(battlePlayerOneLabel, formatBattleCounterText("P1", newVal));
+            if (oldVal != null && newVal != null && newVal.intValue() < oldVal.intValue()) {
+                playBattleLabelFlash(battlePlayerOneLabel, true);
+            } else {
+                resetBattleLabelOpacity(battlePlayerOneLabel);
+            }
+        });
+
+        battleManager.playerTwoLivesProperty().addListener((obs, oldVal, newVal) -> {
+            updateBattleLabel(battlePlayerTwoLabel, formatBattleCounterText("P2", newVal));
+            if (oldVal != null && newVal != null && newVal.intValue() < oldVal.intValue()) {
+                playBattleLabelFlash(battlePlayerTwoLabel, false);
+            } else {
+                resetBattleLabelOpacity(battlePlayerTwoLabel);
+            }
+        });
+
+        resetBattleLabels();
+    }
+
+    private Label createBattleCounterLabel(String text, Color accentColor) {
+        Label label = new Label(text);
+        label.setTextFill(Color.WHITE);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 48));
+        label.setAlignment(Pos.CENTER);
+        label.setPadding(new Insets(8, 28, 8, 28));
+        label.setMinWidth(200);
+        label.setBackground(new Background(new BackgroundFill(
+                accentColor.deriveColor(0, 1, 1, 0.38), new CornerRadii(20), Insets.EMPTY)));
+        label.setOpacity(BATTLE_LABEL_BASE_OPACITY);
+        label.setMouseTransparent(true);
+        label.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 18, 0.4, 0, 6);");
+        return label;
+    }
+
+    private String formatBattleCounterText(String playerLabel, Number lives) {
+        int value = lives == null ? 0 : lives.intValue();
+        return String.format("%s: %d", playerLabel, Math.max(0, value));
+    }
+
+    private void updateBattleLabel(Label label, String text) {
+        if (label != null) {
+            label.setText(text);
+        }
+    }
+
+    private void resetBattleLabelOpacity(Label label) {
+        if (label != null) {
+            label.setOpacity(BATTLE_LABEL_BASE_OPACITY);
+        }
+    }
+
+    private void playBattleLabelFlash(Label label, boolean playerOne) {
+        if (label == null) {
+            return;
+        }
+        Timeline existing = playerOne ? battlePlayerOneFlash : battlePlayerTwoFlash;
+        if (existing != null) {
+            existing.stop();
+        }
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(label.opacityProperty(), BATTLE_LABEL_BASE_OPACITY)),
+                new KeyFrame(Duration.millis(140), new KeyValue(label.opacityProperty(), 1.0)),
+                new KeyFrame(Duration.millis(360), new KeyValue(label.opacityProperty(), BATTLE_LABEL_BASE_OPACITY))
+        );
+        timeline.setOnFinished(event -> label.setOpacity(BATTLE_LABEL_BASE_OPACITY));
+        timeline.play();
+        if (playerOne) {
+            battlePlayerOneFlash = timeline;
+        } else {
+            battlePlayerTwoFlash = timeline;
+        }
+    }
+
+    private void resetBattleLabels() {
+        updateBattleLabel(battlePlayerOneLabel,
+                formatBattleCounterText("P1", battleManager.playerOneLivesProperty().get()));
+        updateBattleLabel(battlePlayerTwoLabel,
+                formatBattleCounterText("P2", battleManager.playerTwoLivesProperty().get()));
+        resetBattleLabelOpacity(battlePlayerOneLabel);
+        resetBattleLabelOpacity(battlePlayerTwoLabel);
     }
 
     private ColumnConstraints createColumn(double ratio) {
@@ -600,7 +719,8 @@ public class GameSceneRoot {
                 if (!pressedStack.contains(code)) {
                     pressedStack.push(code); // đưa phím mới lên đầu
                 }
-            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+//            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+            } else if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN) {
                 applyBattleMovementFromKeys();
             }
         });
@@ -639,7 +759,8 @@ public class GameSceneRoot {
                 if (code == KeyCode.B) {
                     gameManager.spawnExtraBall();
                 }
-            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+//            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+            } else if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN) {
                 applyBattleMovementFromKeys();
             }
         });
@@ -728,16 +849,20 @@ public class GameSceneRoot {
         }
 
         double playerOneVelocity = 0;
-        if (activeKeys.contains(KeyCode.A) && !activeKeys.contains(KeyCode.D)) {
+//        if (activeKeys.contains(KeyCode.A) && !activeKeys.contains(KeyCode.D)) {
+        if (activeKeys.contains(KeyCode.W) && !activeKeys.contains(KeyCode.S)) {
             playerOneVelocity = -Constants.PADDLE_SPEED;
-        } else if (activeKeys.contains(KeyCode.D) && !activeKeys.contains(KeyCode.A)) {
+//        } else if (activeKeys.contains(KeyCode.D) && !activeKeys.contains(KeyCode.A)) {
+        } else if (activeKeys.contains(KeyCode.S) && !activeKeys.contains(KeyCode.W)) {
             playerOneVelocity = Constants.PADDLE_SPEED;
         }
 
         double playerTwoVelocity = 0;
-        if (activeKeys.contains(KeyCode.LEFT) && !activeKeys.contains(KeyCode.RIGHT)) {
+//        if (activeKeys.contains(KeyCode.LEFT) && !activeKeys.contains(KeyCode.RIGHT)) {
+        if (activeKeys.contains(KeyCode.UP) && !activeKeys.contains(KeyCode.DOWN)) {
             playerTwoVelocity = -Constants.PADDLE_SPEED;
-        } else if (activeKeys.contains(KeyCode.RIGHT) && !activeKeys.contains(KeyCode.LEFT)) {
+//        } else if (activeKeys.contains(KeyCode.RIGHT) && !activeKeys.contains(KeyCode.LEFT)) {
+        } else if (activeKeys.contains(KeyCode.DOWN) && !activeKeys.contains(KeyCode.UP)) {
             playerTwoVelocity = Constants.PADDLE_SPEED;
         }
 
@@ -855,9 +980,11 @@ public class GameSceneRoot {
         pressedStack.clear();
         activeKeys.clear();
         battleManager.startMatch();
+        resetBattleLabels();
         stateManager.beginNewGame(0, Constants.START_LIVES);
 //        stateManager.setStatusMessage("Solo Battle: First to lose all lives loses! Press SPACE to launch.");
-        stateManager.setStatusMessage("Versus Battle: P1 A/D, P2 ←/→. Press SPACE to launch the ball.");
+//        stateManager.setStatusMessage("Versus Battle: P1 A/D, P2 ←/→. Press SPACE to launch the ball.");
+        stateManager.setStatusMessage("Versus Battle: P1 W/S, P2 ↑/↓. Press SPACE to launch the ball.");
         stateManager.setCurrentRound(1);
         stateManager.updateTimers(0, 0);
         renderCurrentMode();
