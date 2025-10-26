@@ -2,6 +2,7 @@
 package com.ooparkanoid.console;
 
 import com.ooparkanoid.AlertBox;
+import com.ooparkanoid.graphics.ResourceManager;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -16,6 +17,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import com.ooparkanoid.core.score.HighScoreRepository;
@@ -29,11 +33,12 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.util.List;
+import java.net.URL;
 
 
 public class MainConsole extends Application {
     private Stage stage;
-
+    private MediaPlayer introMediaPlayer;
     private EventHandler<KeyEvent> introSpaceHandler;
     private EventHandler<MouseEvent> introMouseHandler;
 
@@ -53,6 +58,7 @@ public class MainConsole extends Application {
         stage.setScene(scene);
         stage.show();
 
+        preloadIntroVideo();
         introSpaceHandler = event -> {
             if (event.getCode() == KeyCode.SPACE) {
                 startTransition();
@@ -119,7 +125,7 @@ public class MainConsole extends Application {
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
-                        fadeToBlack(() -> startGame());
+                        fadeToBlack(() -> playIntroVideo());
                         break;
                     case "CREDITS":
                         fadeToBlack(() -> showRanking());
@@ -216,6 +222,84 @@ public class MainConsole extends Application {
         fadeBlack.play();
     }
 
+
+
+    /**
+     * Phát một video MP4 giới thiệu, sau đó bắt đầu game.
+     */
+    private void preloadIntroVideo() {
+        try {
+            // Đường dẫn chính xác từ hình ảnh của bạn
+            String videoPath = "/Videos/intro.mp4";
+            URL videoUrl = getClass().getResource(videoPath);
+
+            if (videoUrl == null) {
+                System.err.println("Không tìm thấy video để preload: " + videoPath);
+                return;
+            }
+
+            Media media = new Media(videoUrl.toExternalForm());
+            introMediaPlayer = new MediaPlayer(media);
+            introMediaPlayer.setAutoPlay(false); // Không tự phát
+
+            introMediaPlayer.setOnError(() -> {
+                System.err.println("Lỗi khi preload video: " + introMediaPlayer.getError().getMessage());
+                introMediaPlayer = null;
+            });
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi khởi tạo media player: " + e.getMessage());
+            introMediaPlayer = null;
+        }
+    }
+
+    /**
+     * Phát video đã được tải trước (pre-loaded).
+     * Hàm này không thay đổi.
+     */
+    private void playIntroVideo() {
+        if (introMediaPlayer == null) {
+            System.err.println("Video player chưa sẵn sàng. Bỏ qua và vào game.");
+            startGame();
+            return;
+        }
+
+        MediaView mediaView = new MediaView(introMediaPlayer);
+
+        mediaView.setFitWidth(Constants.WIDTH);
+        mediaView.setFitHeight(Constants.HEIGHT);
+        mediaView.setPreserveRatio(false);
+
+        Pane videoRoot = new Pane(mediaView);
+        videoRoot.setStyle("-fx-background-color: black;");
+
+        stage.getScene().setRoot(videoRoot);
+
+        // Hành động khi video kết thúc
+        introMediaPlayer.setOnEndOfMedia(() -> {
+            Platform.runLater(() -> {
+                introMediaPlayer.stop();
+                preloadIntroVideo(); // Tải lại cho lần sau
+                startGame();
+            });
+        });
+
+        // Cho phép bỏ qua
+        Runnable skipAction = () -> {
+            introMediaPlayer.stop();
+            preloadIntroVideo(); // Tải lại cho lần sau
+            startGame();
+            stage.getScene().setOnKeyPressed(null);
+            stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
+        };
+
+        stage.getScene().setOnKeyPressed(e -> skipAction.run());
+        stage.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> skipAction.run());
+
+        // Bắt đầu phát
+        introMediaPlayer.play();
+    }
+
     /**
      * Hàm này giữ nguyên
      */
@@ -260,6 +344,9 @@ public class MainConsole extends Application {
     }
 
     public static void main(String[] args) {
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         launch();
+
     }
 }

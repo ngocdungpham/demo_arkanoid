@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 
 public class PowerUp extends GameObject {
     private final PowerUpEffect effect;
+    private final PowerUpSprite.PowerUpType type;
     private final Color color;
     private final double duration;
     private boolean collected = false;
@@ -23,6 +24,7 @@ public class PowerUp extends GameObject {
         super(x, y, w, h);
         this.effect = effect;
         this.color = Color.WHITE;
+        this.type = type;
         this.duration = duration;
         loadAnimation(type);
     }
@@ -77,5 +79,9 @@ public class PowerUp extends GameObject {
 
     public double getDuration() {
         return duration;
+    }
+
+    public PowerUpSprite.PowerUpType getType() {
+        return type;
     }
 }

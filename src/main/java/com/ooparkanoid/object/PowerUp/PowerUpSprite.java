@@ -5,6 +5,7 @@ import com.ooparkanoid.graphics.ResourceManager;
 import com.ooparkanoid.graphics.SpriteSheet;
 import javafx.scene.image.Image;
 
+
 public class PowerUpSprite {
     private static PowerUpSprite instance;
     private SpriteSheet powerUpSheet;
@@ -13,11 +14,11 @@ public class PowerUpSprite {
     private static final int FRAME_HEIGHT = 22;
     private static final int FRAME_PER_ANIMATION = 8;
 
-    private PowerUpSprite(){
+    private PowerUpSprite() {
         loadSpriteSheet();
     }
 
-    public static PowerUpSprite  getInstance(){
+    public static PowerUpSprite getInstance() {
         if (instance == null) {
             instance = new PowerUpSprite();
         }
@@ -47,32 +48,69 @@ public class PowerUpSprite {
         return new Animation(frames, frameDuration, true);
     }
 
-    public enum PowerUpType {
-        FAST_BALL,
-        SLOW_BALL,
-        EXPAND_PADDLE,
-        SHRINK_PADDLE,
-        MULTI_BALL,
-        FIRE_BALL,
-        LASER_PADDLE,
-        INVINCIBLE_BALL,
-        SCORE_MULTIPLIER,
-        EXTRA_LIFE
+    public enum PowerUpCategory {
+        NONE,
+        BALL_SPEED,
+        PADDLE_SIZE,
+        SPECIAL_ATTACK
     }
 
+    public enum PowerUpType {
+        FAST_BALL(PowerUpCategory.BALL_SPEED),
+        SLOW_BALL(PowerUpCategory.BALL_SPEED),
+        EXPAND_PADDLE(PowerUpCategory.PADDLE_SIZE),
+        SHRINK_PADDLE(PowerUpCategory.PADDLE_SIZE),
+        MULTI_BALL(PowerUpCategory.SPECIAL_ATTACK),
+        FIRE_BALL(PowerUpCategory.SPECIAL_ATTACK),
+        LASER_PADDLE(PowerUpCategory.SPECIAL_ATTACK),
+        INVINCIBLE_BALL(PowerUpCategory.SPECIAL_ATTACK),
+        SCORE_MULTIPLIER(PowerUpCategory.NONE),
+        EXTRA_LIFE(PowerUpCategory.NONE);
+        private final PowerUpCategory category;
+
+        PowerUpType(PowerUpCategory category) {
+            this.category = category;
+        }
+
+        public PowerUpCategory getCategory() {
+            return category;
+        }
+    }
+
+    public static PowerUpCategory getCategoryForEffectType(String effectType) {
+        try {
+            PowerUpType type = PowerUpType.valueOf(effectType);
+            return type.getCategory();
+        } catch (IllegalArgumentException e) {
+            // Nếu String không khớp với bất kỳ enum nào
+            System.err.println("Warning: No PowerUpType enum constant for string: " + effectType);
+            return PowerUpCategory.NONE;
+        }
+    }
     private int getRowForType(PowerUpType type) {
         switch (type) {
-            case FAST_BALL:         return 9;
-            case SLOW_BALL:         return 3;
-            case EXPAND_PADDLE:     return 1;
-            case SHRINK_PADDLE:     return 2;
-            case MULTI_BALL:        return 5;
-            case FIRE_BALL:         return 8;
-            case LASER_PADDLE:      return 0;
-            case INVINCIBLE_BALL:   return 4;
-            case SCORE_MULTIPLIER:  return 6;
-            case EXTRA_LIFE:        return 7;
-            default:                return 0;
+            case FAST_BALL:
+                return 9;
+            case SLOW_BALL:
+                return 3;
+            case EXPAND_PADDLE:
+                return 1;
+            case SHRINK_PADDLE:
+                return 2;
+            case MULTI_BALL:
+                return 5;
+            case FIRE_BALL:
+                return 8;
+            case LASER_PADDLE:
+                return 0;
+            case INVINCIBLE_BALL:
+                return 4;
+            case SCORE_MULTIPLIER:
+                return 6;
+            case EXTRA_LIFE:
+                return 7;
+            default:
+                return 0;
         }
     }
 
