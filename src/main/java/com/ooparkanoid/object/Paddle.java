@@ -14,6 +14,8 @@ import java.util.List;
 
 public class Paddle extends MovableObject {
     private Image paddleSprite;
+    private Image paddleSpriteVerticalLeft; // paddle left side
+    private Image paddleSpriteVerticalRight; // paddle right side
 
     private boolean laserEnabled = false;
     private List<Laser> lasers = new ArrayList<>();
@@ -32,7 +34,9 @@ public class Paddle extends MovableObject {
 
     public void loadGraphics() {
         ResourceManager rm = ResourceManager.getInstance();
-        paddleSprite = rm.loadImage("paddle.png");
+        paddleSprite = rm.loadImage("paddle1.png");
+        paddleSpriteVerticalLeft = rm.loadImage("paddle3.png"); // dọc (ảnh bạn gửi)
+        paddleSpriteVerticalRight = rm.loadImage("paddle2.png");
     }
 
     // Thêm các phương thức setter cho dx và dy để có thể điều khiển tốc độ từ bên ngoài
