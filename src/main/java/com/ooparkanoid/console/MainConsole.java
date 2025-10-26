@@ -1,9 +1,6 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
-import com.ooparkanoid.core.state.GameMode;
-import com.ooparkanoid.AlertBox;
-import com.ooparkanoid.graphics.ResourceManager;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -33,8 +30,8 @@ import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.util.List;
 import java.net.URL;
+import java.util.List;
 
 
 public class MainConsole extends Application {
