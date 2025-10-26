@@ -44,6 +44,10 @@ import javafx.scene.paint.Color;
 //import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+// import
+import com.ooparkanoid.ui.NeonPauseView;
+import javafx.scene.Node;
+
 
 import java.net.URL;
 import java.util.ArrayDeque;
@@ -64,6 +68,7 @@ public class GameSceneRoot {
     private final Canvas canvas;
     private final SceneLayoutFactory.LayeredScene layeredScene;
     private final BackgroundLayer backgroundLayer;
+    private NeonPauseView pauseView;
 
 //    private Label stateLabel;
 //    private Label messageLabel;
@@ -90,6 +95,25 @@ public class GameSceneRoot {
 
         configureBackground();
         buildHud();
+        // === Overlay Pause ===
+        pauseView = new NeonPauseView(new NeonPauseView.Callbacks() {
+            @Override public void onResume() {
+                // Ẩn overlay rồi resume
+                pauseView.hide();
+                stateManager.resumeGame();
+                // Trả focus cho scene gốc để nhận phím
+                scene.getRoot().requestFocus();
+            }
+            @Override public void onExit() {
+                // Tuỳ ý: về menu chính hoặc thoát game
+                // Ví dụ: Platform.exit();
+                Platform.exit();
+            }
+        });
+
+// Đặt overlay lên trên cùng (root của layeredScene là StackPane)
+        ((StackPane) layeredScene.root()).getChildren().add(pauseView.getView());
+
         // buildMenuOverlay();
         setupStateListeners();
         setupInputHandlers();
@@ -383,6 +407,12 @@ public class GameSceneRoot {
                     stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
                 }
             }
+            if (newState == GameState.PAUSED) {
+                pauseView.show((StackPane) scene.getRoot());
+            } else if (newState == GameState.RUNNING) {
+                pauseView.hide();
+                scene.getRoot().requestFocus();
+            }
         });
     }
 
@@ -390,14 +420,28 @@ public class GameSceneRoot {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             KeyCode code = e.getCode();
 
+//            if (code == KeyCode.ESCAPE) {
+//                if (stateManager.isRunning()) {
+//                    stateManager.pauseGame();
+//                } else if (stateManager.getCurrentState() == GameState.PAUSED) {
+//                    stateManager.resumeGame();
+//                }
+//                return;
+//            }
             if (code == KeyCode.ESCAPE) {
                 if (stateManager.isRunning()) {
+                    // chuyển state sang PAUSED + show overlay
                     stateManager.pauseGame();
+                    pauseView.show((StackPane) scene.getRoot());
                 } else if (stateManager.getCurrentState() == GameState.PAUSED) {
+                    // ẩn overlay + resume
+                    pauseView.hide();
                     stateManager.resumeGame();
+                    scene.getRoot().requestFocus();
                 }
                 return;
             }
+
 
             if (code == KeyCode.ENTER) {
                 if (stateManager.getCurrentState() == GameState.MENU ||
