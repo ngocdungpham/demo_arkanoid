@@ -67,6 +67,17 @@ public class GameSceneRoot {
     private StackPane leftBackgroundSection;
     private StackPane centerBackgroundSection;
     private StackPane rightBackgroundSection;
+    private HBox backgroundSections;
+
+    private VBox leftPanel;
+    private VBox rightPanel;
+    private Pane centerSpacer;
+    private VBox adventureStats;
+    private VBox battleStats;
+    private GridPane hudGrid;
+    private ColumnConstraints leftColumnConstraint;
+    private ColumnConstraints centerColumnConstraint;
+    private ColumnConstraints rightColumnConstraint;
 
     private final Canvas canvas;
     private final SceneLayoutFactory.LayeredScene layeredScene;
@@ -85,6 +96,10 @@ public class GameSceneRoot {
 
 
     public GameSceneRoot() {
+        this(GameMode.ADVENTURE);
+    }
+
+    public GameSceneRoot(GameMode initialMode) {
         stateManager = new GameStateManager();
         gameManager = new GameManager(stateManager);
         battleManager = new LocalBattleManager(stateManager);
@@ -103,13 +118,21 @@ public class GameSceneRoot {
         // buildMenuOverlay();
         setupStateListeners();
         setupInputHandlers();
+        currentMode.addListener((obs, oldMode, newMode) -> updateLayoutForMode(newMode));
+
 
         gameLoop = createGameLoop();
 
-        //  stateManager.resetToMenu();
-//        gameManager.initializeGame();
-//        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
-        startAdventureMode();
+//        //  stateManager.resetToMenu();
+////        gameManager.initializeGame();
+////        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+//        startAdventureMode();
+        if (initialMode == GameMode.LOCAL_BATTLE) {
+            startBattleMode();
+        } else {
+            startAdventureMode();
+        }
+        updateLayoutForMode(currentMode.get());
         gameLoop.start();
     }
 
@@ -172,7 +195,8 @@ public class GameSceneRoot {
 //        loadImage("/picture/space1.jpg")
 //                .map(BackgroundLayer::cover)
 //                .ifPresent(backgroundLayer::addImageLayer);
-        HBox backgroundSections = new HBox(leftBackgroundSection, centerBackgroundSection, rightBackgroundSection);
+//        HBox backgroundSections = new HBox(leftBackgroundSection, centerBackgroundSection, rightBackgroundSection);
+        backgroundSections = new HBox(leftBackgroundSection, centerBackgroundSection, rightBackgroundSection);
         backgroundSections.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
         backgroundSections.setMinSize(Constants.WIDTH, Constants.HEIGHT);
         backgroundSections.setMaxSize(Constants.WIDTH, Constants.HEIGHT);
@@ -210,11 +234,13 @@ public class GameSceneRoot {
 //        VBox leftPanel = new VBox(12, createHudTitleLabel(), pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
         Label adventureTitle = createHudTitleLabel();
         adventureTitle.setText("Adventure Stats");
-        VBox adventureStats = new VBox(12, adventureTitle, pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
+//        VBox adventureStats = new VBox(12, adventureTitle, pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
+        adventureStats = new VBox(12, adventureTitle, pointsLabel, roundTimeLabel, totalTimeLabel, livesLabel);
         adventureStats.setAlignment(Pos.TOP_LEFT);
 
         Label battleTitle = createHudTitleLabel();
-        battleTitle.setText("Solo Battle");
+//        battleTitle.setText("Solo Battle");
+        battleTitle.setText("Versus Battle");
 
         Label playerOneLivesLabel = createHudValueLabel();
         playerOneLivesLabel.textProperty().bind(Bindings.createStringBinding(
@@ -231,11 +257,16 @@ public class GameSceneRoot {
 
         Label battleScoreLabel = createHudValueLabel();
         battleScoreLabel.textProperty().bind(Bindings.createStringBinding(
-                () -> String.format("Bricks Broken P1: %d | P2: %d",
-                        battleManager.playerOneScoreProperty().get(),
-                        battleManager.playerTwoScoreProperty().get()),
-                battleManager.playerOneScoreProperty(),
-                battleManager.playerTwoScoreProperty(),
+//                () -> String.format("Bricks Broken P1: %d | P2: %d",
+//                        battleManager.playerOneScoreProperty().get(),
+//                        battleManager.playerTwoScoreProperty().get()),
+//                battleManager.playerOneScoreProperty(),
+//                battleManager.playerTwoScoreProperty(),
+                () -> String.format("Shields P1: %d | P2: %d",
+                        battleManager.playerOneLivesProperty().get(),
+                        battleManager.playerTwoLivesProperty().get()),
+                battleManager.playerOneLivesProperty(),
+                battleManager.playerTwoLivesProperty(),
                 currentMode));
 
         Label servingLabel = createHudValueLabel();
@@ -266,7 +297,8 @@ public class GameSceneRoot {
         battleStats.visibleProperty().bind(currentMode.isEqualTo(GameMode.LOCAL_BATTLE));
         battleStats.managedProperty().bind(battleStats.visibleProperty());
 
-        VBox leftPanel = new VBox();
+//        VBox leftPanel = new VBox();
+        leftPanel = new VBox();
         leftPanel.getChildren().addAll(adventureStats, battleStats);
 
         leftPanel.setAlignment(Pos.TOP_LEFT);
@@ -286,7 +318,8 @@ public class GameSceneRoot {
         modeTitle.setText("Mode");
         Label modeValue = createHudValueLabel();
         modeValue.textProperty().bind(Bindings.createStringBinding(
-                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Solo Battle",
+//                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Solo Battle",
+                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Versus",
                 currentMode));
 
         Label statusTitle = createHudTitleLabel();
@@ -307,18 +340,24 @@ public class GameSceneRoot {
         rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
         rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
 
-        GridPane hudGrid = new GridPane();
+//        GridPane hudGrid = new GridPane();
+        hudGrid = new GridPane();
         hudGrid.setMouseTransparent(true);
         hudGrid.setPickOnBounds(false);
         hudGrid.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         hudGrid.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
 
-        ColumnConstraints leftColumn = createColumn(Constants.SIDE_PANEL_RATIO);
-        ColumnConstraints centerColumn = createColumn(Constants.PLAYFIELD_RATIO);
-        ColumnConstraints rightColumn = createColumn(Constants.SIDE_PANEL_RATIO);
-        hudGrid.getColumnConstraints().addAll(leftColumn, centerColumn, rightColumn);
+//        ColumnConstraints leftColumn = createColumn(Constants.SIDE_PANEL_RATIO);
+//        ColumnConstraints centerColumn = createColumn(Constants.PLAYFIELD_RATIO);
+//        ColumnConstraints rightColumn = createColumn(Constants.SIDE_PANEL_RATIO);
+//        hudGrid.getColumnConstraints().addAll(leftColumn, centerColumn, rightColumn);
+        leftColumnConstraint = createColumn(Constants.SIDE_PANEL_RATIO);
+        centerColumnConstraint = createColumn(Constants.PLAYFIELD_RATIO);
+        rightColumnConstraint = createColumn(Constants.SIDE_PANEL_RATIO);
+        hudGrid.getColumnConstraints().addAll(leftColumnConstraint, centerColumnConstraint, rightColumnConstraint);
 
-        Pane centerSpacer = new Pane();
+//        Pane centerSpacer = new Pane();
+        centerSpacer = new Pane();
         centerSpacer.setMinSize(0, 0);
         centerSpacer.setMouseTransparent(true);
         centerSpacer.setStyle("-fx-border-color: rgba(255,255,255,0.18); -fx-border-width: 0 2 0 2;");
@@ -473,8 +512,9 @@ public class GameSceneRoot {
             }
 
             if (newState == GameState.MENU && !stateManager.continueAvailableProperty().get()) {
-//                stateManager.setStatusMessage("Welcome to Arkanoid!");
-                stateManager.setStatusMessage("Press F1 for Adventure or F2 for Solo Battle.");
+////                stateManager.setStatusMessage("Welcome to Arkanoid!");
+//                stateManager.setStatusMessage("Press F1 for Adventure or F2 for Solo Battle.");
+                stateManager.setStatusMessage("Select a mode from the main menu to begin.");
             }
 
             if (newState == GameState.GAME_OVER) {
@@ -713,6 +753,72 @@ public class GameSceneRoot {
         }
     }
 
+    private void updateLayoutForMode(GameMode mode) {
+        boolean battle = mode == GameMode.LOCAL_BATTLE;
+
+        if (leftPanel != null) {
+            leftPanel.setVisible(!battle);
+            leftPanel.setManaged(!battle);
+        }
+        if (rightPanel != null) {
+            rightPanel.setVisible(!battle);
+            rightPanel.setManaged(!battle);
+        }
+        if (centerSpacer != null) {
+            centerSpacer.setVisible(!battle);
+            centerSpacer.setManaged(!battle);
+        }
+
+        if (leftColumnConstraint != null && centerColumnConstraint != null && rightColumnConstraint != null) {
+            if (battle) {
+                leftColumnConstraint.setPercentWidth(0);
+                rightColumnConstraint.setPercentWidth(0);
+                centerColumnConstraint.setPercentWidth(100);
+            } else {
+                leftColumnConstraint.setPercentWidth(Constants.SIDE_PANEL_RATIO * 100.0);
+                rightColumnConstraint.setPercentWidth(Constants.SIDE_PANEL_RATIO * 100.0);
+                centerColumnConstraint.setPercentWidth(Constants.PLAYFIELD_RATIO * 100.0);
+            }
+        }
+
+        if (backgroundSections != null) {
+            if (battle) {
+                if (leftBackgroundSection != null) {
+                    leftBackgroundSection.setVisible(false);
+                    leftBackgroundSection.setManaged(false);
+                }
+                if (rightBackgroundSection != null) {
+                    rightBackgroundSection.setVisible(false);
+                    rightBackgroundSection.setManaged(false);
+                }
+                setSectionWidth(leftBackgroundSection, 0);
+                setSectionWidth(rightBackgroundSection, 0);
+                setSectionWidth(centerBackgroundSection, Constants.WIDTH);
+            } else {
+                if (leftBackgroundSection != null) {
+                    leftBackgroundSection.setVisible(true);
+                    leftBackgroundSection.setManaged(true);
+                }
+                if (rightBackgroundSection != null) {
+                    rightBackgroundSection.setVisible(true);
+                    rightBackgroundSection.setManaged(true);
+                }
+                setSectionWidth(leftBackgroundSection, Constants.LEFT_PANEL_WIDTH);
+                setSectionWidth(rightBackgroundSection, Constants.RIGHT_PANEL_WIDTH);
+                setSectionWidth(centerBackgroundSection, Constants.PLAYFIELD_WIDTH);
+            }
+        }
+    }
+
+    private void setSectionWidth(StackPane section, double width) {
+        if (section == null) {
+            return;
+        }
+        section.setPrefWidth(width);
+        section.setMinWidth(width);
+        section.setMaxWidth(width);
+    }
+
     private void handleMouseMoved(MouseEvent event) {
 //        if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
         if (currentMode.get() != GameMode.ADVENTURE || !stateManager.isRunning() || gameManager.getPaddle() == null) {
@@ -750,7 +856,8 @@ public class GameSceneRoot {
         activeKeys.clear();
         battleManager.startMatch();
         stateManager.beginNewGame(0, Constants.START_LIVES);
-        stateManager.setStatusMessage("Solo Battle: First to lose all lives loses! Press SPACE to launch.");
+//        stateManager.setStatusMessage("Solo Battle: First to lose all lives loses! Press SPACE to launch.");
+        stateManager.setStatusMessage("Versus Battle: P1 A/D, P2 ←/→. Press SPACE to launch the ball.");
         stateManager.setCurrentRound(1);
         stateManager.updateTimers(0, 0);
         renderCurrentMode();

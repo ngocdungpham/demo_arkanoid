@@ -20,6 +20,9 @@ public class Paddle extends MovableObject {
     private double shootCooldown = 0;
     private static final double SHOOT_DELAY = 0.3;
 
+    private double boundLeft = Constants.PLAYFIELD_LEFT;
+    private double boundRight = Constants.PLAYFIELD_RIGHT;
+
     public Paddle(double x, double y) {
         super(x, y, Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, 0, 0);
         loadGraphics();
@@ -60,14 +63,23 @@ public class Paddle extends MovableObject {
         // Giới hạn thanh đỡ trong màn hình
 //        if (x < 0) {
 //            x = 0;
-        if (x < Constants.PLAYFIELD_LEFT) {
-            x = Constants.PLAYFIELD_LEFT;
+//        if (x < Constants.PLAYFIELD_LEFT) {
+//            x = Constants.PLAYFIELD_LEFT;
+        if (x < boundLeft) {
+            x = boundLeft;
         }
 //        if (x + width > Constants.WIDTH) {
 //            x = Constants.WIDTH - width;
-        if (x + width > Constants.PLAYFIELD_RIGHT) {
-            x = Constants.PLAYFIELD_RIGHT - width;
+//        if (x + width > Constants.PLAYFIELD_RIGHT) {
+//            x = Constants.PLAYFIELD_RIGHT - width;
+        if (x + width > boundRight) {
+            x = boundRight - width;
         }
+    }
+
+    public void setMovementBounds(double left, double right) {
+        this.boundLeft = left;
+        this.boundRight = right;
     }
 
     public void shootLaser() {
