@@ -25,6 +25,7 @@ import com.ooparkanoid.ui.GameSceneRoot;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
+import com.ooparkanoid.sound.SoundManager;
 
 import java.io.IOException;
 import java.net.URL;
@@ -41,7 +42,7 @@ public class MainConsole extends Application {
         this.stage = stage;
         stage.setTitle("Arkanoid - Simple Brick Game");
         stage.setResizable(false);
-
+        SoundManager.getInstance().playMusic("intro.mp3");
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/intro.fxml"));
         Parent introRoot = fxmlLoader.load();
 
@@ -67,6 +68,8 @@ public class MainConsole extends Application {
     }
 
     private void startTransition() {
+        SoundManager.getInstance().stopMusic();
+        SoundManager.getInstance().play("transition");
         Scene scene = stage.getScene();
 
         scene.setOnKeyPressed(null);
@@ -106,7 +109,7 @@ public class MainConsole extends Application {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
             Parent menuRoot = loader.load();
             MenuController menuController = loader.getController();
-
+            SoundManager.getInstance().playMusic("menu.mp3");
             // 3. Thiết lập callback
             menuController.setOnSelectionCallback(selection -> {
                 switch (selection) {
@@ -114,6 +117,7 @@ public class MainConsole extends Application {
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
+                        SoundManager.getInstance().stopMusic();
                         fadeToBlack(() -> playIntroVideo());
                         break;
                     case "EXIT":
@@ -263,7 +267,8 @@ public class MainConsole extends Application {
      * Hàm này giữ nguyên
      */
     private void startGame() {
-        GameSceneRoot gameSceneRoot = new GameSceneRoot();
+      //  GameSceneRoot gameSceneRoot = new GameSceneRoot();
+        GameSceneRoot gameSceneRoot = new GameSceneRoot(this::showNewMenu);
         stage.setScene(gameSceneRoot.getScene());
         stage.setResizable(false);
         stage.show();

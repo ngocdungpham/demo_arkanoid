@@ -1,6 +1,7 @@
 // File: com.ooparkanoid.ui.NeonPauseView.java
 package com.ooparkanoid.ui;
 
+import com.ooparkanoid.sound.SoundManager;
 import javafx.animation.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -74,8 +75,14 @@ public class NeonPauseView {
         // --- Buttons ---
         resumeBtn = neonButton("Resume Game");
         exitBtn   = neonButton("Exit Game");
-        resumeBtn.setOnAction(e -> cb.onResume());
-        exitBtn.setOnAction(e -> cb.onExit());
+        resumeBtn.setOnAction(e -> {
+            SoundManager.getInstance().play("selected"); // <--- DÒNG MỚI
+            cb.onResume();
+        });
+        exitBtn.setOnAction(e -> {
+            SoundManager.getInstance().play("selected"); // <--- DÒNG MỚI
+            cb.onExit();
+        });
 
         VBox menu = new VBox(ITEM_SPACING, resumeBtn, exitBtn);
         menu.setAlignment(Pos.CENTER);
@@ -193,6 +200,7 @@ public class NeonPauseView {
 
     private void setIndex(int newIndex) {
         if (newIndex == index) return;
+        SoundManager.getInstance().play("card_transition");
         index = newIndex;
         applySelectionVisuals();
         relocateSelector(items[index], true);

@@ -4,6 +4,7 @@ import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.core.engine.GameManager;
 import com.ooparkanoid.core.state.GameState;
 import com.ooparkanoid.core.state.GameStateManager;
+import com.ooparkanoid.sound.SoundManager;
 import com.ooparkanoid.utils.Constants;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
@@ -78,12 +79,12 @@ public class GameSceneRoot {
 //    private StackPane menuOverlay;
 
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
+    private final Runnable onExitToMenuCallback;
 
-
-    public GameSceneRoot() {
+    public GameSceneRoot(Runnable onExitToMenuCallback) {
         stateManager = new GameStateManager();
         gameManager = new GameManager(stateManager);
-
+        this.onExitToMenuCallback = onExitToMenuCallback;
         canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
         graphicsContext = canvas.getGraphicsContext2D();
 
@@ -107,7 +108,10 @@ public class GameSceneRoot {
             @Override public void onExit() {
                 // Tuỳ ý: về menu chính hoặc thoát game
                 // Ví dụ: Platform.exit();
-                Platform.exit();
+               // Platform.exit();
+                gameLoop.stop(); // Dừng vòng lặp game
+                SoundManager.getInstance().stopMusic();
+                onExitToMenuCallback.run(); // Gọi hàm quay về menu được truyền từ MainConsole
             }
         });
 
@@ -408,8 +412,11 @@ public class GameSceneRoot {
                 }
             }
             if (newState == GameState.PAUSED) {
+                SoundManager.getInstance().stopMusic();
+                SoundManager.getInstance().play("pause");
                 pauseView.show((StackPane) scene.getRoot());
             } else if (newState == GameState.RUNNING) {
+                SoundManager.getInstance().playMusic("background.mp3");
                 pauseView.hide();
                 scene.getRoot().requestFocus();
             }

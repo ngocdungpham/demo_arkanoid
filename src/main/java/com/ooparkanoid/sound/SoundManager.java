@@ -21,6 +21,10 @@ public class SoundManager {
         loadSound("break", "/sounds/break.mp3");
         loadSound("powerup", "/sounds/powerup.wav");
         loadSound("lose_life", "/sounds/lose_life.wav"); // <--- Dễ dàng thêm mới
+        loadSound("transition", "/sounds/transition.mp3");
+        loadSound("card_transition", "/sounds/card_transition.mp3");
+        loadSound("selected", "/sounds/selected.mp3");
+        loadSound("pause", "/sounds/pause.mp3");
     }
 
     public static SoundManager getInstance() {

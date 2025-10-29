@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
+import com.ooparkanoid.sound.SoundManager;
+
 public class MenuController implements Initializable {
 
     // ---- Screen ----
@@ -246,6 +248,7 @@ public class MenuController implements Initializable {
     private void slide(int dir) {
         if (offset.get() != 0) return;
 
+        SoundManager.getInstance().play("card_transition");
         Timeline tl = new Timeline(
                 new KeyFrame(Duration.ZERO, new KeyValue(offset, 0)),
                 new KeyFrame(SLIDE_MS, new KeyValue(offset, dir, Interpolator.EASE_BOTH))
@@ -260,6 +263,7 @@ public class MenuController implements Initializable {
     }
 
     private void onSelect() {
+        SoundManager.getInstance().play("selected");
        // System.out.println("Selected: " + items.get(cur));
         // TODO: chuyển scene/game state tại đây
         String selection = items.get(cur);
