@@ -20,18 +20,15 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import com.ooparkanoid.core.score.HighScoreRepository;
-import com.ooparkanoid.core.score.ScoreEntry;
-import com.ooparkanoid.ui.LeaderboardController;
 import com.ooparkanoid.ui.MenuController;
 import com.ooparkanoid.ui.GameSceneRoot;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
+import com.ooparkanoid.sound.SoundManager;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 
 
 public class MainConsole extends Application {
@@ -40,16 +37,12 @@ public class MainConsole extends Application {
     private EventHandler<KeyEvent> introSpaceHandler;
     private EventHandler<MouseEvent> introMouseHandler;
 
-    private Parent menuRoot;
-    private MenuController menuController;
-    private GameMode nextGameMode = GameMode.ADVENTURE;
-
     @Override
     public void start(Stage stage) throws IOException {
         this.stage = stage;
         stage.setTitle("Arkanoid - Simple Brick Game");
         stage.setResizable(false);
-
+        SoundManager.getInstance().playMusic("intro.mp3");
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/intro.fxml"));
         Parent introRoot = fxmlLoader.load();
 
@@ -75,6 +68,8 @@ public class MainConsole extends Application {
     }
 
     private void startTransition() {
+        SoundManager.getInstance().stopMusic();
+        SoundManager.getInstance().play("transition");
         Scene scene = stage.getScene();
 
         scene.setOnKeyPressed(null);
@@ -112,29 +107,18 @@ public class MainConsole extends Application {
     private void showNewMenu() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
-//            Parent menuRoot = loader.load();
-//            MenuController menuController = loader.getController();
-            menuRoot = loader.load();
-            menuController = loader.getController();
-
+            Parent menuRoot = loader.load();
+            MenuController menuController = loader.getController();
+            SoundManager.getInstance().playMusic("menu.mp3");
             // 3. Thiết lập callback
             menuController.setOnSelectionCallback(selection -> {
                 switch (selection) {
                     case "Adventure":
-                        nextGameMode = GameMode.ADVENTURE;
-                        fadeToBlack(this::playIntroVideo);
-                        break;
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
-                        nextGameMode = GameMode.LOCAL_BATTLE;
-                        fadeToBlack(this::playIntroVideo);
-                        break;
-                    case "CREDITS":
-                        fadeToBlack(() -> showRanking());
-                        break;
-                    case "HELP":
-                        fadeToBlack(() -> showRanking());
+                        SoundManager.getInstance().stopMusic();
+                        fadeToBlack(() -> playIntroVideo());
                         break;
                     case "EXIT":
                         Platform.exit();
@@ -175,24 +159,13 @@ public class MainConsole extends Application {
         blackOverlay.setOpacity(0);
 
         // 2. Thêm vào root
-//        if (currentRoot instanceof Pane) {
-//            ((Pane) currentRoot).getChildren().add(blackOverlay);
-//        } else if (currentRoot instanceof Group) {
-//            ((Group) currentRoot).getChildren().add(blackOverlay);
-        // 2. Thêm vào root và ghi nhớ container để gỡ bỏ sau này
-        Parent overlayContainer = null;
-        boolean wrapped = false;
-        if (currentRoot instanceof Pane pane) {
-            pane.getChildren().add(blackOverlay);
-            overlayContainer = pane;
-        } else if (currentRoot instanceof Group group) {
-            group.getChildren().add(blackOverlay);
-            overlayContainer = group;
+        if (currentRoot instanceof Pane) {
+            ((Pane) currentRoot).getChildren().add(blackOverlay);
+        } else if (currentRoot instanceof Group) {
+            ((Group) currentRoot).getChildren().add(blackOverlay);
         } else {
             Group wrapper = new Group(currentRoot, blackOverlay);
             scene.setRoot(wrapper);
-            overlayContainer = wrapper;
-            wrapped = true;
         }
 
         // 3. Tạo hiệu ứng
@@ -201,23 +174,10 @@ public class MainConsole extends Application {
         fadeBlack.setToValue(1);
         fadeBlack.setInterpolator(Interpolator.EASE_IN);
 
-        Parent finalOverlayContainer = overlayContainer;
-        boolean finalWrapped = wrapped;
-
-
         // 4. Đặt hành động sau khi kết thúc
         fadeBlack.setOnFinished(e -> {
             if (onFinished != null) {
                 onFinished.run();
-            }
-            if (finalOverlayContainer instanceof Pane pane) {
-                pane.getChildren().remove(blackOverlay);
-            } else if (finalOverlayContainer instanceof Group group) {
-                group.getChildren().remove(blackOverlay);
-            }
-
-            if (finalWrapped && scene.getRoot() == finalOverlayContainer) {
-                scene.setRoot(currentRoot);
             }
         });
 
@@ -263,8 +223,7 @@ public class MainConsole extends Application {
     private void playIntroVideo() {
         if (introMediaPlayer == null) {
             System.err.println("Video player chưa sẵn sàng. Bỏ qua và vào game.");
-//            startGame();
-            startGame(nextGameMode);
+            startGame();
             return;
         }
 
@@ -284,8 +243,7 @@ public class MainConsole extends Application {
             Platform.runLater(() -> {
                 introMediaPlayer.stop();
                 preloadIntroVideo(); // Tải lại cho lần sau
-//                startGame();
-                startGame(nextGameMode);
+                startGame();
             });
         });
 
@@ -293,8 +251,7 @@ public class MainConsole extends Application {
         Runnable skipAction = () -> {
             introMediaPlayer.stop();
             preloadIntroVideo(); // Tải lại cho lần sau
-//            startGame();
-            startGame(nextGameMode);
+            startGame();
             stage.getScene().setOnKeyPressed(null);
             stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
         };
@@ -310,54 +267,14 @@ public class MainConsole extends Application {
      * Hàm này giữ nguyên
      */
     private void startGame() {
-//        GameSceneRoot gameSceneRoot = new GameSceneRoot();
-        startGame(nextGameMode);
-    }
-
-    private void startGame(GameMode initialMode) {
-        GameSceneRoot gameSceneRoot = new GameSceneRoot(initialMode);
+      //  GameSceneRoot gameSceneRoot = new GameSceneRoot();
+        GameSceneRoot gameSceneRoot = new GameSceneRoot(this::showNewMenu);
         stage.setScene(gameSceneRoot.getScene());
         stage.setResizable(false);
         stage.show();
     }
 
-    private void showRanking() {
-        List<ScoreEntry> scores = HighScoreRepository.loadScores();
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/leaderboard.fxml"));
-            Parent leaderboardRoot = loader.load();
-            LeaderboardController controller = loader.getController();
-            controller.setScores(scores);
-            controller.setSubtitle("Top 10 High Scores");
-            controller.setBackAction(this::returnToMenu);
-
-            Scene scene = stage.getScene();
-            scene.setRoot(leaderboardRoot);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            System.err.println("Không thể hiển thị bảng xếp hạng. Quay lại menu.");
-            returnToMenu();
-        }
-    }
-
-    private void returnToMenu() {
-        Scene scene = stage.getScene();
-        if (menuRoot != null) {
-            scene.setRoot(menuRoot);
-            if (menuRoot instanceof Pane pane) {
-                pane.requestFocus();
-            } else {
-                menuRoot.requestFocus();
-            }
-        } else {
-            showNewMenu();
-        }
-    }
-
     public static void main(String[] args) {
-        ResourceManager resourceManager = ResourceManager.getInstance();
-        resourceManager.clearCache();
         launch();
-
     }
 }

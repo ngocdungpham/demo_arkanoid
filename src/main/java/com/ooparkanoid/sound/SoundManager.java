@@ -21,8 +21,10 @@ public class SoundManager {
         loadSound("break", "/sounds/break.mp3");
         loadSound("powerup", "/sounds/powerup.wav");
         loadSound("lose_life", "/sounds/lose_life.wav"); // <--- Dễ dàng thêm mới
-        loadSound("battle_victory", "/sounds/battle_victory.wav");
-        loadSound("battle_defeat", "/sounds/battle_defeat.wav");
+        loadSound("transition", "/sounds/transition.mp3");
+        loadSound("card_transition", "/sounds/card_transition.mp3");
+        loadSound("selected", "/sounds/selected.mp3");
+        loadSound("pause", "/sounds/pause.mp3");
     }
 
     public static SoundManager getInstance() {
@@ -76,7 +78,7 @@ public class SoundManager {
             musicPlayer.setVolume(0.5);
             musicPlayer.play();
         } catch (Exception e) {
-            System.err.println("Failed load sound: " + filename + " - " + e.getMessage());
+            System.err.println("Lỗi khi phát nhạc: " + filename + " - " + e.getMessage());
         }
     }
 
@@ -84,8 +86,6 @@ public class SoundManager {
     public void stopMusic() {
         if (musicPlayer != null) {
             musicPlayer.stop();
-            musicPlayer.dispose(); // <-- Phải có dòng này
-            musicPlayer = null;
         }
     }
 }
