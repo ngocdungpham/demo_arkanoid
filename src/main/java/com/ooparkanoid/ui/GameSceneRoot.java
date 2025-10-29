@@ -349,13 +349,13 @@ public class GameSceneRoot {
 //
 //        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
 
-        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
-        rightPanel.setAlignment(Pos.TOP_RIGHT);
-        rightPanel.setPadding(new Insets(24, 24, 24, 18));
-        rightPanel.setBackground(createPanelBackground());
-        rightPanel.setPrefWidth(Constants.RIGHT_PANEL_WIDTH);
-        rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
-        rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
+//        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
+//        rightPanel.setAlignment(Pos.TOP_RIGHT);
+//        rightPanel.setPadding(new Insets(24, 24, 24, 18));
+//        rightPanel.setBackground(createPanelBackground());
+//        rightPanel.setPrefWidth(Constants.RIGHT_PANEL_WIDTH);
+//        rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
+//        rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
 
 //        GridPane hudGrid = new GridPane();
         hudGrid = new GridPane();

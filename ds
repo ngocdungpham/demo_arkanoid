@@ -1,0 +1,89 @@
+[33m2422c68[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDũng[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 15:58:12 2025}: merge origin/main: Fast-forward
+[33m31e4aa3[m[33m ([m[1;31morigin/Dũng[m[33m)[m HEAD@{Fri Oct 31 15:57:57 2025}: checkout: moving from Test to Dũng
+[33m538cfcc[m[33m ([m[1;31morigin/Test[m[33m, [m[1;32mTest[m[33m)[m HEAD@{Fri Oct 31 13:10:59 2025}: commit (merge): accept all data
+[33m94654dc[m HEAD@{Fri Oct 31 13:08:47 2025}: reset: moving to HEAD
+[33m94654dc[m HEAD@{Fri Oct 31 13:08:11 2025}: checkout: moving from Dũng to Test
+[33m31e4aa3[m[33m ([m[1;31morigin/Dũng[m[33m)[m HEAD@{Fri Oct 31 12:31:34 2025}: commit: Clear shadow layout top right
+[33mf5012b9[m HEAD@{Thu Oct 30 15:14:52 2025}: checkout: moving from khánh to Dũng
+[33m07a696b[m[33m ([m[1;31morigin/khánh[m[33m, [m[1;32mkhánh[m[33m)[m HEAD@{Thu Oct 30 15:10:45 2025}: checkout: moving from khánh to khánh
+[33m07a696b[m[33m ([m[1;31morigin/khánh[m[33m, [m[1;32mkhánh[m[33m)[m HEAD@{Thu Oct 30 15:10:45 2025}: branch: Reset to origin/khánh
+[33m07a696b[m[33m ([m[1;31morigin/khánh[m[33m, [m[1;32mkhánh[m[33m)[m HEAD@{Thu Oct 30 15:08:34 2025}: checkout: moving from main to khánh
+[33mfb24664[m HEAD@{Thu Oct 30 10:06:27 2025}: rebase (finish): returning to refs/heads/main
+[33mfb24664[m HEAD@{Thu Oct 30 10:06:27 2025}: rebase (start): checkout origin/main
+[33mef53c87[m HEAD@{Tue Oct 28 22:31:51 2025}: checkout: moving from Dũng to main
+[33mf5012b9[m HEAD@{Mon Oct 27 13:20:46 2025}: commit: them anh paddle
+[33m532af80[m HEAD@{Mon Oct 27 01:35:44 2025}: commit: Update paddle chuẩn dọc trái phải
+[33ma89525e[m HEAD@{Mon Oct 27 01:08:28 2025}: commit: sửa lại hướng paddle map solo
+[33m0ce77f1[m HEAD@{Sun Oct 26 23:40:03 2025}: commit: thêm chế độ solo cơ bản lần 3 sửa lại từ dọc sang ngang
+[33me467ad1[m HEAD@{Sun Oct 26 22:26:50 2025}: commit: thêm chế độ solo cơ bản lần 2
+[33m810f812[m HEAD@{Sun Oct 26 18:03:02 2025}: commit: thêm chế độ solo cơ bản
+[33mef53c87[m HEAD@{Sun Oct 26 16:15:37 2025}: pull origin main: Fast-forward
+[33m84a515e[m HEAD@{Sun Oct 26 15:58:58 2025}: checkout: moving from main to Dũng
+[33m2ea7696[m HEAD@{Sun Oct 26 15:55:20 2025}: checkout: moving from Dũng to main
+[33m84a515e[m HEAD@{Sun Oct 26 15:54:35 2025}: commit: chỉnh gạch bất tử
+[33m5fc0967[m HEAD@{Sun Oct 26 15:48:21 2025}: checkout: moving from main to Dũng
+[33m104b18a[m HEAD@{Sun Oct 26 15:42:53 2025}: checkout: moving from main to main
+[33m104b18a[m HEAD@{Sun Oct 26 15:42:53 2025}: branch: Reset to origin/main
+[33m104b18a[m HEAD@{Sun Oct 26 15:40:55 2025}: checkout: moving from Dũng to main
+[33m5fc0967[m HEAD@{Sun Oct 26 15:39:34 2025}: reset: moving to HEAD
+[33m5fc0967[m HEAD@{Sat Oct 25 18:15:01 2025}: checkout: moving from khánh to Dũng
+[33mc503eb2[m HEAD@{Sat Oct 25 18:10:17 2025}: checkout: moving from khánh to khánh
+[33mc503eb2[m HEAD@{Sat Oct 25 18:10:17 2025}: branch: Reset to origin/khánh
+[33ma79b129[m HEAD@{Sat Oct 25 18:09:34 2025}: checkout: moving from Dũng to khánh
+[33m5fc0967[m HEAD@{Sat Oct 25 18:08:40 2025}: checkout: moving from khánh to Dũng
+[33ma79b129[m HEAD@{Sat Oct 25 18:08:23 2025}: rebase (abort): returning to refs/heads/khánh
+[33mc503eb2[m HEAD@{Sat Oct 25 18:07:47 2025}: rebase (start): checkout origin/khánh
+[33ma79b129[m HEAD@{Sat Oct 25 18:06:47 2025}: rebase (abort): returning to refs/heads/khánh
+[33mc503eb2[m HEAD@{Sat Oct 25 18:06:11 2025}: rebase (start): checkout origin/khánh
+[33ma79b129[m HEAD@{Sat Oct 25 18:05:25 2025}: checkout: moving from Dũng to khánh
+[33m5fc0967[m HEAD@{Fri Oct 24 14:40:26 2025}: commit: sửa lỗi back (esc)
+[33m4cf1c6b[m HEAD@{Fri Oct 24 10:14:14 2025}: commit: Modify LeaderBroad top 10
+[33m74a9010[m HEAD@{Thu Oct 23 23:47:25 2025}: merge main: Fast-forward
+[33mbab4c98[m HEAD@{Thu Oct 23 23:45:18 2025}: checkout: moving from main to Dũng
+[33m74a9010[m HEAD@{Thu Oct 23 23:44:11 2025}: rebase (finish): returning to refs/heads/main
+[33m74a9010[m HEAD@{Thu Oct 23 23:44:11 2025}: rebase (start): checkout origin/main
+[33m96ed9a4[m HEAD@{Thu Oct 23 23:42:14 2025}: checkout: moving from Dũng to main
+[33mbab4c98[m HEAD@{Thu Oct 23 23:30:42 2025}: commit (merge): xét lại tỷ lệ khung hình lần 2
+[33me2c2140[m HEAD@{Thu Oct 23 23:27:48 2025}: rebase (abort): returning to refs/heads/Dũng
+[33m2ab699c[m HEAD@{Thu Oct 23 23:27:13 2025}: rebase (start): checkout origin/Dũng
+[33me2c2140[m HEAD@{Thu Oct 23 23:26:33 2025}: rebase (abort): returning to refs/heads/Dũng
+[33m2ab699c[m HEAD@{Thu Oct 23 23:25:49 2025}: rebase (start): checkout origin/Dũng
+[33me2c2140[m HEAD@{Thu Oct 23 23:21:37 2025}: rebase (abort): returning to refs/heads/Dũng
+[33m2ab699c[m HEAD@{Thu Oct 23 23:18:19 2025}: pull --rebase origin Dũng (start): checkout 2ab699cebf45acc92684b648d19debe83f0296fa
+[33me2c2140[m HEAD@{Thu Oct 23 23:18:08 2025}: checkout: moving from Dũng to Dũng
+[33me2c2140[m HEAD@{Thu Oct 23 23:15:29 2025}: commit: Xét lại tỉ lệ khung hình
+[33m3fdc1c0[m HEAD@{Thu Oct 23 19:14:19 2025}: pull origin main: Fast-forward
+[33m70f85cb[m HEAD@{Thu Oct 23 19:13:53 2025}: checkout: moving from main to Dũng
+[33m96ed9a4[m HEAD@{Thu Oct 23 18:59:21 2025}: merge origin/main: Fast-forward
+[33m70f85cb[m HEAD@{Thu Oct 23 18:39:40 2025}: checkout: moving from Dũng to main
+[33m70f85cb[m HEAD@{Thu Oct 23 18:34:38 2025}: checkout: moving from Test to Dũng
+[33m94654dc[m HEAD@{Thu Oct 23 18:10:29 2025}: checkout: moving from Test to Test
+[33m94654dc[m HEAD@{Thu Oct 23 17:53:40 2025}: commit: add file
+[33m8ecaf6f[m HEAD@{Thu Oct 23 16:48:39 2025}: commit: modify auto direction right
+[33m70f85cb[m HEAD@{Thu Oct 23 16:27:55 2025}: rebase (abort): returning to refs/heads/Test
+[33m112b43a[m HEAD@{Thu Oct 23 16:27:40 2025}: rebase (continue): .
+[33m776a817[m HEAD@{Thu Oct 23 16:27:31 2025}: rebase (continue): FastBall
+[33m4467ea4[m HEAD@{Thu Oct 23 16:26:52 2025}: rebase (pick): Thêm map, tạo map đơn giản.
+[33mc220f2d[m HEAD@{Thu Oct 23 16:26:52 2025}: rebase (pick): thêm cơ chế tạo map và tạo thêm gạch không thể bị phá hủy lưu map vào các file level
+[33ma58b827[m HEAD@{Thu Oct 23 16:26:52 2025}: rebase (pick): Xét bóng trên paddle
+[33m77a87c3[m HEAD@{Thu Oct 23 16:26:52 2025}: rebase (start): checkout origin/Test
+[33m70f85cb[m HEAD@{Thu Oct 23 16:22:49 2025}: reset: moving to test
+[33m2ab699c[m HEAD@{Thu Oct 23 16:21:00 2025}: rebase (finish): returning to refs/heads/Dũng
+[33m2ab699c[m HEAD@{Thu Oct 23 16:21:00 2025}: rebase (start): checkout origin/Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 16:17:46 2025}: reset: moving to test
+[33m2ab699c[m HEAD@{Thu Oct 23 16:17:02 2025}: checkout: moving from Test to Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 16:15:56 2025}: checkout: moving from Dũng to Test
+[33m2ab699c[m HEAD@{Thu Oct 23 16:11:58 2025}: checkout: moving from Dũng to Dũng
+[33m2ab699c[m HEAD@{Thu Oct 23 16:06:43 2025}: checkout: moving from main to Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 16:05:38 2025}: checkout: moving from Dũng to main
+[33m2ab699c[m HEAD@{Thu Oct 23 16:00:09 2025}: checkout: moving from Test to Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 15:58:08 2025}: checkout: moving from Dũng to Test
+[33m2ab699c[m HEAD@{Thu Oct 23 15:57:45 2025}: checkout: moving from main to Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 15:56:40 2025}: checkout: moving from Dũng to main
+[33m2ab699c[m HEAD@{Thu Oct 23 15:53:46 2025}: checkout: moving from main to Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 15:53:13 2025}: checkout: moving from Dũng to main
+[33m2ab699c[m HEAD@{Thu Oct 23 15:50:27 2025}: commit (merge): modify sound animation
+[33mc4f581c[m HEAD@{Thu Oct 23 15:43:58 2025}: reset: moving to HEAD
+[33mc4f581c[m HEAD@{Thu Oct 23 15:39:04 2025}: merge origin/Dũng: Fast-forward
+[33m4e883f8[m HEAD@{Thu Oct 23 15:37:20 2025}: checkout: moving from main to Dũng
+[33m70f85cb[m HEAD@{Thu Oct 23 15:2
