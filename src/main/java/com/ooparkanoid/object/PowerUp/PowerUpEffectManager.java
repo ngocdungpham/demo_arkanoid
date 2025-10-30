@@ -11,16 +11,33 @@ public class PowerUpEffectManager {
     }
 
     public void activateEffect(PowerUpEffect effect, double duration) {
-        String type = effect.getEffectType();
-
-        ActiveEffect existing = activeEffects.get(type);
+        String effectType = effect.getEffectType();
+        PowerUpSprite.PowerUpCategory category = PowerUpSprite.getCategoryForEffectType(effectType);
+        ActiveEffect existing = activeEffects.get(effectType);
         if (existing != null) {
             // Chỉ reset timer, KHÔNG apply lại effect
             existing.resetTimer(duration);
         } else {
-            // Apply effect mới
+            if (category != PowerUpSprite.PowerUpCategory.NONE) {
+                // Xóa tất cả các hiệu ứng khác trong cùng category này
+                removeAllEffectsByCategory(category, effectType);
+            }
             effect.apply(context);
-            activeEffects.put(type, new ActiveEffect(effect, duration));
+            activeEffects.put(effectType, new ActiveEffect(effect, category, duration));
+        }
+    }
+
+    private void removeAllEffectsByCategory(PowerUpSprite.PowerUpCategory category, String newEffectType) {
+        Iterator<Map.Entry<String, ActiveEffect>> iterator = activeEffects.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, ActiveEffect> entry = iterator.next();
+            ActiveEffect activeEffect = entry.getValue();
+
+            if (activeEffect.getCategory() == category) {
+                // Xóa hiệu ứng khỏi game
+                activeEffect.getEffect().remove(context);
+                iterator.remove();
+            }
         }
     }
 
@@ -59,10 +76,12 @@ public class PowerUpEffectManager {
 
     private static class ActiveEffect {
         private final PowerUpEffect effect;
+        private final PowerUpSprite.PowerUpCategory category;
         private double remainingTime;
 
-        public ActiveEffect(PowerUpEffect effect, double duration) {
+        public ActiveEffect(PowerUpEffect effect, PowerUpSprite.PowerUpCategory category, double duration) {
             this.effect = effect;
+            this.category = category;
             this.remainingTime = duration;
         }
 
@@ -84,6 +103,10 @@ public class PowerUpEffectManager {
 
         public PowerUpEffect getEffect() {
             return effect;
+        }
+
+        public PowerUpSprite.PowerUpCategory getCategory() {
+            return category;
         }
     }
 }
