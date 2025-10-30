@@ -1,6 +1,8 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.AlertBox;
+import com.ooparkanoid.graphics.ResourceManager;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -15,8 +17,14 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import com.ooparkanoid.core.score.HighScoreRepository;
+import com.ooparkanoid.core.score.ScoreEntry;
+import com.ooparkanoid.ui.LeaderboardController;
 import com.ooparkanoid.ui.MenuController;
 import com.ooparkanoid.ui.GameSceneRoot;
 import com.ooparkanoid.utils.Constants;
@@ -24,13 +32,18 @@ import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.util.List;
+import java.net.URL;
 
 
 public class MainConsole extends Application {
     private Stage stage;
-
+    private MediaPlayer introMediaPlayer;
     private EventHandler<KeyEvent> introSpaceHandler;
     private EventHandler<MouseEvent> introMouseHandler;
+
+    private Parent menuRoot;
+    private MenuController menuController;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -45,6 +58,7 @@ public class MainConsole extends Application {
         stage.setScene(scene);
         stage.show();
 
+        preloadIntroVideo();
         introSpaceHandler = event -> {
             if (event.getCode() == KeyCode.SPACE) {
                 startTransition();
@@ -99,8 +113,10 @@ public class MainConsole extends Application {
     private void showNewMenu() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
-            Parent menuRoot = loader.load();
-            MenuController menuController = loader.getController();
+//            Parent menuRoot = loader.load();
+//            MenuController menuController = loader.getController();
+            menuRoot = loader.load();
+            menuController = loader.getController();
 
             // 3. Thiết lập callback
             menuController.setOnSelectionCallback(selection -> {
@@ -109,7 +125,13 @@ public class MainConsole extends Application {
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
-                        fadeToBlack(() -> startGame());
+                        fadeToBlack(() -> playIntroVideo());
+                        break;
+                    case "CREDITS":
+                        fadeToBlack(() -> showRanking());
+                        break;
+                    case "HELP":
+                        fadeToBlack(() -> showRanking());
                         break;
                     case "EXIT":
                         Platform.exit();
@@ -150,13 +172,24 @@ public class MainConsole extends Application {
         blackOverlay.setOpacity(0);
 
         // 2. Thêm vào root
-        if (currentRoot instanceof Pane) {
-            ((Pane) currentRoot).getChildren().add(blackOverlay);
-        } else if (currentRoot instanceof Group) {
-            ((Group) currentRoot).getChildren().add(blackOverlay);
+//        if (currentRoot instanceof Pane) {
+//            ((Pane) currentRoot).getChildren().add(blackOverlay);
+//        } else if (currentRoot instanceof Group) {
+//            ((Group) currentRoot).getChildren().add(blackOverlay);
+        // 2. Thêm vào root và ghi nhớ container để gỡ bỏ sau này
+        Parent overlayContainer = null;
+        boolean wrapped = false;
+        if (currentRoot instanceof Pane pane) {
+            pane.getChildren().add(blackOverlay);
+            overlayContainer = pane;
+        } else if (currentRoot instanceof Group group) {
+            group.getChildren().add(blackOverlay);
+            overlayContainer = group;
         } else {
             Group wrapper = new Group(currentRoot, blackOverlay);
             scene.setRoot(wrapper);
+            overlayContainer = wrapper;
+            wrapped = true;
         }
 
         // 3. Tạo hiệu ứng
@@ -165,15 +198,106 @@ public class MainConsole extends Application {
         fadeBlack.setToValue(1);
         fadeBlack.setInterpolator(Interpolator.EASE_IN);
 
+        Parent finalOverlayContainer = overlayContainer;
+        boolean finalWrapped = wrapped;
+
+
         // 4. Đặt hành động sau khi kết thúc
         fadeBlack.setOnFinished(e -> {
             if (onFinished != null) {
                 onFinished.run();
             }
+            if (finalOverlayContainer instanceof Pane pane) {
+                pane.getChildren().remove(blackOverlay);
+            } else if (finalOverlayContainer instanceof Group group) {
+                group.getChildren().remove(blackOverlay);
+            }
+
+            if (finalWrapped && scene.getRoot() == finalOverlayContainer) {
+                scene.setRoot(currentRoot);
+            }
         });
 
         // 5. Chạy
         fadeBlack.play();
+    }
+
+
+
+    /**
+     * Phát một video MP4 giới thiệu, sau đó bắt đầu game.
+     */
+    private void preloadIntroVideo() {
+        try {
+            // Đường dẫn chính xác từ hình ảnh của bạn
+            String videoPath = "/Videos/intro.mp4";
+            URL videoUrl = getClass().getResource(videoPath);
+
+            if (videoUrl == null) {
+                System.err.println("Không tìm thấy video để preload: " + videoPath);
+                return;
+            }
+
+            Media media = new Media(videoUrl.toExternalForm());
+            introMediaPlayer = new MediaPlayer(media);
+            introMediaPlayer.setAutoPlay(false); // Không tự phát
+
+            introMediaPlayer.setOnError(() -> {
+                System.err.println("Lỗi khi preload video: " + introMediaPlayer.getError().getMessage());
+                introMediaPlayer = null;
+            });
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi khởi tạo media player: " + e.getMessage());
+            introMediaPlayer = null;
+        }
+    }
+
+    /**
+     * Phát video đã được tải trước (pre-loaded).
+     * Hàm này không thay đổi.
+     */
+    private void playIntroVideo() {
+        if (introMediaPlayer == null) {
+            System.err.println("Video player chưa sẵn sàng. Bỏ qua và vào game.");
+            startGame();
+            return;
+        }
+
+        MediaView mediaView = new MediaView(introMediaPlayer);
+
+        mediaView.setFitWidth(Constants.WIDTH);
+        mediaView.setFitHeight(Constants.HEIGHT);
+        mediaView.setPreserveRatio(false);
+
+        Pane videoRoot = new Pane(mediaView);
+        videoRoot.setStyle("-fx-background-color: black;");
+
+        stage.getScene().setRoot(videoRoot);
+
+        // Hành động khi video kết thúc
+        introMediaPlayer.setOnEndOfMedia(() -> {
+            Platform.runLater(() -> {
+                introMediaPlayer.stop();
+                preloadIntroVideo(); // Tải lại cho lần sau
+                startGame();
+            });
+        });
+
+        // Cho phép bỏ qua
+        Runnable skipAction = () -> {
+            introMediaPlayer.stop();
+            preloadIntroVideo(); // Tải lại cho lần sau
+            startGame();
+            stage.getScene().setOnKeyPressed(null);
+            stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
+        };
+
+        stage.getScene().setOnKeyPressed(e -> skipAction.run());
+        stage.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> skipAction.run());
+
+        // Bắt đầu phát
+        introMediaPlayer.play();
     }
 
     /**
@@ -186,7 +310,43 @@ public class MainConsole extends Application {
         stage.show();
     }
 
+    private void showRanking() {
+        List<ScoreEntry> scores = HighScoreRepository.loadScores();
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/leaderboard.fxml"));
+            Parent leaderboardRoot = loader.load();
+            LeaderboardController controller = loader.getController();
+            controller.setScores(scores);
+            controller.setSubtitle("Top 10 High Scores");
+            controller.setBackAction(this::returnToMenu);
+
+            Scene scene = stage.getScene();
+            scene.setRoot(leaderboardRoot);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            System.err.println("Không thể hiển thị bảng xếp hạng. Quay lại menu.");
+            returnToMenu();
+        }
+    }
+
+    private void returnToMenu() {
+        Scene scene = stage.getScene();
+        if (menuRoot != null) {
+            scene.setRoot(menuRoot);
+            if (menuRoot instanceof Pane pane) {
+                pane.requestFocus();
+            } else {
+                menuRoot.requestFocus();
+            }
+        } else {
+            showNewMenu();
+        }
+    }
+
     public static void main(String[] args) {
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         launch();
+
     }
 }

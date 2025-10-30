@@ -74,7 +74,7 @@ public class SoundManager {
             musicPlayer.setVolume(0.5);
             musicPlayer.play();
         } catch (Exception e) {
-            System.err.println("Lỗi khi phát nhạc: " + filename + " - " + e.getMessage());
+            System.err.println("Failed load sound: " + filename + " - " + e.getMessage());
         }
     }
 

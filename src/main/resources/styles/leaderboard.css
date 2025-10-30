@@ -1,0 +1,110 @@
+.root {
+    -fx-background-color: radial-gradient(center 50% 20%, radius 90%, #1a0246, #050114 75%);
+    -fx-font-family: "Orbitron", "Segoe UI", sans-serif;
+    -fx-text-fill: #f4f8ff;
+}
+
+.leaderboard-title {
+    -fx-font-size: 48px;
+    -fx-font-weight: 800;
+    -fx-letter-spacing: 4px;
+    -fx-text-fill: linear-gradient(to bottom, #8be9ff, #ffffff);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 255, 0.35), 18, 0.2, 0, 0);
+}
+
+.leaderboard-subtitle {
+    -fx-font-size: 20px;
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-letter-spacing: 2px;
+}
+
+.leaderboard-card {
+    -fx-padding: 32;
+}
+
+.leaderboard-card .table-view {
+    -fx-background-color: rgba(13, 21, 53, 0.88);
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(0, 255, 255, 0.45);
+    -fx-border-radius: 24;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0, 10, 30, 0.65), 32, 0.25, 0, 18);
+}
+
+.table-view {
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 12;
+    -fx-selection-bar: rgba(0, 217, 255, 0.45);
+    -fx-selection-bar-non-focused: rgba(0, 217, 255, 0.35);
+    -fx-border-insets: 0;
+    -fx-background-insets: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-background-radius: 24 24 0 0;
+    -fx-padding: 12 6 12 6;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: rgba(255, 255, 255, 0.9);
+    -fx-font-weight: 700;
+    -fx-font-size: 18px;
+    -fx-alignment: CENTER;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 16px;
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: rgba(0, 0, 0, 0.12);
+}
+
+.table-view .table-row-cell:selected {
+    -fx-text-fill: #051321;
+    -fx-font-weight: 700;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: rgba(255, 255, 255, 0.6);
+    -fx-font-size: 18px;
+}
+
+.leaderboard-back-button {
+    -fx-background-color: linear-gradient(to right, #082343, #0c386b);
+    -fx-text-fill: #e4f9ff;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-padding: 10 28 10 28;
+    -fx-background-radius: 999;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 255, 0.35), 18, 0.2, 0, 0);
+    -fx-cursor: hand;
+}
+
+.leaderboard-back-button:hover {
+    -fx-background-color: linear-gradient(to right, #0a3b74, #1157b7);
+}
+
+.leaderboard-back-button:armed {
+    -fx-translate-y: 1;
+}
+
+.leaderboard-back-hint {
+    -fx-text-fill: rgba(255, 255, 255, 0.55);
+    -fx-font-size: 16px;
+    -fx-letter-spacing: 2px;
+}
+
+.leaderboard-tooltip {
+    -fx-font-size: 13px;
+    -fx-background-color: rgba(8, 17, 43, 0.92);
+    -fx-text-fill: #d8f7ff;
+    -fx-padding: 8 12 8 12;
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(0, 255, 255, 0.6);
+    -fx-border-radius: 8;
+}

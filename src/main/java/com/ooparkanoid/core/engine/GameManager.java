@@ -6,6 +6,8 @@ import javafx.geometry.Rectangle2D;
 
 import com.ooparkanoid.core.save.SaveService;
 import com.ooparkanoid.core.state.GameState;
+import com.ooparkanoid.core.score.HighScoreRepository;
+import com.ooparkanoid.core.score.ScoreEntry;
 import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.object.Ball;
 import com.ooparkanoid.object.Paddle;
@@ -50,7 +52,7 @@ public class GameManager {
     private List<Brick> bricks;
     private List<Ball> balls = new ArrayList<>();
 
-    private List<PowerUp> powerUps = new ArrayList<>();
+    private final List<PowerUp> powerUps = new ArrayList<>();
     private PowerUpEffectManager effectManager;
     private GameContext gameContext;
     private double roundTimeElapsed;
@@ -64,6 +66,7 @@ public class GameManager {
     private final GameStateManager stateManager;
 
     private Image normalBrickTexture;
+    private Image normalBrickTexture2;
     private Image strongBrickTexture3; // 2 hit points remaining
     private Image strongBrickTexture2; // 2 hit points remaining
     private Image strongBrickTexture1; // 1 hit point remaining
@@ -90,10 +93,11 @@ public class GameManager {
     private void loadBrickTextures() {
         ResourceManager rm = ResourceManager.getInstance();
         normalBrickTexture = rm.loadImage("brick_normal.png");
+        normalBrickTexture2 = rm.loadImage("brick_normal2.png");
         strongBrickTexture3 = rm.loadImage("brick_strong_hit1.png");
         strongBrickTexture2 = rm.loadImage("brick_strong_hit2.png");
         strongBrickTexture1 = rm.loadImage("brick_strong_hit3.png");
-        indestructibleBrickTexture = rm.loadImage("brick_indestructible.png");
+        indestructibleBrickTexture = rm.loadImage("brick_enternal.png");
         flickerBrickTexture1 = rm.loadImage("brick_flicker1.png");
         flickerBrickTexture2 = rm.loadImage("brick_flicker2.png");
         explosiveBrickTexture = rm.loadImage("brick_explosive.png");
@@ -403,7 +407,9 @@ public class GameManager {
             if (lives <= 0) {
                 System.out.println("Game Over! Final Score: " + score);
                 stateManager.setStatusMessage("Game Over! Final Score: " + score);
+                recordHighScore();
                 stateManager.markGameOver();
+
                 return;
             } else {
                 resetBallAndPaddlePosition();
@@ -426,6 +432,7 @@ public class GameManager {
             effectManager.clearAll();
             if (currentLevel > Constants.MAX_LEVELS) { // Kiểm tra nếu đã hết các level
                 System.out.println("Congratulations! All levels completed!");
+                recordHighScore(Constants.MAX_LEVELS);
                 initializeGame(); // Reset game
             } else {
                 bricks.clear(); // Xóa gạch cũ
@@ -437,7 +444,25 @@ public class GameManager {
                 System.out.println("Starting Level " + currentLevel);
             }
         }
+    }
 
+    private void recordHighScore() {
+        recordHighScore(currentLevel);
+    }
+
+    private void recordHighScore(int roundsPlayed) {
+        int clampedRounds = Math.max(1, Math.min(roundsPlayed, Constants.MAX_LEVELS));
+        ScoreEntry entry = new ScoreEntry(resolvePlayerName(), score, clampedRounds, totalTimeElapsed);
+        HighScoreRepository.recordScore(entry);
+    }
+
+    private String resolvePlayerName() {
+        String systemUser = System.getProperty("user.name");
+        if (systemUser == null) {
+            return "Player";
+        }
+        String trimmed = systemUser.trim();
+        return trimmed.isEmpty() ? "Player" : trimmed;
     }
 
     private void updateLasers(double dt) {
@@ -699,7 +724,7 @@ public class GameManager {
             ballLaunched = true;
             for (Ball b : balls) {
                 // Cho bóng bay lên góc ngẫu nhiên một chút
-                b.setDirection(0, -1);
+                b.setDirection(0.7, -1);
             }
             System.out.println("Ball launched!");
         }
@@ -711,7 +736,7 @@ public class GameManager {
                 paddle.getY() - 20,
                 Constants.BALL_RADIUS,
                 Constants.DEFAULT_SPEED,
-                1, -1
+                -1, -1
         );
 
         if (ballLaunched) {
