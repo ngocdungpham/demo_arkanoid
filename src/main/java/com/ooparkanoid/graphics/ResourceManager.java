@@ -50,7 +50,7 @@ public class ResourceManager {
         try {
             String path = SPRITES_PATH + filename;
             Image image = new Image(getClass().getResourceAsStream(path));
-            SpriteSheet sheet = new SpriteSheet(image, frameWidth, frameHeight);
+            SpriteSheet sheet = new SpriteSheet(image, frameWidth, frameHeight, 0 , 0);
             spriteSheetCache.put(filename, sheet);
             System.out.println("Loaded spritesheet: " + filename);
             return sheet;

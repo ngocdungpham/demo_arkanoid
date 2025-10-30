@@ -9,15 +9,19 @@ public class SpriteSheet {
     private Image spriteSheet;
     private int frameWidth;
     private int frameHeight;
+    private int spacing;
+    private int margin;
     private int columns;
     private int rows;
 
-    public SpriteSheet(Image spriteSheet, int frameWidth, int frameHeight) {
-        this.spriteSheet = spriteSheet;
+    public SpriteSheet(Image sheet, int frameWidth, int frameHeight, int spacing, int margin) {
+        this.spriteSheet = sheet;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
-        this.columns = (int) (spriteSheet.getWidth() / frameWidth);
-        this.rows = (int) (spriteSheet.getWidth() / frameHeight);
+        this.spacing = spacing;
+        this.margin = margin;
+        this.columns = (int) ((sheet.getWidth()) / (frameWidth ));
+        this.rows = (int) ((sheet.getHeight()) / (frameHeight));
     }
 
     // Lấy frame từ sprite sheet
@@ -33,8 +37,8 @@ public class SpriteSheet {
             return null;
         }
         PixelReader reader = spriteSheet.getPixelReader();
-        int x = col * frameWidth;
-        int y = row * frameHeight;
+        int x = margin + col * (frameWidth + spacing);
+        int y = margin + row * (frameHeight + spacing);
         return new WritableImage(reader, x, y, frameWidth, frameHeight); // tạo ảnh mới
     }
 
