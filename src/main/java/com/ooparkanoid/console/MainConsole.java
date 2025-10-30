@@ -1,6 +1,7 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.core.state.GameMode;
 import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.graphics.ResourceManager;
 import javafx.animation.*;
@@ -44,6 +45,7 @@ public class MainConsole extends Application {
 
     private Parent menuRoot;
     private MenuController menuController;
+    private GameMode nextGameMode = GameMode.ADVENTURE;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -122,10 +124,14 @@ public class MainConsole extends Application {
             menuController.setOnSelectionCallback(selection -> {
                 switch (selection) {
                     case "Adventure":
+                        nextGameMode = GameMode.ADVENTURE;
+                        fadeToBlack(this::playIntroVideo);
+                        break;
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
-                        fadeToBlack(() -> playIntroVideo());
+                        nextGameMode = GameMode.LOCAL_BATTLE;
+                        fadeToBlack(this::playIntroVideo);
                         break;
                     case "CREDITS":
                         fadeToBlack(() -> showRanking());
@@ -260,7 +266,8 @@ public class MainConsole extends Application {
     private void playIntroVideo() {
         if (introMediaPlayer == null) {
             System.err.println("Video player chưa sẵn sàng. Bỏ qua và vào game.");
-            startGame();
+//            startGame();
+            startGame(nextGameMode);
             return;
         }
 
@@ -280,7 +287,8 @@ public class MainConsole extends Application {
             Platform.runLater(() -> {
                 introMediaPlayer.stop();
                 preloadIntroVideo(); // Tải lại cho lần sau
-                startGame();
+//                startGame();
+                startGame(nextGameMode);
             });
         });
 
@@ -288,7 +296,8 @@ public class MainConsole extends Application {
         Runnable skipAction = () -> {
             introMediaPlayer.stop();
             preloadIntroVideo(); // Tải lại cho lần sau
-            startGame();
+//            startGame();
+            startGame(nextGameMode);
             stage.getScene().setOnKeyPressed(null);
             stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
         };
@@ -304,7 +313,12 @@ public class MainConsole extends Application {
      * Hàm này giữ nguyên
      */
     private void startGame() {
-        GameSceneRoot gameSceneRoot = new GameSceneRoot();
+//        GameSceneRoot gameSceneRoot = new GameSceneRoot();
+        startGame(nextGameMode);
+    }
+
+    private void startGame(GameMode initialMode) {
+        GameSceneRoot gameSceneRoot = new GameSceneRoot(initialMode);
         stage.setScene(gameSceneRoot.getScene());
         stage.setResizable(false);
         stage.show();
