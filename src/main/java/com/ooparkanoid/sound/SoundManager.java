@@ -84,6 +84,8 @@ public class SoundManager {
     public void stopMusic() {
         if (musicPlayer != null) {
             musicPlayer.stop();
+            musicPlayer.dispose(); // <-- Phải có dòng này
+            musicPlayer = null;
         }
     }
 }
