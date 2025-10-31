@@ -9,7 +9,6 @@ import com.ooparkanoid.core.engine.LocalBattleManager;
 import com.ooparkanoid.core.state.GameMode;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.core.engine.GameManager;
 import com.ooparkanoid.core.state.GameState;
 import com.ooparkanoid.core.state.GameStateManager;
@@ -49,14 +48,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-//import javafx.scene.paint.CycleMethod;
-//import javafx.scene.paint.LinearGradient;
-//import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-// import
-import com.ooparkanoid.ui.NeonPauseView;
-import javafx.scene.Node;
 
 
 import java.net.URL;
@@ -80,6 +73,7 @@ public class GameSceneRoot {
     private HBox backgroundSections;
 
     private VBox leftPanel;
+    private VBox rightPanel;
     private Pane centerSpacer;
     private VBox adventureStats;
     private VBox battleStats;
@@ -97,30 +91,33 @@ public class GameSceneRoot {
     private final Canvas canvas;
     private final SceneLayoutFactory.LayeredScene layeredScene;
     private final BackgroundLayer backgroundLayer;
-    private NeonPauseView pauseView;
-
-//    private Label stateLabel;
-//    private Label messageLabel;
-//    private Button continueButton;
-//
-//
-//    private StackPane menuOverlay;
+    private final NeonPauseView pauseView;
 
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
-    private final Runnable onExitToMenuCallback;
     private final ObjectProperty<GameMode> currentMode = new SimpleObjectProperty<>(GameMode.ADVENTURE);
     private final Set<KeyCode> activeKeys = EnumSet.noneOf(KeyCode.class);
+    private final Runnable onExitToMenuCallback;
+    private final GameMode initialMode;
+
 
     public GameSceneRoot(Runnable onExitToMenuCallback) {
-
-    public GameSceneRoot() {
-        this(GameMode.ADVENTURE);
+        // Constructor chính được MainConsole sử dụng khi chuyển từ Menu
+        this(onExitToMenuCallback, GameMode.ADVENTURE);
     }
 
-    public GameSceneRoot(GameMode initialMode) {
+    public GameSceneRoot() {
+        // No-arg constructor (dành cho Main.java hoặc fallback)
+        // Sử dụng Platform.exit() làm hành động thoát mặc định
+        this(() -> Platform.exit(), GameMode.ADVENTURE);
+    }
+
+    // Constructor chính nhận callback và chế độ chơi (chứa toàn bộ logic khởi tạo)
+    public GameSceneRoot(Runnable onExitToMenuCallback, GameMode initialMode) {
+        this.onExitToMenuCallback = onExitToMenuCallback;
+        this.initialMode = initialMode;
+
         stateManager = new GameStateManager();
         gameManager = new GameManager(stateManager);
-        this.onExitToMenuCallback = onExitToMenuCallback;
         battleManager = new LocalBattleManager(stateManager);
 //
         canvas = new Canvas(Constants.WIDTH, Constants.HEIGHT);
@@ -144,17 +141,15 @@ public class GameSceneRoot {
                 scene.getRoot().requestFocus();
             }
             @Override public void onExit() {
-                // Tuỳ ý: về menu chính hoặc thoát game
-                // Ví dụ: Platform.exit();
-               // Platform.exit();
-                gameLoop.stop(); // Dừng vòng lặp game
+                // Dừng vòng lặp game, dừng nhạc, rồi gọi callback về menu
+                gameLoop.stop();
                 SoundManager.getInstance().stopMusic();
                 onExitToMenuCallback.run(); // Gọi hàm quay về menu được truyền từ MainConsole
             }
         });
 
 // Đặt overlay lên trên cùng (root của layeredScene là StackPane)
-        ((StackPane) layeredScene.root()).getChildren().add(pauseView.getView());
+        layeredScene.root().getChildren().add(pauseView.getView());
 
         // buildMenuOverlay();
         setupStateListeners();
@@ -164,10 +159,6 @@ public class GameSceneRoot {
 
         gameLoop = createGameLoop();
 
-//        //  stateManager.resetToMenu();
-////        gameManager.initializeGame();
-////        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
-//        startAdventureMode();
         if (initialMode == GameMode.LOCAL_BATTLE) {
             startBattleMode();
         } else {
@@ -176,7 +167,6 @@ public class GameSceneRoot {
         updateLayoutForMode(currentMode.get());
         gameLoop.start();
     }
-
     private void configureBackground() {
 //        LinearGradient gradient = new LinearGradient(
 //                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
@@ -323,7 +313,7 @@ public class GameSceneRoot {
                 battleManager.servingPlayerProperty(),
                 currentMode));
 
-        VBox battleStats = new VBox(12,
+        battleStats = new VBox(12,
                 battleTitle,
                 playerOneLivesLabel,
                 playerTwoLivesLabel,
@@ -355,14 +345,31 @@ public class GameSceneRoot {
 //        currentRoundValue.textProperty().bind(stateManager.roundProperty().asString("Round %d"));
 //
 //        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
+        Label modeTitle = createHudTitleLabel();
+        modeTitle.setText("Mode");
+        Label modeValue = createHudValueLabel();
+        modeValue.textProperty().bind(Bindings.createStringBinding(
+//                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Solo Battle",
+                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Versus",
+                currentMode));
 
-//        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
-//        rightPanel.setAlignment(Pos.TOP_RIGHT);
-//        rightPanel.setPadding(new Insets(24, 24, 24, 18));
-//        rightPanel.setBackground(createPanelBackground());
-//        rightPanel.setPrefWidth(Constants.RIGHT_PANEL_WIDTH);
-//        rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
-//        rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
+        Label statusTitle = createHudTitleLabel();
+        statusTitle.setText("Status");
+        Label statusValue = createHudValueLabel();
+        statusValue.textProperty().bind(stateManager.statusMessageProperty());
+        statusValue.setWrapText(true);
+        statusValue.setMaxWidth(Constants.RIGHT_PANEL_WIDTH - 36);
+        statusValue.setPrefWidth(Constants.RIGHT_PANEL_WIDTH - 36);
+        statusValue.setAlignment(Pos.TOP_RIGHT);
+
+        rightPanel = new VBox(12, modeTitle, modeValue, statusTitle, statusValue);
+
+        rightPanel.setAlignment(Pos.TOP_RIGHT);
+        rightPanel.setPadding(new Insets(24, 24, 24, 18));
+        rightPanel.setBackground(createPanelBackground());
+        rightPanel.setPrefWidth(Constants.RIGHT_PANEL_WIDTH);
+        rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
+        rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
 
 //        GridPane hudGrid = new GridPane();
         hudGrid = new GridPane();
@@ -371,10 +378,6 @@ public class GameSceneRoot {
         hudGrid.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         hudGrid.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
 
-//        ColumnConstraints leftColumn = createColumn(Constants.SIDE_PANEL_RATIO);
-//        ColumnConstraints centerColumn = createColumn(Constants.PLAYFIELD_RATIO);
-//        ColumnConstraints rightColumn = createColumn(Constants.SIDE_PANEL_RATIO);
-//        hudGrid.getColumnConstraints().addAll(leftColumn, centerColumn, rightColumn);
         leftColumnConstraint = createColumn(Constants.SIDE_PANEL_RATIO);
         centerColumnConstraint = createColumn(Constants.PLAYFIELD_RATIO);
         rightColumnConstraint = createColumn(Constants.SIDE_PANEL_RATIO);
@@ -388,12 +391,17 @@ public class GameSceneRoot {
 
         GridPane.setHalignment(leftPanel, HPos.LEFT);
         GridPane.setValignment(leftPanel, VPos.TOP);
+        GridPane.setHalignment(rightPanel, HPos.RIGHT);
+        GridPane.setValignment(rightPanel, VPos.TOP);
         GridPane.setHgrow(centerSpacer, Priority.ALWAYS);
         GridPane.setHgrow(leftPanel, Priority.NEVER);
+        GridPane.setHgrow(rightPanel, Priority.NEVER);
         GridPane.setFillWidth(leftPanel, true);
+        GridPane.setFillWidth(rightPanel, true);
 
         hudGrid.add(leftPanel, 0, 0);
         hudGrid.add(centerSpacer, 1, 0);
+        hudGrid.add(rightPanel, 2, 0);
 
         BooleanBinding hudVisible = stateManager.stateProperty().isEqualTo(GameState.RUNNING);
 //        hud.visibleProperty().bind(hudVisible);
@@ -548,7 +556,7 @@ public class GameSceneRoot {
         return column;
     }
 
-//        layeredScene.contentLayer().getChildren().add(hud);
+    //        layeredScene.contentLayer().getChildren().add(hud);
 //        StackPane.setAlignment(hud, Pos.TOP_LEFT);
     private StringBinding formatDurationBinding(ObservableNumberValue secondsProperty, String label) {
         return Bindings.createStringBinding(() -> {
@@ -667,8 +675,17 @@ public class GameSceneRoot {
             KeyCode code = e.getCode();
             activeKeys.add(code);
 
+//            if (code == KeyCode.ESCAPE) {
+//                if (stateManager.isRunning()) {
+//                    stateManager.pauseGame();
+//                } else if (stateManager.getCurrentState() == GameState.PAUSED) {
+//                    stateManager.resumeGame();
+//                }
+//                return;
+//            }
             if (code == KeyCode.ESCAPE) {
                 if (stateManager.isRunning()) {
+                    // chuyển state sang PAUSED + show overlay
                     stateManager.pauseGame();
                     pauseView.show((StackPane) scene.getRoot());
                 } else if (stateManager.getCurrentState() == GameState.PAUSED) {
@@ -722,29 +739,29 @@ public class GameSceneRoot {
                             gameManager.launchBall();
                         }
                     }
+                    return;
                 }
-                return;
-            }
 
 //            if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
 //            if (!pressedStack.contains(code)) {
 //                pressedStack.push(code); // đưa phím mới lên đầu
-            if (!stateManager.isRunning()) {
-                return;
-            }
-
-            if (currentMode.get() == GameMode.ADVENTURE) {
-                if (gameManager.getPaddle() == null) {
+                if (!stateManager.isRunning()) {
                     return;
                 }
-                if (!pressedStack.contains(code)) {
-                    pressedStack.push(code); // đưa phím mới lên đầu
-                }
+
+                if (currentMode.get() == GameMode.ADVENTURE) {
+                    if (gameManager.getPaddle() == null) {
+                        return;
+                    }
+                    if (!pressedStack.contains(code)) {
+                        pressedStack.push(code); // đưa phím mới lên đầu
+                    }
 //            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
-            } else if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN) {
-                applyBattleMovementFromKeys();
-            }
-        });
+                } else if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN) {
+                    applyBattleMovementFromKeys();
+                }
+            } // <--- Dấu đóng ngoặc của lambda KEY_PRESSED và lời gọi hàm
+        }); // <--- Dấu đóng ngoặc của lời gọi hàm addEventFilter
 
         scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
 //            pressedStack.remove(e.getCode());
@@ -784,7 +801,7 @@ public class GameSceneRoot {
             } else if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN) {
                 applyBattleMovementFromKeys();
             }
-        });
+        }); // <--- Dấu đóng ngoặc của lời gọi hàm addEventFilter
 
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
 //            if (stateManager.isRunning() && event.getButton() == MouseButton.PRIMARY) {
@@ -800,239 +817,242 @@ public class GameSceneRoot {
                     gameManager.launchBall();
                 }
             }
-        });
+        }); // <--- Dấu đóng ngoặc của lời gọi hàm addEventFilter
 
         scene.setOnMouseMoved(this::handleMouseMoved);
         // đảm bảo scene có focus khi đóng overlay
         scene.getRoot().requestFocus();
     }
-
     private AnimationTimer createGameLoop() {
-        return new AnimationTimer() {
-            private long lastUpdate = 0L;
-            @Override
-            public void handle(long now) {
-                if (lastUpdate == 0L) {
-                    lastUpdate = now;
+            return new AnimationTimer() {
+                private long lastUpdate = 0L;
+                @Override
+                public void handle(long now) {
+                    if (lastUpdate == 0L) {
+                        lastUpdate = now;
 //                    gameManager.render(graphicsContext);
-                    renderCurrentMode();
-                    return;
-                }
+                        renderCurrentMode();
+                        return;
+                    }
 
-                double dt = (now - lastUpdate) / 1e9;
+                    double dt = (now - lastUpdate) / 1e9;
 
-                if (stateManager.isRunning()) {
+                    if (stateManager.isRunning()) {
 //                    updatePaddleVelocity();
 //                    double dt = (now - lastUpdate) / 1e9;
 //                    gameManager.update(dt);
-                    if (currentMode.get() == GameMode.ADVENTURE) {
-                        updatePaddleVelocity();
-                        gameManager.update(dt);
-                    } else {
-                        applyBattleMovementFromKeys();
-                        battleManager.update(dt);
+                        if (currentMode.get() == GameMode.ADVENTURE) {
+                            updatePaddleVelocity();
+                           // double dt = (now - lastUpdate) / 1e9;
+                            gameManager.update(dt);
+                        } else {
+                            applyBattleMovementFromKeys();
+                            battleManager.update(dt);
+                        }
                     }
-                }
 
-                lastUpdate = now;
+                    lastUpdate = now;
 //                gameManager.render(graphicsContext);
-                renderCurrentMode();
+                    renderCurrentMode();
+                }
+            };
+        }
+
+        private void updatePaddleVelocity() {
+            if (currentMode.get() != GameMode.ADVENTURE) {
+                return;
             }
-        };
-    }
+            if (gameManager.getPaddle() == null) {
+                return;
+            }
 
-    private void updatePaddleVelocity() {
-        if (currentMode.get() != GameMode.ADVENTURE) {
-            return;
-        }
-        if (gameManager.getPaddle() == null) {
-            return;
-        }
+            if (pressedStack.isEmpty()) {
+                gameManager.getPaddle().setDx(0);
+                return;
+            }
 
-        if (pressedStack.isEmpty()) {
-            gameManager.getPaddle().setDx(0);
-            return;
-        }
-
-        KeyCode key = pressedStack.peek();
-        if (key == KeyCode.A || key == KeyCode.LEFT) {
-            gameManager.getPaddle().setDx(-Constants.PADDLE_SPEED);
-        } else if (key == KeyCode.D || key == KeyCode.RIGHT) {
-            gameManager.getPaddle().setDx(Constants.PADDLE_SPEED);
-        } else {
-            gameManager.getPaddle().setDx(0);
-        }
-    }
-
-    private void applyBattleMovementFromKeys() {
-        if (currentMode.get() != GameMode.LOCAL_BATTLE) {
-            return;
+            KeyCode key = pressedStack.peek();
+            if (key == KeyCode.A || key == KeyCode.LEFT) {
+                gameManager.getPaddle().setDx(-Constants.PADDLE_SPEED);
+            } else if (key == KeyCode.D || key == KeyCode.RIGHT) {
+                gameManager.getPaddle().setDx(Constants.PADDLE_SPEED);
+            } else {
+                gameManager.getPaddle().setDx(0);
+            }
         }
 
-        double playerOneVelocity = 0;
+        private void applyBattleMovementFromKeys() {
+            if (currentMode.get() != GameMode.LOCAL_BATTLE) {
+                return;
+            }
+
+            double playerOneVelocity = 0;
 //        if (activeKeys.contains(KeyCode.A) && !activeKeys.contains(KeyCode.D)) {
-        if (activeKeys.contains(KeyCode.W) && !activeKeys.contains(KeyCode.S)) {
-            playerOneVelocity = -Constants.PADDLE_SPEED;
+            if (activeKeys.contains(KeyCode.W) && !activeKeys.contains(KeyCode.S)) {
+                playerOneVelocity = -Constants.PADDLE_SPEED;
 //        } else if (activeKeys.contains(KeyCode.D) && !activeKeys.contains(KeyCode.A)) {
-        } else if (activeKeys.contains(KeyCode.S) && !activeKeys.contains(KeyCode.W)) {
-            playerOneVelocity = Constants.PADDLE_SPEED;
-        }
+            } else if (activeKeys.contains(KeyCode.S) && !activeKeys.contains(KeyCode.W)) {
+                playerOneVelocity = Constants.PADDLE_SPEED;
+            }
 
-        double playerTwoVelocity = 0;
+            double playerTwoVelocity = 0;
 //        if (activeKeys.contains(KeyCode.LEFT) && !activeKeys.contains(KeyCode.RIGHT)) {
-        if (activeKeys.contains(KeyCode.UP) && !activeKeys.contains(KeyCode.DOWN)) {
-            playerTwoVelocity = -Constants.PADDLE_SPEED;
+            if (activeKeys.contains(KeyCode.UP) && !activeKeys.contains(KeyCode.DOWN)) {
+                playerTwoVelocity = -Constants.PADDLE_SPEED;
 //        } else if (activeKeys.contains(KeyCode.RIGHT) && !activeKeys.contains(KeyCode.LEFT)) {
-        } else if (activeKeys.contains(KeyCode.DOWN) && !activeKeys.contains(KeyCode.UP)) {
-            playerTwoVelocity = Constants.PADDLE_SPEED;
+            } else if (activeKeys.contains(KeyCode.DOWN) && !activeKeys.contains(KeyCode.UP)) {
+                playerTwoVelocity = Constants.PADDLE_SPEED;
+            }
+
+            battleManager.setPlayerOneVelocity(playerOneVelocity);
+            battleManager.setPlayerTwoVelocity(playerTwoVelocity);
         }
 
-        battleManager.setPlayerOneVelocity(playerOneVelocity);
-        battleManager.setPlayerTwoVelocity(playerTwoVelocity);
-    }
-
-    private void renderCurrentMode() {
-        if (currentMode.get() == GameMode.ADVENTURE) {
-            gameManager.render(graphicsContext);
-        } else {
-            battleManager.render(graphicsContext);
-        }
-    }
-
-    private void updateLayoutForMode(GameMode mode) {
-        boolean battle = mode == GameMode.LOCAL_BATTLE;
-
-        if (leftPanel != null) {
-            leftPanel.setVisible(!battle);
-            leftPanel.setManaged(!battle);
-        }
-
-        if (centerSpacer != null) {
-            centerSpacer.setVisible(!battle);
-            centerSpacer.setManaged(!battle);
-        }
-
-        if (leftColumnConstraint != null && centerColumnConstraint != null && rightColumnConstraint != null) {
-            if (battle) {
-                leftColumnConstraint.setPercentWidth(0);
-                rightColumnConstraint.setPercentWidth(0);
-                centerColumnConstraint.setPercentWidth(100);
+        private void renderCurrentMode() {
+            if (currentMode.get() == GameMode.ADVENTURE) {
+                gameManager.render(graphicsContext);
             } else {
-                leftColumnConstraint.setPercentWidth(Constants.SIDE_PANEL_RATIO * 100.0);
-                rightColumnConstraint.setPercentWidth(Constants.SIDE_PANEL_RATIO * 100.0);
-                centerColumnConstraint.setPercentWidth(Constants.PLAYFIELD_RATIO * 100.0);
+                battleManager.render(graphicsContext);
             }
         }
 
-        if (backgroundSections != null) {
-            if (battle) {
-                if (leftBackgroundSection != null) {
-                    leftBackgroundSection.setVisible(false);
-                    leftBackgroundSection.setManaged(false);
+        private void updateLayoutForMode(GameMode mode) {
+            boolean battle = mode == GameMode.LOCAL_BATTLE;
+
+            if (leftPanel != null) {
+                leftPanel.setVisible(!battle);
+                leftPanel.setManaged(!battle);
+            }
+            if (rightPanel != null) {
+                rightPanel.setVisible(!battle);
+                rightPanel.setManaged(!battle);
+            }
+            if (centerSpacer != null) {
+                centerSpacer.setVisible(!battle);
+                centerSpacer.setManaged(!battle);
+            }
+
+            if (leftColumnConstraint != null && centerColumnConstraint != null && rightColumnConstraint != null) {
+                if (battle) {
+                    leftColumnConstraint.setPercentWidth(0);
+                    rightColumnConstraint.setPercentWidth(0);
+                    centerColumnConstraint.setPercentWidth(100);
+                } else {
+                    leftColumnConstraint.setPercentWidth(Constants.SIDE_PANEL_RATIO * 100.0);
+                    rightColumnConstraint.setPercentWidth(Constants.SIDE_PANEL_RATIO * 100.0);
+                    centerColumnConstraint.setPercentWidth(Constants.PLAYFIELD_RATIO * 100.0);
                 }
-                if (rightBackgroundSection != null) {
-                    rightBackgroundSection.setVisible(false);
-                    rightBackgroundSection.setManaged(false);
+            }
+
+            if (backgroundSections != null) {
+                if (battle) {
+                    if (leftBackgroundSection != null) {
+                        leftBackgroundSection.setVisible(false);
+                        leftBackgroundSection.setManaged(false);
+                    }
+                    if (rightBackgroundSection != null) {
+                        rightBackgroundSection.setVisible(false);
+                        rightBackgroundSection.setManaged(false);
+                    }
+                    setSectionWidth(leftBackgroundSection, 0);
+                    setSectionWidth(rightBackgroundSection, 0);
+                    setSectionWidth(centerBackgroundSection, Constants.WIDTH);
+                } else {
+                    if (leftBackgroundSection != null) {
+                        leftBackgroundSection.setVisible(true);
+                        leftBackgroundSection.setManaged(true);
+                    }
+                    if (rightBackgroundSection != null) {
+                        rightBackgroundSection.setVisible(true);
+                        rightBackgroundSection.setManaged(true);
+                    }
+                    setSectionWidth(leftBackgroundSection, Constants.LEFT_PANEL_WIDTH);
+                    setSectionWidth(rightBackgroundSection, Constants.RIGHT_PANEL_WIDTH);
+                    setSectionWidth(centerBackgroundSection, Constants.PLAYFIELD_WIDTH);
                 }
-                setSectionWidth(leftBackgroundSection, 0);
-                setSectionWidth(rightBackgroundSection, 0);
-                setSectionWidth(centerBackgroundSection, Constants.WIDTH);
-            } else {
-                if (leftBackgroundSection != null) {
-                    leftBackgroundSection.setVisible(true);
-                    leftBackgroundSection.setManaged(true);
-                }
-                if (rightBackgroundSection != null) {
-                    rightBackgroundSection.setVisible(true);
-                    rightBackgroundSection.setManaged(true);
-                }
-                setSectionWidth(leftBackgroundSection, Constants.LEFT_PANEL_WIDTH);
-                setSectionWidth(rightBackgroundSection, Constants.RIGHT_PANEL_WIDTH);
-                setSectionWidth(centerBackgroundSection, Constants.PLAYFIELD_WIDTH);
             }
         }
-    }
 
-    private void setSectionWidth(StackPane section, double width) {
-        if (section == null) {
-            return;
+        private void setSectionWidth(StackPane section, double width) {
+            if (section == null) {
+                return;
+            }
+            section.setPrefWidth(width);
+            section.setMinSize(width, width);
+            section.setMaxWidth(width);
         }
-        section.setPrefWidth(width);
-        section.setMinWidth(width);
-        section.setMaxWidth(width);
-    }
 
-    private void handleMouseMoved(MouseEvent event) {
+        private void handleMouseMoved(MouseEvent event) {
 //        if (!stateManager.isRunning() || gameManager.getPaddle() == null) {
-        if (currentMode.get() != GameMode.ADVENTURE || !stateManager.isRunning() || gameManager.getPaddle() == null) {
-            return;
-        }
+            if (currentMode.get() != GameMode.ADVENTURE || !stateManager.isRunning() || gameManager.getPaddle() == null) {
+                return;
+            }
 //        gameManager.getPaddle().setX(event.getX() - gameManager.getPaddle().getWidth() / 2);
-        double targetX = event.getX() - gameManager.getPaddle().getWidth() / 2;
-        double clampedX = Math.max(
-                Constants.PLAYFIELD_LEFT,
-                Math.min(targetX, Constants.PLAYFIELD_RIGHT - gameManager.getPaddle().getWidth())
-        );
-        gameManager.getPaddle().setX(clampedX);
-    }
+            double targetX = event.getX() - gameManager.getPaddle().getWidth() / 2;
+            double clampedX = Math.max(
+                    Constants.PLAYFIELD_LEFT,
+                    Math.min(targetX, Constants.PLAYFIELD_RIGHT - gameManager.getPaddle().getWidth())
+            );
+            gameManager.getPaddle().setX(clampedX);
+        }
 
-    private void startNewGame(ActionEvent event) {
-        startAdventureMode();
-    }
+        private void startNewGame(ActionEvent event) {
+            startAdventureMode();
+        }
 
-    private void startAdventureMode() {
-        currentMode.set(GameMode.ADVENTURE);
-        pressedStack.clear();
-        activeKeys.clear();
-        gameManager.initializeGame();
-        stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
+        private void startAdventureMode() {
+            currentMode.set(GameMode.ADVENTURE);
+            pressedStack.clear();
+            activeKeys.clear();
+            gameManager.initializeGame();
+            stateManager.beginNewGame(gameManager.getScore(), gameManager.getLives());
 //        gameManager.render(graphicsContext);
-        stateManager.setStatusMessage("Destroy all the bricks!");
-        stateManager.setCurrentRound(1);
-        stateManager.updateTimers(0, 0);
-        renderCurrentMode();
-    }
+            stateManager.setStatusMessage("Destroy all the bricks!");
+            stateManager.setCurrentRound(1);
+            stateManager.updateTimers(0, 0);
+            renderCurrentMode();
+        }
 
-    private void startBattleMode() {
-        currentMode.set(GameMode.LOCAL_BATTLE);
-        pressedStack.clear();
-        activeKeys.clear();
-        battleManager.startMatch();
-        resetBattleLabels();
-        stateManager.beginNewGame(0, Constants.START_LIVES);
+        private void startBattleMode() {
+            currentMode.set(GameMode.LOCAL_BATTLE);
+            pressedStack.clear();
+            activeKeys.clear();
+            battleManager.startMatch();
+            resetBattleLabels();
+            stateManager.beginNewGame(0, Constants.START_LIVES);
 //        stateManager.setStatusMessage("Solo Battle: First to lose all lives loses! Press SPACE to launch.");
 //        stateManager.setStatusMessage("Versus Battle: P1 A/D, P2 ←/→. Press SPACE to launch the ball.");
-        stateManager.setStatusMessage("Versus Battle: P1 W/S, P2 ↑/↓. Press SPACE to launch the ball.");
-        stateManager.setCurrentRound(1);
-        stateManager.updateTimers(0, 0);
-        renderCurrentMode();
-    }
-
-    private Button createMenuButton(String text, EventHandler<ActionEvent> action) {
-        Button button = new Button(text);
-        button.setMaxWidth(200);
-        button.getStyleClass().addAll("btn", "btn-primary");
-        button.setOnAction(action);
-        return button;
-    }
-
-    private Optional<Image> loadImage(String path) {
-        URL url = getClass().getResource(path);
-        if (url == null) {
-            return Optional.empty();
+            stateManager.setStatusMessage("Versus Battle: P1 W/S, P2 ↑/↓. Press SPACE to launch the ball.");
+            stateManager.setCurrentRound(1);
+            stateManager.updateTimers(0, 0);
+            renderCurrentMode();
         }
-        try {
-            return Optional.of(new Image(url.toExternalForm(), true));
-        } catch (IllegalArgumentException ex) {
-            return Optional.empty();
+
+        private Button createMenuButton(String text, EventHandler<ActionEvent> action) {
+            Button button = new Button(text);
+            button.setMaxWidth(200);
+            button.getStyleClass().addAll("btn", "btn-primary");
+            button.setOnAction(action);
+            return button;
+        }
+
+        private Optional<Image> loadImage(String path) {
+            URL url = getClass().getResource(path);
+            if (url == null) {
+                return Optional.empty();
+            }
+            try {
+                return Optional.of(new Image(url.toExternalForm(), true));
+            } catch (IllegalArgumentException ex) {
+                return Optional.empty();
+            }
+        }
+
+        public Scene getScene() {
+            return scene;
+        }
+
+        public GraphicsContext getGraphicsContext() {
+            return graphicsContext;
         }
     }
-
-    public Scene getScene() {
-        return scene;
-    }
-
-    public GraphicsContext getGraphicsContext() {
-        return graphicsContext;
-    }
-}

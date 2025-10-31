@@ -83,8 +83,6 @@ public class NeonPauseView {
             SoundManager.getInstance().play("selected"); // <--- DÒNG MỚI
             cb.onExit();
         });
-        resumeBtn.setOnAction(e -> cb.onResume());
-        exitBtn.setOnAction(e -> cb.onExit());
 
         VBox menu = new VBox(ITEM_SPACING, resumeBtn, exitBtn);
         menu.setAlignment(Pos.CENTER);

@@ -31,10 +31,11 @@ import com.ooparkanoid.ui.GameSceneRoot;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
+import com.ooparkanoid.sound.SoundManager;
 
 import java.io.IOException;
-import java.util.List;
 import java.net.URL;
+import java.util.List;
 
 
 public class MainConsole extends Application {
@@ -52,7 +53,7 @@ public class MainConsole extends Application {
         this.stage = stage;
         stage.setTitle("Arkanoid - Simple Brick Game");
         stage.setResizable(false);
-
+        SoundManager.getInstance().playMusic("intro.mp3");
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/intro.fxml"));
         Parent introRoot = fxmlLoader.load();
 
@@ -78,6 +79,8 @@ public class MainConsole extends Application {
     }
 
     private void startTransition() {
+        SoundManager.getInstance().stopMusic();
+        SoundManager.getInstance().play("transition");
         Scene scene = stage.getScene();
 
         scene.setOnKeyPressed(null);
@@ -115,28 +118,25 @@ public class MainConsole extends Application {
     private void showNewMenu() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
-//            Parent menuRoot = loader.load();
-//            MenuController menuController = loader.getController();
-            menuRoot = loader.load();
-            menuController = loader.getController();
-
+            Parent menuRoot = loader.load();
+            MenuController menuController = loader.getController();
+            SoundManager.getInstance().playMusic("menu.mp3");
             // 3. Thiết lập callback
             menuController.setOnSelectionCallback(selection -> {
                 switch (selection) {
                     case "Adventure":
+                        SoundManager.getInstance().stopMusic();
                         nextGameMode = GameMode.ADVENTURE;
                         fadeToBlack(this::playIntroVideo);
                         break;
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
+                        SoundManager.getInstance().stopMusic();
                         nextGameMode = GameMode.LOCAL_BATTLE;
-                        fadeToBlack(this::playIntroVideo);
+                        fadeToBlack(() -> playIntroVideo());
                         break;
                     case "CREDITS":
-                        fadeToBlack(() -> showRanking());
-                        break;
-                    case "HELP":
                         fadeToBlack(() -> showRanking());
                         break;
                     case "EXIT":
@@ -313,12 +313,12 @@ public class MainConsole extends Application {
      * Hàm này giữ nguyên
      */
     private void startGame() {
-//        GameSceneRoot gameSceneRoot = new GameSceneRoot();
+      //  GameSceneRoot gameSceneRoot = new GameSceneRoot();
         startGame(nextGameMode);
     }
 
     private void startGame(GameMode initialMode) {
-        GameSceneRoot gameSceneRoot = new GameSceneRoot(initialMode);
+        GameSceneRoot gameSceneRoot = new GameSceneRoot(this::showNewMenu, nextGameMode);
         stage.setScene(gameSceneRoot.getScene());
         stage.setResizable(false);
         stage.show();
@@ -361,6 +361,5 @@ public class MainConsole extends Application {
         ResourceManager resourceManager = ResourceManager.getInstance();
         resourceManager.clearCache();
         launch();
-
     }
 }
