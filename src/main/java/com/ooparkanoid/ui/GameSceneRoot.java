@@ -75,7 +75,6 @@ public class GameSceneRoot {
     private HBox backgroundSections;
 
     private VBox leftPanel;
-    private VBox rightPanel;
     private Pane centerSpacer;
     private VBox adventureStats;
     private VBox battleStats;
@@ -325,31 +324,7 @@ public class GameSceneRoot {
 //        currentRoundValue.textProperty().bind(stateManager.roundProperty().asString("Round %d"));
 //
 //        VBox rightPanel = new VBox(10, currentRoundTitle, currentRoundValue);
-        Label modeTitle = createHudTitleLabel();
-        modeTitle.setText("Mode");
-        Label modeValue = createHudValueLabel();
-        modeValue.textProperty().bind(Bindings.createStringBinding(
-//                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Solo Battle",
-                () -> currentMode.get() == GameMode.ADVENTURE ? "Adventure" : "Versus",
-                currentMode));
 
-        Label statusTitle = createHudTitleLabel();
-        statusTitle.setText("Status");
-        Label statusValue = createHudValueLabel();
-        statusValue.textProperty().bind(stateManager.statusMessageProperty());
-        statusValue.setWrapText(true);
-        statusValue.setMaxWidth(Constants.RIGHT_PANEL_WIDTH - 36);
-        statusValue.setPrefWidth(Constants.RIGHT_PANEL_WIDTH - 36);
-        statusValue.setAlignment(Pos.TOP_RIGHT);
-
-        VBox rightPanel = new VBox(12, modeTitle, modeValue, statusTitle, statusValue);
-
-        rightPanel.setAlignment(Pos.TOP_RIGHT);
-        rightPanel.setPadding(new Insets(24, 24, 24, 18));
-        rightPanel.setBackground(createPanelBackground());
-        rightPanel.setPrefWidth(Constants.RIGHT_PANEL_WIDTH);
-        rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
-        rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
 
 //        GridPane hudGrid = new GridPane();
         hudGrid = new GridPane();
@@ -375,17 +350,12 @@ public class GameSceneRoot {
 
         GridPane.setHalignment(leftPanel, HPos.LEFT);
         GridPane.setValignment(leftPanel, VPos.TOP);
-        GridPane.setHalignment(rightPanel, HPos.RIGHT);
-        GridPane.setValignment(rightPanel, VPos.TOP);
         GridPane.setHgrow(centerSpacer, Priority.ALWAYS);
         GridPane.setHgrow(leftPanel, Priority.NEVER);
-        GridPane.setHgrow(rightPanel, Priority.NEVER);
         GridPane.setFillWidth(leftPanel, true);
-        GridPane.setFillWidth(rightPanel, true);
 
         hudGrid.add(leftPanel, 0, 0);
         hudGrid.add(centerSpacer, 1, 0);
-        hudGrid.add(rightPanel, 2, 0);
 
         BooleanBinding hudVisible = stateManager.stateProperty().isEqualTo(GameState.RUNNING);
 //        hud.visibleProperty().bind(hudVisible);
@@ -885,10 +855,7 @@ public class GameSceneRoot {
             leftPanel.setVisible(!battle);
             leftPanel.setManaged(!battle);
         }
-        if (rightPanel != null) {
-            rightPanel.setVisible(!battle);
-            rightPanel.setManaged(!battle);
-        }
+
         if (centerSpacer != null) {
             centerSpacer.setVisible(!battle);
             centerSpacer.setManaged(!battle);

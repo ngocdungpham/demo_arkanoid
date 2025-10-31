@@ -36,8 +36,8 @@ public class LocalBattleManager {
         PLAYER_TWO
     }
 
-    private static final double FIELD_MARGIN_X = 120.0;
-    private static final double FIELD_MARGIN_Y = 90.0;
+    private static final double FIELD_MARGIN_X = 100.0;
+    private static final double FIELD_MARGIN_Y = 70.0;
 //    private static final double BAR_HEIGHT = 18.0;
 //    private static final double BAR_GAP = 16.0;
 //    private static final double BAR_GLOW_DURATION = 0.35;
