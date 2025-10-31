@@ -724,38 +724,35 @@ public class GameSceneRoot {
 
             if (code == KeyCode.SPACE) {
                 if (stateManager.isRunning()) {
-//                    if (gameManager.getPaddle().isLaserEnabled()) {
-//                        gameManager.getPaddle().shootLaser();
-//                    }
-//                    else {
-//                        gameManager.launchBall();
                     if (currentMode.get() == GameMode.LOCAL_BATTLE) {
                         battleManager.launchBall();
                     } else if (gameManager.getPaddle() != null) {
                         if (gameManager.getPaddle().isLaserEnabled()) {
                             gameManager.getPaddle().shootLaser();
-                        }
-                        else {
+                        } else {
                             gameManager.launchBall();
                         }
                     }
+                }
+                return; // Dù đang chạy hay không, đã xử lý SPACE
+            }
+
+            if (!stateManager.isRunning()) {
+                return;
+            }
+
+            // --- LOGIC PHÍM DI CHUYỂN ADVENTURE MODE (ĐÃ SỬA LỖI) ---
+            if (currentMode.get() == GameMode.ADVENTURE) {
+                if (gameManager.getPaddle() == null) {
                     return;
                 }
-
-//            if (!stateManager.isRunning() || gameManager.getPaddle() == null) return;
-//            if (!pressedStack.contains(code)) {
-//                pressedStack.push(code); // đưa phím mới lên đầu
-                if (!stateManager.isRunning()) {
-                    return;
-                }
-
-                if (currentMode.get() == GameMode.ADVENTURE) {
-                    if (gameManager.getPaddle() == null) {
-                        return;
-                    }
+                // Thêm phím di chuyển vào stack cho Adventure Mode
+                if ((code == KeyCode.A || code == KeyCode.LEFT || code == KeyCode.D || code == KeyCode.RIGHT)) {
                     if (!pressedStack.contains(code)) {
-                        pressedStack.push(code); // đưa phím mới lên đầu
+                        pressedStack.push(code); // Thêm phím mới lên đầu
                     }
+
+
 //            } else if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
                 } else if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN) {
                     applyBattleMovementFromKeys();
