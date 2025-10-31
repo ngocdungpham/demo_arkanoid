@@ -17,7 +17,7 @@ public class SoundManager {
     private SoundManager() {
         soundEffects = new HashMap<>();
         // sound 1 lần
-        loadSound("bounce", "/sounds/bounce.wav");
+        loadSound("bounce", "/sounds/paddle.mp3");
         loadSound("break", "/sounds/break.mp3");
         loadSound("powerup", "/sounds/powerup.wav");
         loadSound("lose_life", "/sounds/lose_life.wav"); // <--- Dễ dàng thêm mới

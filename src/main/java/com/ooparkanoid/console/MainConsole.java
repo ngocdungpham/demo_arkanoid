@@ -1,6 +1,9 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.core.state.GameMode;
+import com.ooparkanoid.AlertBox;
+import com.ooparkanoid.graphics.ResourceManager;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -43,6 +46,7 @@ public class MainConsole extends Application {
 
     private Parent menuRoot;
     private MenuController menuController;
+    private GameMode nextGameMode = GameMode.ADVENTURE;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -121,10 +125,15 @@ public class MainConsole extends Application {
             menuController.setOnSelectionCallback(selection -> {
                 switch (selection) {
                     case "Adventure":
+                        SoundManager.getInstance().stopMusic();
+                        nextGameMode = GameMode.ADVENTURE;
+                        fadeToBlack(this::playIntroVideo);
+                        break;
                     case "VERSUS":
                         // SỬA Ở ĐÂY:
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
                         SoundManager.getInstance().stopMusic();
+                        nextGameMode = GameMode.LOCAL_BATTLE;
                         fadeToBlack(() -> playIntroVideo());
                         break;
                     case "CREDITS":
@@ -169,13 +178,24 @@ public class MainConsole extends Application {
         blackOverlay.setOpacity(0);
 
         // 2. Thêm vào root
-        if (currentRoot instanceof Pane) {
-            ((Pane) currentRoot).getChildren().add(blackOverlay);
-        } else if (currentRoot instanceof Group) {
-            ((Group) currentRoot).getChildren().add(blackOverlay);
+//        if (currentRoot instanceof Pane) {
+//            ((Pane) currentRoot).getChildren().add(blackOverlay);
+//        } else if (currentRoot instanceof Group) {
+//            ((Group) currentRoot).getChildren().add(blackOverlay);
+        // 2. Thêm vào root và ghi nhớ container để gỡ bỏ sau này
+        Parent overlayContainer = null;
+        boolean wrapped = false;
+        if (currentRoot instanceof Pane pane) {
+            pane.getChildren().add(blackOverlay);
+            overlayContainer = pane;
+        } else if (currentRoot instanceof Group group) {
+            group.getChildren().add(blackOverlay);
+            overlayContainer = group;
         } else {
             Group wrapper = new Group(currentRoot, blackOverlay);
             scene.setRoot(wrapper);
+            overlayContainer = wrapper;
+            wrapped = true;
         }
 
         // 3. Tạo hiệu ứng
@@ -184,10 +204,23 @@ public class MainConsole extends Application {
         fadeBlack.setToValue(1);
         fadeBlack.setInterpolator(Interpolator.EASE_IN);
 
+        Parent finalOverlayContainer = overlayContainer;
+        boolean finalWrapped = wrapped;
+
+
         // 4. Đặt hành động sau khi kết thúc
         fadeBlack.setOnFinished(e -> {
             if (onFinished != null) {
                 onFinished.run();
+            }
+            if (finalOverlayContainer instanceof Pane pane) {
+                pane.getChildren().remove(blackOverlay);
+            } else if (finalOverlayContainer instanceof Group group) {
+                group.getChildren().remove(blackOverlay);
+            }
+
+            if (finalWrapped && scene.getRoot() == finalOverlayContainer) {
+                scene.setRoot(currentRoot);
             }
         });
 
@@ -233,7 +266,8 @@ public class MainConsole extends Application {
     private void playIntroVideo() {
         if (introMediaPlayer == null) {
             System.err.println("Video player chưa sẵn sàng. Bỏ qua và vào game.");
-            startGame();
+//            startGame();
+            startGame(nextGameMode);
             return;
         }
 
@@ -253,7 +287,8 @@ public class MainConsole extends Application {
             Platform.runLater(() -> {
                 introMediaPlayer.stop();
                 preloadIntroVideo(); // Tải lại cho lần sau
-                startGame();
+//                startGame();
+                startGame(nextGameMode);
             });
         });
 
@@ -261,7 +296,8 @@ public class MainConsole extends Application {
         Runnable skipAction = () -> {
             introMediaPlayer.stop();
             preloadIntroVideo(); // Tải lại cho lần sau
-            startGame();
+//            startGame();
+            startGame(nextGameMode);
             stage.getScene().setOnKeyPressed(null);
             stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
         };
@@ -278,7 +314,11 @@ public class MainConsole extends Application {
      */
     private void startGame() {
       //  GameSceneRoot gameSceneRoot = new GameSceneRoot();
-        GameSceneRoot gameSceneRoot = new GameSceneRoot(this::showNewMenu);
+        startGame(nextGameMode);
+    }
+
+    private void startGame(GameMode initialMode) {
+        GameSceneRoot gameSceneRoot = new GameSceneRoot(this::showNewMenu, nextGameMode);
         stage.setScene(gameSceneRoot.getScene());
         stage.setResizable(false);
         stage.show();
@@ -318,6 +358,8 @@ public class MainConsole extends Application {
     }
 
     public static void main(String[] args) {
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         launch();
     }
 }
