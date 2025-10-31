@@ -20,6 +20,9 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import com.ooparkanoid.core.score.HighScoreRepository;
+import com.ooparkanoid.core.score.ScoreEntry;
+import com.ooparkanoid.ui.LeaderboardController;
 import com.ooparkanoid.ui.MenuController;
 import com.ooparkanoid.ui.GameSceneRoot;
 import com.ooparkanoid.utils.Constants;
@@ -29,6 +32,7 @@ import com.ooparkanoid.sound.SoundManager;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 
 public class MainConsole extends Application {
@@ -36,6 +40,9 @@ public class MainConsole extends Application {
     private MediaPlayer introMediaPlayer;
     private EventHandler<KeyEvent> introSpaceHandler;
     private EventHandler<MouseEvent> introMouseHandler;
+
+    private Parent menuRoot;
+    private MenuController menuController;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -119,6 +126,9 @@ public class MainConsole extends Application {
                         // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
                         SoundManager.getInstance().stopMusic();
                         fadeToBlack(() -> playIntroVideo());
+                        break;
+                    case "CREDITS":
+                        fadeToBlack(() -> showRanking());
                         break;
                     case "EXIT":
                         Platform.exit();
@@ -272,6 +282,39 @@ public class MainConsole extends Application {
         stage.setScene(gameSceneRoot.getScene());
         stage.setResizable(false);
         stage.show();
+    }
+
+    private void showRanking() {
+        List<ScoreEntry> scores = HighScoreRepository.loadScores();
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/leaderboard.fxml"));
+            Parent leaderboardRoot = loader.load();
+            LeaderboardController controller = loader.getController();
+            controller.setScores(scores);
+            controller.setSubtitle("Top 10 High Scores");
+            controller.setBackAction(this::returnToMenu);
+
+            Scene scene = stage.getScene();
+            scene.setRoot(leaderboardRoot);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            System.err.println("Không thể hiển thị bảng xếp hạng. Quay lại menu.");
+            returnToMenu();
+        }
+    }
+
+    private void returnToMenu() {
+        Scene scene = stage.getScene();
+        if (menuRoot != null) {
+            scene.setRoot(menuRoot);
+            if (menuRoot instanceof Pane pane) {
+                pane.requestFocus();
+            } else {
+                menuRoot.requestFocus();
+            }
+        } else {
+            showNewMenu();
+        }
     }
 
     public static void main(String[] args) {
