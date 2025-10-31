@@ -5,6 +5,7 @@ import com.ooparkanoid.object.GameObject;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 
 public abstract class Brick extends GameObject {
 
@@ -22,6 +23,8 @@ public abstract class Brick extends GameObject {
     protected int hitPoints;
     protected boolean destroyed;
     protected BrickType type; // Thuộc tính type mới
+    protected Image texture;
+
 
     public Brick(double x, double y, int hitPoints, BrickType type) { // Cập nhật constructor
         super(x, y, Constants.BRICK_WIDTH, Constants.BRICK_HEIGHT);
@@ -30,8 +33,11 @@ public abstract class Brick extends GameObject {
         this.type = type; // Gán type
     }
 
+    public void setTexture(Image texture) {
+        this.texture = texture;
+    }
+
     public void takeHit() {
-        //Chỉ giảm hitPoints nếu không phải INDESTRUCTIBLE
         if (!destroyed && type != BrickType.INDESTRUCTIBLE) {
             hitPoints--;
             if (hitPoints <= 0) {
@@ -49,15 +55,13 @@ public abstract class Brick extends GameObject {
 
     @Override
     public void update(double dt) {
-        // Bricks typically don't update their position or internal state over time
     }
 
-    // Getters
     public int getHitPoints() {
         return hitPoints;
     }
 
-    public BrickType getType() { // <--- Getter cho type
+    public BrickType getType() {
         return type;
     }
 }

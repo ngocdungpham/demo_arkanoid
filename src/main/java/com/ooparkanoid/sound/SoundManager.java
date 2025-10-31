@@ -21,6 +21,8 @@ public class SoundManager {
         loadSound("break", "/sounds/break.mp3");
         loadSound("powerup", "/sounds/powerup.wav");
         loadSound("lose_life", "/sounds/lose_life.wav"); // <--- Dễ dàng thêm mới
+        loadSound("battle_victory", "/sounds/battle_victory.wav");
+        loadSound("battle_defeat", "/sounds/battle_defeat.wav");
     }
 
     public static SoundManager getInstance() {
@@ -74,7 +76,7 @@ public class SoundManager {
             musicPlayer.setVolume(0.5);
             musicPlayer.play();
         } catch (Exception e) {
-            System.err.println("Lỗi khi phát nhạc: " + filename + " - " + e.getMessage());
+            System.err.println("Failed load sound: " + filename + " - " + e.getMessage());
         }
     }
 

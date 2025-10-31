@@ -1,9 +1,11 @@
 package com.ooparkanoid.core.state;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -22,7 +24,9 @@ public class GameStateManager {
     private final IntegerProperty lives = new SimpleIntegerProperty();
     private final BooleanProperty continueAvailable = new SimpleBooleanProperty(false);
     private final StringProperty statusMessage = new SimpleStringProperty("Welcome to Arkanoid!");
-
+    private final DoubleProperty roundTimeSeconds = new SimpleDoubleProperty();
+    private final DoubleProperty totalTimeSeconds = new SimpleDoubleProperty();
+    private final IntegerProperty currentRound = new SimpleIntegerProperty(1);
 
     /**
      * Cập nhật các giá trị bảng điểm được hiển thị trong giao diện người dùng.
@@ -40,6 +44,15 @@ public class GameStateManager {
         continueAvailable.set(false);
         statusMessage.set("Destroy all the bricks!");
         currentState.set(GameState.RUNNING);
+    }
+
+    public void updateTimers(double roundSeconds, double totalSeconds) {
+        this.roundTimeSeconds.set(roundSeconds);
+        this.totalTimeSeconds.set(totalSeconds);
+    }
+
+    public void setCurrentRound(int round) {
+        this.currentRound.set(round);
     }
 
     /**
@@ -131,6 +144,17 @@ public class GameStateManager {
         statusMessage.set(message);
     }
 
+    public DoubleProperty roundTimeProperty() {
+        return roundTimeSeconds;
+    }
+
+    public DoubleProperty totalTimeProperty() {
+        return totalTimeSeconds;
+    }
+
+    public IntegerProperty roundProperty() {
+        return currentRound;
+    }
 
     public void setContinueAvailable(boolean b) {
     }
