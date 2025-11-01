@@ -2,10 +2,8 @@
 package com.ooparkanoid.core.engine;
 import com.ooparkanoid.object.Laser;
 import com.ooparkanoid.sound.SoundManager;
-import javafx.geometry.Rectangle2D;
 
 import com.ooparkanoid.core.save.SaveService;
-import com.ooparkanoid.core.state.GameState;
 import com.ooparkanoid.core.score.HighScoreRepository;
 import com.ooparkanoid.core.score.ScoreEntry;
 import com.ooparkanoid.core.state.GameStateManager;
@@ -16,11 +14,6 @@ import com.ooparkanoid.object.PowerUp.PowerUp;
 import com.ooparkanoid.object.PowerUp.PowerUpEffectManager;
 import com.ooparkanoid.object.PowerUp.PowerUpFactory;
 import com.ooparkanoid.object.bricks.Brick;
-import com.ooparkanoid.object.bricks.NormalBrick;
-import com.ooparkanoid.object.bricks.StrongBrick;
-import com.ooparkanoid.object.bricks.IndestructibleBrick;
-import com.ooparkanoid.object.bricks.FlickerBrick;
-import com.ooparkanoid.object.bricks.ExplosiveBrick;
 import com.ooparkanoid.object.bricks.CollisionArea;
 
 import com.ooparkanoid.utils.Constants;
@@ -39,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+
 /**
  * GameManager chịu trách nhiệm quản lý logic game:
  * - Khởi tạo và quản lý Paddle, Ball, Bricks
@@ -53,6 +47,7 @@ public class GameManager {
     private List<Ball> balls = new ArrayList<>();
 
     private final List<PowerUp> powerUps = new ArrayList<>();
+    private LevelManager levelManager;
     private PowerUpEffectManager effectManager;
     private GameContext gameContext;
     private double roundTimeElapsed;
@@ -87,6 +82,14 @@ public class GameManager {
         bricks = new ArrayList<>();
         random = new Random();
         loadBrickTextures();
+
+        // Khởi tạo LevelManager và truyền các texture cần thiết vào
+        this.levelManager = new LevelManager(
+                normalBrickTexture,
+                indestructibleBrickTexture,
+                explosiveBrickTexture
+        );
+
         initializeGame();
     }
 
@@ -109,7 +112,6 @@ public class GameManager {
         }
         return instance;
     }
-
     /**
      * Khởi tạo hoặc reset toàn bộ trạng thái game về ban đầu.
      */
@@ -155,76 +157,16 @@ public class GameManager {
 
     private void loadLevel(int levelNum) {
         bricks.clear(); // Xóa tất cả gạch cũ
-        // Tên file map, ví dụ: "/levels/level1.txt"
-        String levelFilePath = Constants.LEVELS_FOLDER + "level" + levelNum + ".txt";
 
-        InputStream is = getClass().getResourceAsStream(levelFilePath);
-        if (is == null) {
-            throw new IllegalArgumentException("Level file not found: " + levelFilePath);
-        }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-            String line;
-            int row = 0;
-            // Tính toán vị trí X bắt đầu để canh giữa các hàng gạch trên màn hình
-            // Lấy một dòng bất kỳ để tính chiều rộng map (giả định các dòng có cùng độ dài)
-            reader.mark(1000); // Đánh dấu vị trí hiện tại của reader
-            String firstLine = reader.readLine();
-            reader.reset(); // Quay lại đầu file
+        // Ủy quyền hoàn toàn việc tạo level cho LevelManager
+        this.bricks = levelManager.createLevel(levelNum);
 
-            if (firstLine == null) {
-                System.out.println("Level file is empty: " + levelFilePath);
-                return;
-            }
-            int colsInMap = firstLine.trim().length();
-            double totalBricksWidth = colsInMap * Constants.BRICK_WIDTH + (colsInMap - 1) * Constants.BRICK_PADDING_X;
-//            double startX = (Constants.WIDTH - totalBricksWidth) / 2;
-            double startX = Constants.PLAYFIELD_LEFT + (Constants.PLAYFIELD_WIDTH - totalBricksWidth) / 2;
-
-            while ((line = reader.readLine()) != null) {
-                for (int col = 0; col < line.length(); col++) {
-                    char brickChar = line.charAt(col);
-                    double brickX = startX + col * (Constants.BRICK_WIDTH + Constants.BRICK_PADDING_X);
-                    double brickY = Constants.BRICK_OFFSET_TOP + row * (Constants.BRICK_HEIGHT + Constants.BRICK_PADDING_Y);
-
-                    Brick newBrick = null;
-                    switch (brickChar) {
-                        case 'N':
-                            newBrick = new NormalBrick(brickX, brickY);
-                            newBrick.setTexture(normalBrickTexture);
-                            break;
-                        case 'S':
-                            newBrick = new StrongBrick(brickX, brickY);
-                            newBrick.setTexture(strongBrickTexture1);
-                            break;
-                        case '#':
-                            newBrick = new IndestructibleBrick(brickX, brickY);
-                            newBrick.setTexture(indestructibleBrickTexture);
-                            break;
-                        case 'F':
-                            newBrick = new FlickerBrick(brickX, brickY);
-                            newBrick.setTexture(flickerBrickTexture1);
-                            break;
-                        case 'X': // <--- Thêm case cho ExplosiveBrick
-                            newBrick = new ExplosiveBrick(brickX, brickY);
-                            newBrick.setTexture(explosiveBrickTexture);
-                            break;
-                        case ' ':
-                            break;
-                        default:
-                            System.err.println("Unknown brick char in level " + levelNum + ": " + brickChar);
-                            break;
-                    }
-                    if (newBrick != null) {
-                        bricks.add(newBrick);
-                    }
-                }
-                row++;
-            }
-            System.out.println("Level " + levelNum + " loaded successfully from " + levelFilePath);
-        } catch (Exception e) {
-            System.err.println("Error loading level " + levelNum + ": " + e.getMessage());
+        if (this.bricks.isEmpty()) {
+            System.err.println("Failed to load level " + levelNum + ". No bricks were created.");
+            // Có thể xử lý game over hoặc chuyển đến màn hình chiến thắng ở đây
         }
     }
+
     /**
      * Phương thức cập nhật logic game mỗi frame.
      *
