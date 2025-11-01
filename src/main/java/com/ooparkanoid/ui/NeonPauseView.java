@@ -137,7 +137,11 @@ public class NeonPauseView {
             switch (e.getCode()) {
                 case DOWN, S -> move(1);
                 case UP, W -> move(-1);
-                case ENTER, SPACE, Z -> { if (index == 0) cb.onResume(); else cb.onExit(); }
+                case ENTER, SPACE, Z -> {
+                    if (index == 0) cb.onResume();
+                    else          cb.onExit();
+                    e.consume(); // <--- THÊM DÒNG NÀY ĐỂ CHẶN SỰ KIỆN PHÍM
+                }
                 case ESCAPE, X, BACK_SPACE -> cb.onResume();
             }
         });
