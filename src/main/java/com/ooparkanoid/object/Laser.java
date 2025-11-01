@@ -9,7 +9,6 @@ import javafx.scene.paint.Color;
 public class Laser extends MovableObject{
     private boolean active = true;
     private Image sprite;
-    private Color laserColor = Color.CYAN;
 
     public Laser(double x, double y, double speed) {
         super(x, y, Constants.LASER_WIDTH, Constants.LASER_HEIGHT, 0, -speed);
