@@ -25,11 +25,12 @@ public class Ball extends MovableObject {
     private Color glowColor = Color.CYAN;
 
     private double radius;
+
     // Constructor
     public Ball(double x, double y, double radius, double speed, double dirX, double dirY) {
         super(x - radius, y - radius, radius * 2, radius * 2, 0, 0);
         this.speed = speed;
-        this.setDirection(dirX,dirY);
+        this.setDirection(dirX, dirY);
         this.radius = radius;
 
         this.setDirection(dirX, dirY);
