@@ -1,6 +1,8 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import java.util.ArrayList;
+import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
 import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.graphics.ResourceManager;
@@ -325,22 +327,43 @@ public class MainConsole extends Application {
     }
 
     private void showRanking() {
-        List<ScoreEntry> scores = HighScoreRepository.loadScores();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/leaderboard.fxml"));
+        Parent leaderboardRoot;
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/leaderboard.fxml"));
-            Parent leaderboardRoot = loader.load();
-            LeaderboardController controller = loader.getController();
-            controller.setScores(scores);
-            controller.setSubtitle("Top 10 High Scores");
-            controller.setBackAction(this::returnToMenu);
-
-            Scene scene = stage.getScene();
-            scene.setRoot(leaderboardRoot);
+            leaderboardRoot = loader.load();
         } catch (IOException ex) {
             ex.printStackTrace();
-            System.err.println("Không thể hiển thị bảng xếp hạng. Quay lại menu.");
             returnToMenu();
+            return;
         }
+
+        LeaderboardController controller = loader.getController();
+        controller.setSubtitle("Top 10 Online (Firebase)"); // Đặt tiêu đề
+        controller.setBackAction(this::returnToMenu);
+
+        // Đặt placeholder "Đang tải..."
+        controller.setScores(new ArrayList<>());
+
+        // Bắt đầu tải dữ liệu online từ Firebase
+        FirebaseScoreService.getTopScores()
+                .thenAccept(scores -> {
+                    // Khi tải xong, cập nhật UI trên luồng JavaFX
+                    Platform.runLater(() -> {
+                        controller.setScores(scores);
+                    });
+                })
+                .exceptionally(e -> {
+                    // Nếu có lỗi mạng
+                    Platform.runLater(() -> {
+                        AlertBox.display("Lỗi Mạng", "Không thể tải bảng xếp hạng Firebase.");
+                        returnToMenu();
+                    });
+                    return null;
+                });
+
+        // Hiển thị scene ngay
+        Scene scene = stage.getScene();
+        scene.setRoot(leaderboardRoot);
     }
 
     private void returnToMenu() {
