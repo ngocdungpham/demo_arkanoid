@@ -18,6 +18,7 @@ public class Paddle extends MovableObject {
         VERTICAL_LEFT,
         VERTICAL_RIGHT
     }
+
     private Image paddleSprite;
     private Image laserGunSprite;
     private Image paddleSpriteVerticalLeft; // paddle left side
@@ -215,6 +216,7 @@ public class Paddle extends MovableObject {
     public void setWidth(double width) {
         this.width = width;
     }
+
     public void setOrientation(Orientation orientation) {
         this.orientation = orientation == null ? Orientation.HORIZONTAL : orientation;
         if (this.orientation != Orientation.HORIZONTAL) {

@@ -1,6 +1,8 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
+
 import com.ooparkanoid.object.Laser;
+import com.ooparkanoid.object.Score;
 import com.ooparkanoid.sound.SoundManager;
 
 import com.ooparkanoid.core.save.SaveService;
@@ -45,6 +47,7 @@ public class GameManager {
     private Ball ball;
     private List<Brick> bricks;
     private List<Ball> balls = new ArrayList<>();
+    private final List<Score> scores = new ArrayList<>();
 
     private final List<PowerUp> powerUps = new ArrayList<>();
     private LevelManager levelManager;
@@ -112,6 +115,7 @@ public class GameManager {
         }
         return instance;
     }
+
     /**
      * Khởi tạo hoặc reset toàn bộ trạng thái game về ban đầu.
      */
@@ -281,6 +285,7 @@ public class GameManager {
                         score += 10 * multiplier;
                         stateManager.updateStats(score, lives);
                         SoundManager.getInstance().play("break");
+                        spawnScorePopup(Integer.toString(10 * multiplier), brick.getX() + brick.getWidth() / 2, brick.getY());
 
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             System.out.println("Explosive Brick detonated!");
@@ -347,7 +352,7 @@ public class GameManager {
         updateLasers(dt);
         // UPDATE POWERUPS
         updatePowerUps(dt);
-
+        updateScore(dt);
         // UPDATE EFFECTS
         effectManager.update(dt);
         bricks.removeIf(Brick::isDestroyed);
@@ -402,6 +407,21 @@ public class GameManager {
         }
     }
 
+    private void updateScore(double dt) {
+        Iterator<Score> it = scores.iterator();
+        while (it.hasNext()) {
+            Score text = it.next();
+            text.update(dt);
+            if (text.isFinished()) {
+                it.remove();
+            }
+        }
+    }
+
+    private void spawnScorePopup(String point, double x, double y) {
+        scores.add(new Score(point, x, y, Color.CYAN));
+    }
+
     private void recordHighScore() {
         recordHighScore(currentLevel);
     }
@@ -444,6 +464,8 @@ public class GameManager {
                     if (!brickWasDestroyed && brick.isDestroyed()) {
                         int multiplier = effectManager.getRemainingTime("SCORE_MULTIPLIER") > 0 ? 2 : 1;
                         score += 10 * multiplier;
+                        spawnScorePopup(Integer.toString(10 * multiplier), brick.getX() +
+                                brick.getWidth() / 2, brick.getY());
                         stateManager.updateStats(score, lives);
                         SoundManager.getInstance().play("break");
 
@@ -466,6 +488,7 @@ public class GameManager {
     /**
      * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
      * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
+     *
      * @param explosionX Tọa độ X của tâm vụ nổ (gạch nổ)
      * @param explosionY Tọa độ Y của tâm vụ nổ (gạch nổ)
      */
@@ -483,10 +506,11 @@ public class GameManager {
                 if (brick.getType() != Brick.BrickType.INDESTRUCTIBLE) {
                     brick.takeHit(); // chỉ đánh dấu phá hủy/nảy số máu
                     if (brick.isDestroyed()) {
-                        score += 10;
+                        int multiplier = effectManager.getRemainingTime("SCORE_MULTIPLIER") > 0 ? 2 : 1;
+                        score += 10 * multiplier;
                         stateManager.updateStats(score, lives);
                         SoundManager.getInstance().play("break");
-
+                        spawnScorePopup( Integer.toString(10 * multiplier), brick.getX() + brick.getWidth() / 2, brick.getY());
                         if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE / 2) {
                             spawnPowerUp(
                                     brick.getX() + brick.getWidth() / 2,
@@ -534,6 +558,7 @@ public class GameManager {
             System.out.println("💎 PowerUp spawned at (" + x + ", " + y + ")");
         }
     }
+
     /**
      * Đặt lại vị trí của bóng và paddle sau khi mất mạng.
      * Bóng sẽ bắt đầu di chuyển ngay lập tức.
@@ -585,6 +610,10 @@ public class GameManager {
         // RENDER POWERUPS
         for (PowerUp p : powerUps) {
             p.render(g);
+        }
+
+        for (Score text : scores) {
+            text.render(g);
         }
 
         // Không hiển thị Level vì không có khái niệm level phức tạp
