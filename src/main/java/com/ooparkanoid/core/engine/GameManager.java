@@ -1,6 +1,7 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
 
+import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.object.Laser;
 import com.ooparkanoid.object.Score;
 import com.ooparkanoid.sound.SoundManager;
@@ -429,7 +430,12 @@ public class GameManager {
     private void recordHighScore(int roundsPlayed) {
         int clampedRounds = Math.max(1, Math.min(roundsPlayed, Constants.MAX_LEVELS));
         ScoreEntry entry = new ScoreEntry(resolvePlayerName(), score, clampedRounds, totalTimeElapsed);
-        HighScoreRepository.recordScore(entry);
+
+        // Dòng cũ (local)
+        // HighScoreRepository.recordScore(entry);
+
+        // DÒNG MỚI (online)
+        FirebaseScoreService.submitScore(entry);
     }
 
     private String resolvePlayerName() {

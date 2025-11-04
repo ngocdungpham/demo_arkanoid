@@ -1,0 +1,140 @@
+package com.ooparkanoid.core.score;
+
+import com.ooparkanoid.AlertBox;
+import javafx.application.Platform;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Quản lý việc GỬI và LẤY điểm số từ Google Firebase Firestore REST API.
+ */
+public final class FirebaseScoreService {
+
+    // !!! THAY THẾ BẰNG PROJECT ID CỦA BẠN TỪ BƯỚC 1 !!!
+    private static final String PROJECT_ID = "coffehouseuet201";
+
+    // URL cơ sở của Firestore REST API
+    private static final String BASE_URL = "https://firestore.googleapis.com/v1/projects/"
+            + PROJECT_ID + "/databases/(default)/documents";
+
+    private static final HttpClient client = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .build();
+
+    /**
+     * Gửi điểm số mới lên Firestore.
+     */
+    public static void submitScore(ScoreEntry entry) {
+        if (entry == null || entry.getScore() <= 0) {
+            return;
+        }
+
+        try {
+            // 1. Tạo đối tượng JSON cho ScoreEntry
+            // Định dạng này là bắt buộc của Firestore
+            JSONObject fields = new JSONObject();
+            fields.put("playerName", new JSONObject().put("stringValue", entry.getPlayerName()));
+            fields.put("score", new JSONObject().put("integerValue", entry.getScore()));
+            fields.put("roundsPlayed", new JSONObject().put("integerValue", entry.getRoundsPlayed()));
+            fields.put("totalSeconds", new JSONObject().put("doubleValue", entry.getTotalSeconds()));
+            // Thêm một timestamp để biết điểm nào là mới nhất
+            fields.put("createdAt", new JSONObject().put("timestampValue", Instant.now().toString()));
+
+            JSONObject requestBody = new JSONObject();
+            requestBody.put("fields", fields);
+
+            // 2. Tạo yêu cầu POST để *tạo* tài liệu mới
+            // Gửi đến collection 'scores'
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/scores"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                    .build();
+
+            // 3. Gửi bất đồng bộ
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body)
+                    .thenAccept(body -> System.out.println("Gửi điểm lên Firebase: Thành công!"))
+                    .exceptionally(e -> {
+                        System.err.println("Lỗi khi gửi điểm lên Firebase: " + e.getMessage());
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            System.err.println("Không thể tạo yêu cầu gửi điểm Firebase: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lấy Top 10 điểm cao nhất từ Firestore.
+     */
+    public static CompletableFuture<List<ScoreEntry>> getTopScores() {
+
+        // 1. Tạo một JSON payload để TRUY VẤN
+        JSONObject query = new JSONObject();
+        query.put("from", new JSONArray().put(new JSONObject().put("collectionId", "scores")));
+        query.put("orderBy", new JSONArray().put(
+                new JSONObject()
+                        .put("field", new JSONObject().put("fieldPath", "score"))
+                        .put("direction", "DESCENDING")
+        ));
+        query.put("limit", 10);
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("structuredQuery", query);
+
+        // 2. Tạo yêu cầu POST để *chạy truy vấn*
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + ":runQuery"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                .build();
+
+        // 3. Gửi và xử lý kết quả
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenApply(FirebaseScoreService::parseFirestoreResponse);
+    }
+
+    /**
+     * Xử lý chuỗi JSON phức tạp trả về từ Firestore.
+     */
+    private static List<ScoreEntry> parseFirestoreResponse(String responseBody) {
+        List<ScoreEntry> entries = new ArrayList<>();
+        try {
+            JSONArray documents = new JSONArray(responseBody);
+
+            for (int i = 0; i < documents.length(); i++) {
+                JSONObject docContainer = documents.optJSONObject(i);
+                if (docContainer == null || !docContainer.has("document")) {
+                    continue;
+                }
+
+                JSONObject doc = docContainer.getJSONObject("document");
+                JSONObject fields = doc.getJSONObject("fields");
+
+                // Lấy từng trường một cách an toàn
+                String name = fields.optJSONObject("playerName").optString("stringValue", "Player");
+                int score = Integer.parseInt(fields.optJSONObject("score").optString("integerValue", "0"));
+                int rounds = Integer.parseInt(fields.optJSONObject("roundsPlayed").optString("integerValue", "1"));
+                double seconds = fields.optJSONObject("totalSeconds").optDouble("doubleValue", 0.0);
+
+                entries.add(new ScoreEntry(name, score, rounds, seconds));
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi parse JSON từ Firebase: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return entries;
+    }
+}
