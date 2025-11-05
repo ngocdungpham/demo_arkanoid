@@ -1,11 +1,14 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.core.state.OnlinePresenceService;
+import com.ooparkanoid.core.state.PlayerContext;
 import java.util.ArrayList;
 import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
 import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.graphics.ResourceManager;
+import com.ooparkanoid.ui.LoginController;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -25,8 +28,6 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import com.ooparkanoid.core.score.HighScoreRepository;
-import com.ooparkanoid.core.score.ScoreEntry;
 import com.ooparkanoid.ui.LeaderboardController;
 import com.ooparkanoid.ui.MenuController;
 import com.ooparkanoid.ui.GameSceneRoot;
@@ -37,7 +38,6 @@ import com.ooparkanoid.sound.SoundManager;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 
 
 public class MainConsole extends Application {
@@ -48,36 +48,55 @@ public class MainConsole extends Application {
 
     private Parent menuRoot;
     private MenuController menuController;
-    private GameMode nextGameMode = GameMode.ADVENTURE;
+    private GameMode nextGameMode = GameMode.ADVENTURE;;
 
     @Override
     public void start(Stage stage) throws IOException {
         this.stage = stage;
         stage.setTitle("Arkanoid - Simple Brick Game");
         stage.setResizable(false);
-        SoundManager.getInstance().playMusic("intro.mp3");
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/intro.fxml"));
-        Parent introRoot = fxmlLoader.load();
 
-        Scene scene = new Scene(introRoot, Constants.WIDTH, Constants.HEIGHT);
-        stage.setScene(scene);
+        // BỎ QUA INTRO VÀ HIỂN THỊ MÀN HÌNH ĐĂNG NHẬP
+        showLoginScreen();
+
         stage.show();
+    }
 
-        preloadIntroVideo();
-        introSpaceHandler = event -> {
-            if (event.getCode() == KeyCode.SPACE) {
-                startTransition();
-            }
-        };
+    private void showLoginScreen() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/login.fxml"));
+            Parent root = loader.load();
+            LoginController controller = loader.getController();
 
-        introMouseHandler = event -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                startTransition();
-            }
-        };
+            // Gán callback khi đăng nhập thành công
+            controller.setOnLoginSuccess(() -> {
+                // Báo danh online VỚI UID
+                OnlinePresenceService.goOnline(PlayerContext.uid);
 
-        scene.setOnKeyPressed(introSpaceHandler);
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+                // Bắt đầu game (chuyển tới Menu)
+                startTransition(); // Giống như hàm bạn đã có
+            });
+
+            Scene scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
+            stage.setScene(scene);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void stop() throws Exception {
+        System.out.println("Game đang đóng... Báo danh offline.");
+
+        // Báo danh offline VỚI UID
+        if (PlayerContext.isLoggedIn()) {
+            OnlinePresenceService.goOffline(PlayerContext.uid);
+        }
+
+        super.stop();
+        Platform.exit();
+        System.exit(0);
     }
 
     private void startTransition() {
