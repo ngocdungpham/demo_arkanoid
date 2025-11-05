@@ -111,8 +111,15 @@ public class LeaderboardController {
     }
 
     private void triggerBackAction() {
-        if (backAction != null) {
+//        if (backAction != null) {
+        if (backAction == null) {
+            return;
+        }
+
+        if (Platform.isFxApplicationThread()) {
             backAction.run();
+        } else {
+            Platform.runLater(backAction);
         }
     }
 

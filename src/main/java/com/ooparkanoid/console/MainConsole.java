@@ -1,11 +1,14 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.core.state.OnlinePresenceService;
+import com.ooparkanoid.core.state.PlayerContext;
 import java.util.ArrayList;
 import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
 import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.graphics.ResourceManager;
+import com.ooparkanoid.ui.LoginController;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -25,8 +28,6 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import com.ooparkanoid.core.score.HighScoreRepository;
-import com.ooparkanoid.core.score.ScoreEntry;
 import com.ooparkanoid.ui.LeaderboardController;
 import com.ooparkanoid.ui.MenuController;
 import com.ooparkanoid.ui.GameSceneRoot;
@@ -34,10 +35,12 @@ import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 import com.ooparkanoid.sound.SoundManager;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Scale;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 
 
 public class MainConsole extends Application {
@@ -48,36 +51,55 @@ public class MainConsole extends Application {
 
     private Parent menuRoot;
     private MenuController menuController;
-    private GameMode nextGameMode = GameMode.ADVENTURE;
+    private GameMode nextGameMode = GameMode.ADVENTURE;;
 
     @Override
     public void start(Stage stage) throws IOException {
         this.stage = stage;
         stage.setTitle("Arkanoid - Simple Brick Game");
         stage.setResizable(false);
-        SoundManager.getInstance().playMusic("intro.mp3");
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/intro.fxml"));
-        Parent introRoot = fxmlLoader.load();
 
-        Scene scene = new Scene(introRoot, Constants.WIDTH, Constants.HEIGHT);
-        stage.setScene(scene);
+        // BỎ QUA INTRO VÀ HIỂN THỊ MÀN HÌNH ĐĂNG NHẬP
+        showLoginScreen();
+
         stage.show();
+    }
 
-        preloadIntroVideo();
-        introSpaceHandler = event -> {
-            if (event.getCode() == KeyCode.SPACE) {
-                startTransition();
-            }
-        };
+    private void showLoginScreen() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/login.fxml"));
+            Parent root = loader.load();
+            LoginController controller = loader.getController();
 
-        introMouseHandler = event -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                startTransition();
-            }
-        };
+            // Gán callback khi đăng nhập thành công
+            controller.setOnLoginSuccess(() -> {
+                // Báo danh online VỚI UID
+                OnlinePresenceService.goOnline(PlayerContext.uid);
 
-        scene.setOnKeyPressed(introSpaceHandler);
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+                // Bắt đầu game (chuyển tới Menu)
+                startTransition(); // Giống như hàm bạn đã có
+            });
+
+            Scene scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
+            stage.setScene(scene);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void stop() throws Exception {
+        System.out.println("Game đang đóng... Báo danh offline.");
+
+        // Báo danh offline VỚI UID
+        if (PlayerContext.isLoggedIn()) {
+            OnlinePresenceService.goOffline(PlayerContext.uid);
+        }
+
+        super.stop();
+        Platform.exit();
+        System.exit(0);
     }
 
     private void startTransition() {
@@ -86,32 +108,79 @@ public class MainConsole extends Application {
         Scene scene = stage.getScene();
 
         scene.setOnKeyPressed(null);
-        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
-
-        Canvas blackOverlay = new Canvas(Constants.WIDTH, Constants.HEIGHT);
-        GraphicsContext gc = blackOverlay.getGraphicsContext2D();
-        gc.setFill(Color.BLACK);
-        gc.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
-        blackOverlay.setOpacity(0);
-
-        Parent currentRoot = scene.getRoot();
-        if (currentRoot instanceof Pane) {
-            ((Pane) currentRoot).getChildren().add(blackOverlay);
-        } else if (currentRoot instanceof Group) {
-            ((Group) currentRoot).getChildren().add(blackOverlay);
-        } else {
-            Group wrapper = new Group(currentRoot, blackOverlay);
-            scene.setRoot(wrapper);
+//        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+        if (introMouseHandler != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+            introMouseHandler = null;
         }
 
-        FadeTransition fadeBlack = new FadeTransition(Duration.seconds(1), blackOverlay);
-        fadeBlack.setFromValue(0);
-        fadeBlack.setToValue(1);
-        fadeBlack.setInterpolator(Interpolator.EASE_IN);
+//        Canvas blackOverlay = new Canvas(Constants.WIDTH, Constants.HEIGHT);
+//        GraphicsContext gc = blackOverlay.getGraphicsContext2D();
+//        gc.setFill(Color.BLACK);
+//        gc.fillRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
+//        blackOverlay.setOpacity(0);
 
-        fadeBlack.setOnFinished(e -> showNewMenu());
+        Parent currentRoot = scene.getRoot();
+//        if (currentRoot instanceof Pane) {
+//            ((Pane) currentRoot).getChildren().add(blackOverlay);
+//        } else if (currentRoot instanceof Group) {
+//            ((Group) currentRoot).getChildren().add(blackOverlay);
+//        } else {
+//            Group wrapper = new Group(currentRoot, blackOverlay);
+//            scene.setRoot(wrapper);
+        if (currentRoot == null) {
+            showNewMenu();
+            return;
+        }
 
-        fadeBlack.play();
+//        FadeTransition fadeBlack = new FadeTransition(Duration.seconds(1), blackOverlay);
+//        fadeBlack.setFromValue(0);
+//        fadeBlack.setToValue(1);
+//        fadeBlack.setInterpolator(Interpolator.EASE_IN);
+        Rectangle curtain = new Rectangle(Constants.WIDTH, Constants.HEIGHT, Color.BLACK);
+        Scale curtainScale = new Scale(0, 1, Constants.WIDTH / 2.0, Constants.HEIGHT / 2.0);
+        curtain.getTransforms().add(curtainScale);
+
+        StackPane transitionPane = new StackPane();
+        transitionPane.getChildren().add(currentRoot);
+        transitionPane.getChildren().add(curtain);
+        scene.setRoot(transitionPane);
+
+        Timeline closeCurtain = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(curtainScale.xProperty(), 0, Interpolator.EASE_OUT)),
+                new KeyFrame(Duration.seconds(0.45), new KeyValue(curtainScale.xProperty(), 1, Interpolator.EASE_IN))
+        );
+
+        closeCurtain.setOnFinished(event -> {
+                    Parent menuContent;
+                    try {
+                        menuContent = loadMenuRoot();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        transitionPane.getChildren().remove(curtain);
+                        scene.setRoot(currentRoot);
+                        startGame();
+                        return;
+                    }
+
+//        fadeBlack.setOnFinished(e -> showNewMenu());
+                    transitionPane.getChildren().set(0, menuContent);
+//        fadeBlack.play();
+            Timeline openCurtain = new Timeline(
+                    new KeyFrame(Duration.ZERO, new KeyValue(curtainScale.xProperty(), 1, Interpolator.EASE_IN)),
+                    new KeyFrame(Duration.seconds(0.5), new KeyValue(curtainScale.xProperty(), 0, Interpolator.EASE_OUT))
+            );
+
+            openCurtain.setOnFinished(finishEvent -> {
+                transitionPane.getChildren().remove(curtain);
+                scene.setRoot(menuContent);
+                menuContent.requestFocus();
+            });
+
+            openCurtain.play();
+        });
+
+        closeCurtain.play();
     }
 
     /**
@@ -119,48 +188,85 @@ public class MainConsole extends Application {
      */
     private void showNewMenu() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
-            Parent menuRoot = loader.load();
-            MenuController menuController = loader.getController();
-            SoundManager.getInstance().playMusic("menu.mp3");
-            // 3. Thiết lập callback
-            menuController.setOnSelectionCallback(selection -> {
-                switch (selection) {
-                    case "Adventure":
-                        SoundManager.getInstance().stopMusic();
-                        nextGameMode = GameMode.ADVENTURE;
-                        fadeToBlack(this::playIntroVideo);
-                        break;
-                    case "VERSUS":
-                        // SỬA Ở ĐÂY:
-                        // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
-                        SoundManager.getInstance().stopMusic();
-                        nextGameMode = GameMode.LOCAL_BATTLE;
-                        fadeToBlack(() -> playIntroVideo());
-                        break;
-                    case "CREDITS":
-                        fadeToBlack(() -> showRanking());
-                        break;
-                    case "EXIT":
-                        Platform.exit();
-                        break;
-                    default:
-                        System.out.println("Lựa chọn: " + selection);
-                        break;
-                }
-            });
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
+//            Parent menuRoot = loader.load();
+//            MenuController menuController = loader.getController();
+//            SoundManager.getInstance().playMusic("menu.mp3");
+//            // 3. Thiết lập callback
+//            menuController.setOnSelectionCallback(selection -> {
+//                switch (selection) {
+//                    case "Adventure":
+//                        SoundManager.getInstance().stopMusic();
+//                        nextGameMode = GameMode.ADVENTURE;
+//                        fadeToBlack(this::playIntroVideo);
+//                        break;
+//                    case "VERSUS":
+//                        // SỬA Ở ĐÂY:
+//                        // Gọi hiệu ứng mờ dần, KHI XONG thì gọi startGame
+//                        SoundManager.getInstance().stopMusic();
+//                        nextGameMode = GameMode.LOCAL_BATTLE;
+//                        fadeToBlack(() -> playIntroVideo());
+//                        break;
+//                    case "CREDITS":
+//                        fadeToBlack(() -> showRanking());
+//                        break;
+//                    case "EXIT":
+//                        Platform.exit();
+//                        break;
+//                    default:
+//                        System.out.println("Lựa chọn: " + selection);
+//                        break;
+//                }
+//            });
 
             // 5. Hiển thị scene menu mới
             // BỎ COMMENT DÒNG NÀY ĐỂ HIỂN THỊ MENU
-            stage.getScene().setRoot(menuRoot);
+//            stage.getScene().setRoot(menuRoot);
 
             // (Xóa bỏ đoạn code FadeTransition bị lỗi mà bạn đã dán vào đây)
+
+            Parent menuContent = loadMenuRoot();
+            stage.getScene().setRoot(menuContent);
 
         } catch (IOException ex) {
             ex.printStackTrace();
             System.err.println("Không thể tải menu FXML mới. Bắt đầu game...");
             startGame(); // Fallback
         }
+    }
+
+    private Parent loadMenuRoot() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/menu.fxml"));
+        Parent loadedMenuRoot = loader.load();
+        menuRoot = loadedMenuRoot;
+        menuController = loader.getController();
+        SoundManager.getInstance().playMusic("menu.mp3");
+
+        menuController.setOnSelectionCallback(selection -> {
+            switch (selection) {
+                case "Adventure":
+                    SoundManager.getInstance().stopMusic();
+                    nextGameMode = GameMode.ADVENTURE;
+                    fadeToBlack(this::playIntroVideo);
+                    break;
+                case "VERSUS":
+                    SoundManager.getInstance().stopMusic();
+                    nextGameMode = GameMode.LOCAL_BATTLE;
+                    fadeToBlack(this::playIntroVideo);
+                    break;
+                case "CREDITS":
+                    fadeToBlack(this::showRanking);
+                    break;
+                case "EXIT":
+                    Platform.exit();
+                    break;
+                default:
+                    System.out.println("Lựa chọn: " + selection);
+                    break;
+            }
+        });
+
+        return loadedMenuRoot;
     }
 
     /**
@@ -339,7 +445,11 @@ public class MainConsole extends Application {
 
         LeaderboardController controller = loader.getController();
         controller.setSubtitle("Top 10 Online (Firebase)"); // Đặt tiêu đề
-        controller.setBackAction(this::returnToMenu);
+//        controller.setBackAction(this::returnToMenu);
+        controller.setBackAction(() -> Platform.runLater(() -> {
+            returnToMenu();
+            SoundManager.getInstance().playMusic("menu.mp3");
+        }));
 
         // Đặt placeholder "Đang tải..."
         controller.setScores(new ArrayList<>());
