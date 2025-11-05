@@ -372,7 +372,7 @@ public class GameManager {
                 recordHighScore();
                 stateManager.markGameOver();
 
-                return;
+               // return;
             } else {
                 resetBallAndPaddlePosition();
                 stateManager.setStatusMessage("Lives remaining: " + lives);
