@@ -445,7 +445,11 @@ public class MainConsole extends Application {
 
         LeaderboardController controller = loader.getController();
         controller.setSubtitle("Top 10 Online (Firebase)"); // Đặt tiêu đề
-        controller.setBackAction(this::returnToMenu);
+//        controller.setBackAction(this::returnToMenu);
+        controller.setBackAction(() -> Platform.runLater(() -> {
+            returnToMenu();
+            SoundManager.getInstance().playMusic("menu.mp3");
+        }));
 
         // Đặt placeholder "Đang tải..."
         controller.setScores(new ArrayList<>());

@@ -63,20 +63,36 @@ public final class FirebaseScoreService {
             requestBody.put("fields", fields);
 
             // Tạo yêu cầu Post
-            String url = BASE_URL + "/scores?auth=" + PlayerContext.idToken;
+//            String url = BASE_URL + "/scores?auth=" + PlayerContext.idToken;
 
             // 2. Tạo yêu cầu POST để *tạo* tài liệu mới
             // Gửi đến collection 'scores'
-            HttpRequest request = HttpRequest.newBuilder()
+//            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/scores"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
-                    .build();
+//                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+//                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()));
+
+            if (PlayerContext.idToken != null && !PlayerContext.idToken.isEmpty()) {
+                requestBuilder.header("Authorization", "Bearer " + PlayerContext.idToken);
+            }
+
+            HttpRequest request = requestBuilder.build();
 
             // 3. Gửi bất đồng bộ
             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(HttpResponse::body)
-                    .thenAccept(body -> System.out.println("Gửi điểm lên Firebase: Thành công!"))
+//                    .thenApply(HttpResponse::body)
+//                    .thenAccept(body -> System.out.println("Gửi điểm lên Firebase: Thành công!"))
+                    .thenAccept(response -> {
+                        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                            System.out.println("Gửi điểm lên Firebase: Thành công!");
+                        } else {
+                            System.err.println("Gửi điểm lên Firebase thất bại. Mã: "
+                                    + response.statusCode() + ", Nội dung: " + response.body());
+                        }
+                    })
                     .exceptionally(e -> {
                         System.err.println("Lỗi khi gửi điểm lên Firebase: " + e.getMessage());
                         return null;
@@ -106,11 +122,19 @@ public final class FirebaseScoreService {
         requestBody.put("structuredQuery", query);
 
         // 2. Tạo yêu cầu POST để *chạy truy vấn*
-        HttpRequest request = HttpRequest.newBuilder()
+//        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + ":runQuery"))
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
-                .build();
+//                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+//                .build();
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()));
+
+        if (PlayerContext.idToken != null && !PlayerContext.idToken.isEmpty()) {
+            requestBuilder.header("Authorization", "Bearer " + PlayerContext.idToken);
+        }
+
+        HttpRequest request = requestBuilder.build();
 
         // 3. Gửi và xử lý kết quả
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())

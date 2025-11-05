@@ -115,7 +115,7 @@ public class LoginController {
         return true;
     }
 
-//    private void processAuthResponse(String responseBody, String displayName) {
+    //    private void processAuthResponse(String responseBody, String displayName) {
 //        JSONObject json = new JSONObject(responseBody);
 //        if (json.has("idToken")) {
 //            // Đăng nhập/Đăng ký thành công!
@@ -140,33 +140,33 @@ public class LoginController {
                 }));
     }
 
-            // Lưu thông tin phiên đăng nhập
+    // Lưu thông tin phiên đăng nhập
 //            PlayerContext.setSession(uid, email, idToken, displayName);
-            private AuthResult parseAuthResponse(String responseBody, String displayName) {
-                try {
-                    JSONObject json = new JSONObject(responseBody);
-                    if (json.has("idToken")) {
-                        String uid = json.getString("localId");
-                        String email = json.getString("email");
-                        String idToken = json.getString("idToken");
-                        return AuthResult.success(uid, email, idToken, displayName);
-                    }
+    private AuthResult parseAuthResponse(String responseBody, String displayName) {
+        try {
+            JSONObject json = new JSONObject(responseBody);
+            if (json.has("idToken")) {
+                String uid = json.getString("localId");
+                String email = json.getString("email");
+                String idToken = json.getString("idToken");
+                return AuthResult.success(uid, email, idToken, displayName);
+            }
             // Gọi callback để chuyển cảnh
 //            if (onLoginSuccess != null) {
 //                onLoginSuccess.run();
-                    if (json.has("error")) {
-                        JSONObject errorObject = json.getJSONObject("error");
-                        String message = errorObject.optString("message", "Lỗi không xác định.");
-                        return AuthResult.failure(translateErrorMessage(message));
+            if (json.has("error")) {
+                JSONObject errorObject = json.getJSONObject("error");
+                String message = errorObject.optString("message", "Lỗi không xác định.");
+                return AuthResult.failure(translateErrorMessage(message));
             }
 //        } else if (json.has("error")) {
 //            String message = json.getJSONObject("error").getString("message");
 //            showError(message);
 //        } else {
 //            showError("Lỗi không xác định.");
-                    return AuthResult.failure("Lỗi không xác định.");
-                } catch (JSONException ex) {
-                    return AuthResult.failure("Phản hồi không hợp lệ từ máy chủ.");
+            return AuthResult.failure("Lỗi không xác định.");
+        } catch (JSONException ex) {
+            return AuthResult.failure("Phản hồi không hợp lệ từ máy chủ.");
         }
     }
 
@@ -194,7 +194,7 @@ public class LoginController {
         errorText.setText(message);
     }
 
-//    private void setLoading(boolean isLoading) {
+    //    private void setLoading(boolean isLoading) {
     private void clearError() {
         errorText.setText("");
     }

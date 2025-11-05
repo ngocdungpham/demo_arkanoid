@@ -5,6 +5,7 @@ import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.object.Laser;
 import com.ooparkanoid.object.Score;
 import com.ooparkanoid.sound.SoundManager;
+import com.ooparkanoid.core.state.PlayerContext;
 
 import com.ooparkanoid.core.save.SaveService;
 import com.ooparkanoid.core.score.HighScoreRepository;
@@ -429,7 +430,7 @@ public class GameManager {
 
     private void recordHighScore(int roundsPlayed) {
         int clampedRounds = Math.max(1, Math.min(roundsPlayed, Constants.MAX_LEVELS));
-        ScoreEntry entry = new ScoreEntry(resolvePlayerName(), score, clampedRounds, totalTimeElapsed);
+        ScoreEntry entry = new ScoreEntry(PlayerContext.playerName, score, clampedRounds, totalTimeElapsed);
 
         // Dòng cũ (local)
         // HighScoreRepository.recordScore(entry);
@@ -439,6 +440,13 @@ public class GameManager {
     }
 
     private String resolvePlayerName() {
+        String contextName = PlayerContext.playerName;
+        if (contextName != null) {
+            String trimmedContextName = contextName.trim();
+            if (!trimmedContextName.isEmpty()) {
+                return trimmedContextName;
+            }
+        }
         String systemUser = System.getProperty("user.name");
         if (systemUser == null) {
             return "Player";
