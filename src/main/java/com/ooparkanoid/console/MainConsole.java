@@ -105,7 +105,11 @@ public class MainConsole extends Application {
         Scene scene = stage.getScene();
 
         scene.setOnKeyPressed(null);
-        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+//        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+        if (introMouseHandler != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, introMouseHandler);
+            introMouseHandler = null;
+        }
 
         Canvas blackOverlay = new Canvas(Constants.WIDTH, Constants.HEIGHT);
         GraphicsContext gc = blackOverlay.getGraphicsContext2D();
