@@ -41,4 +41,6 @@ public class Constants {
     public static final String LEVELS_FOLDER = "/levels/"; // Thư mục chứa các file level
     public static final int MAX_LEVELS = 4;// Số lượng level tối đa bạn đã tạo file
     public static final double POWERUP_DROP_CHANCE = 0.25;
+    public static final int MAX_COLS_PER_LEVEL = 9;
+    public static final int MAX_ROWS_PER_LEVEL = 15;
 }
