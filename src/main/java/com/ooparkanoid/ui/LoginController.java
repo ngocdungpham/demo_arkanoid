@@ -18,21 +18,27 @@ public class LoginController {
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private Button signInButton;
-    @FXML private Button signUpButton;
+//    @FXML private Button signUpButton;
     @FXML private Text errorText;
+    @FXML private Text signUpLink; // <- THÊM LINK NÀY
 
     private Runnable onLoginSuccess;
     private String defaultSignInText;
-    private String defaultSignUpText;
+    private Runnable onGoToSignUp; // <- THÊM CALLBACK NÀY
+//    private String defaultSignUpText;
 
     public void setOnLoginSuccess(Runnable onLoginSuccess) {
         this.onLoginSuccess = onLoginSuccess;
     }
 
+    public void setOnGoToSignUp(Runnable onGoToSignUp) {
+        this.onGoToSignUp = onGoToSignUp;
+    }
+
     @FXML
     private void initialize() {
         defaultSignInText = signInButton.getText();
-        defaultSignUpText = signUpButton.getText();
+//        defaultSignUpText = signUpButton.getText();
     }
 
     @FXML
@@ -73,44 +79,18 @@ public class LoginController {
     }
 
     @FXML
-    private void handleSignUp() {
-        String email = emailField.getText();
-        String password = passwordField.getText();
-        String name = nameField.getText(); // Lấy tên hiển thị
-
-        if (!isInputValid(email, password, name)) {
-            return;
+    private void handleSignUpLinkClick() {
+        if (onGoToSignUp != null) {
+            onGoToSignUp.run();
         }
-
-        performAuthentication(AuthService.signUp(email, password), name, AuthAction.SIGN_UP);
     }
+
     private boolean isInputValid(String email, String password, String name) {
         if (email.isEmpty() || password.isEmpty() || name.isEmpty()) {
             showError("Vui lòng nhập Tên, Email và Mật khẩu.");
             return false;
         }
 
-//        setLoading(true);
-//        AuthService.signUp(email, password).thenAccept(response -> {
-//            Platform.runLater(() -> {
-//                processAuthResponse(response, name);
-//                setLoading(false);
-//            });
-//        });
-//        AuthService.signUp(email, password)
-//                .thenAccept(response -> {
-//                    Platform.runLater(() -> {
-//                        processAuthResponse(response, name);
-//                        setLoading(false);
-//                    });
-//                })
-//                .exceptionally(ex -> {
-//                    Platform.runLater(() -> {
-//                        showError("Không thể kết nối đến máy chủ. Vui lòng thử lại.");
-//                        setLoading(false);
-//                    });
-//                    return null;
-//                });
         clearError();
         return true;
     }
@@ -152,18 +132,11 @@ public class LoginController {
                 return AuthResult.success(uid, email, idToken, displayName);
             }
             // Gọi callback để chuyển cảnh
-//            if (onLoginSuccess != null) {
-//                onLoginSuccess.run();
             if (json.has("error")) {
                 JSONObject errorObject = json.getJSONObject("error");
                 String message = errorObject.optString("message", "Lỗi không xác định.");
                 return AuthResult.failure(translateErrorMessage(message));
             }
-//        } else if (json.has("error")) {
-//            String message = json.getJSONObject("error").getString("message");
-//            showError(message);
-//        } else {
-//            showError("Lỗi không xác định.");
             return AuthResult.failure("Lỗi không xác định.");
         } catch (JSONException ex) {
             return AuthResult.failure("Phản hồi không hợp lệ từ máy chủ.");
@@ -201,22 +174,16 @@ public class LoginController {
 
     private void setLoading(boolean isLoading, AuthAction action) {
         signInButton.setDisable(isLoading);
-        signUpButton.setDisable(isLoading);
+        // signUpButton.setDisable(isLoading); // <- Xóa
+        signUpLink.setDisable(isLoading); // <- Thêm
         nameField.setDisable(isLoading);
         emailField.setDisable(isLoading);
         passwordField.setDisable(isLoading);
 
         if (isLoading) {
-            if (action == AuthAction.SIGN_IN) {
-                signInButton.setText("Đang đăng nhập...");
-                signUpButton.setText(defaultSignUpText);
-            } else {
-                signUpButton.setText("Đang đăng ký...");
-                signInButton.setText(defaultSignInText);
-            }
+            signInButton.setText("ĐANG ĐĂNG NHẬP...");
         } else {
             signInButton.setText(defaultSignInText);
-            signUpButton.setText(defaultSignUpText);
         }
     }
 
@@ -225,43 +192,57 @@ public class LoginController {
         SIGN_UP
     }
 
-    private record AuthResult(boolean isSuccess,
-                              String uid,
-                              String email,
-                              String idToken,
-                              String displayName,
-                              String errorMessage) {
+//    private record AuthResult(boolean isSuccess,
+//                              String uid,
+//                              String email,
+//                              String idToken,
+//                              String displayName,
+//                              String errorMessage) {
+//
+//        static AuthResult success(String uid, String email, String idToken, String displayName) {
+//            return new AuthResult(true, uid, email, idToken, displayName, null);
+//        }
+//
+//        static AuthResult failure(String errorMessage) {
+//            return new AuthResult(false, null, null, null, null, errorMessage);
+//        }
+//
+//        public boolean isSuccess() {
+//            return isSuccess;
+//        }
+//
+//        public String errorMessage() {
+//            return errorMessage;
+//        }
+//
+//        public String uid() {
+//            return uid;
+//        }
+//
+//        public String email() {
+//            return email;
+//        }
+//
+//        public String idToken() {
+//            return idToken;
+//        }
+//
+//        public String displayName() {
+//            return displayName;
+//        }
+//    }
+private record AuthResult(boolean isSuccess,
+                          String uid,
+                          String email,
+                          String idToken,
+                          String displayName,
+                          String errorMessage) {
 
-        static AuthResult success(String uid, String email, String idToken, String displayName) {
-            return new AuthResult(true, uid, email, idToken, displayName, null);
-        }
-
-        static AuthResult failure(String errorMessage) {
-            return new AuthResult(false, null, null, null, null, errorMessage);
-        }
-
-        public boolean isSuccess() {
-            return isSuccess;
-        }
-
-        public String errorMessage() {
-            return errorMessage;
-        }
-
-        public String uid() {
-            return uid;
-        }
-
-        public String email() {
-            return email;
-        }
-
-        public String idToken() {
-            return idToken;
-        }
-
-        public String displayName() {
-            return displayName;
-        }
+    static AuthResult success(String uid, String email, String idToken, String displayName) {
+        return new AuthResult(true, uid, email, idToken, displayName, null);
     }
+    static AuthResult failure(String errorMessage) {
+        return new AuthResult(false, null, null, null, null, errorMessage);
+    }
+}
 }
