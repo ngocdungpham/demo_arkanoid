@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx/11"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ooparkanoid.ui.LoginController"
+      alignment="CENTER" spacing="10"
+      styleClass="root-pane"
+      stylesheets="@/styles/theme.css, @/styles/leaderboard.css"
+      maxWidth="400" prefHeight="500">
+
+    <Label styleClass="leaderboard-title" text="ARKANOID" alignment="CENTER"/>
+    <Label styleClass="leaderboard-subtitle" text="Đăng nhập để chơi" alignment="CENTER"/>
+    <VBox.margin>
+        <Insets bottom="20"/>
+    </VBox.margin>
+
+    <Label text="Tên hiển thị (dùng cho Leaderboard)"/>
+    <TextField fx:id="nameField" promptText="Tên người chơi"/>
+
+    <Label text="Email"/>
+    <TextField fx:id="emailField" promptText="email@example.com"/>
+
+    <Label text="Mật khẩu"/>
+    <PasswordField fx:id="passwordField" promptText="Tối thiểu 6 ký tự"/>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="signInButton" text="Đăng nhập" styleClass="menu-button" onAction="#handleSignIn"/>
+        <Button fx:id="signUpButton" text="Đăng ký" styleClass="menu-button" onAction="#handleSignUp"/>
+    </HBox>
+    <Text fx:id="errorText" fill="RED" wrappingWidth="300" textAlignment="CENTER"/>
+</VBox>

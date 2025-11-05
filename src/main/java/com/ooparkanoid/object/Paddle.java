@@ -18,7 +18,9 @@ public class Paddle extends MovableObject {
         VERTICAL_LEFT,
         VERTICAL_RIGHT
     }
+
     private Image paddleSprite;
+    private Image laserGunSprite;
     private Image paddleSpriteVerticalLeft; // paddle left side
     private Image paddleSpriteVerticalRight; // paddle right side
 
@@ -43,6 +45,7 @@ public class Paddle extends MovableObject {
     public void loadGraphics() {
         ResourceManager rm = ResourceManager.getInstance();
         paddleSprite = rm.loadImage("paddle1.png");
+        laserGunSprite = rm.loadImage("laser_gun.png");
 //        paddleSpriteVerticalLeft = rm.loadImage("paddle3.png"); // dọc (ảnh bạn gửi)
 //        paddleSpriteVerticalRight = rm.loadImage("paddle2.png");
         paddleSpriteVerticalLeft = loadWithFallback(rm, "paddle_left.png", "paddle3.png"); // dọc (ảnh bạn gửi)
@@ -172,9 +175,14 @@ public class Paddle extends MovableObject {
     }
 
     private void rederLaserPaddle(GraphicsContext gc) {
-        gc.setFill(Color.DARKGRAY);
-        gc.fillRect(x + width * 0.25 - 3, y - 10, 6, 10);
-        gc.fillRect(x + width * 0.75 - 3, y - 10, 6, 10);
+        if (laserGunSprite != null) {
+            gc.drawImage(laserGunSprite, x + width * 0.25 - 5, y - 15, 10, 15);
+            gc.drawImage(laserGunSprite, x + width * 0.75 - 5, y - 15, 10, 15);
+        } else {
+            gc.setFill(Color.DARKGRAY);
+            gc.fillRect(x + width * 0.25 - 3, y - 10, 6, 10);
+            gc.fillRect(x + width * 0.75 - 3, y - 10, 6, 10);
+        }
 
         // Glow effect
         if (shootCooldown <= 0) {
@@ -208,6 +216,7 @@ public class Paddle extends MovableObject {
     public void setWidth(double width) {
         this.width = width;
     }
+
     public void setOrientation(Orientation orientation) {
         this.orientation = orientation == null ? Orientation.HORIZONTAL : orientation;
         if (this.orientation != Orientation.HORIZONTAL) {

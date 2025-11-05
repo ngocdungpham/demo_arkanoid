@@ -1,6 +1,7 @@
 package com.ooparkanoid.ui;
 
 import com.ooparkanoid.core.score.ScoreEntry;
+import com.ooparkanoid.sound.SoundManager;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -100,6 +101,7 @@ public class LeaderboardController {
 
         root.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
+                SoundManager.getInstance().play("selected");
                 triggerBackAction();
                 event.consume();
             }
@@ -109,8 +111,15 @@ public class LeaderboardController {
     }
 
     private void triggerBackAction() {
-        if (backAction != null) {
+//        if (backAction != null) {
+        if (backAction == null) {
+            return;
+        }
+
+        if (Platform.isFxApplicationThread()) {
             backAction.run();
+        } else {
+            Platform.runLater(backAction);
         }
     }
 

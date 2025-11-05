@@ -1,7 +1,11 @@
 // File: src/main/java/com/ooparkanoid/core/engine/GameManager.java
 package com.ooparkanoid.core.engine;
+
+import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.object.Laser;
+import com.ooparkanoid.object.Score;
 import com.ooparkanoid.sound.SoundManager;
+import com.ooparkanoid.core.state.PlayerContext;
 
 import com.ooparkanoid.core.save.SaveService;
 import com.ooparkanoid.core.score.HighScoreRepository;
@@ -45,6 +49,7 @@ public class GameManager {
     private Ball ball;
     private List<Brick> bricks;
     private List<Ball> balls = new ArrayList<>();
+    private final List<Score> scores = new ArrayList<>();
 
     private final List<PowerUp> powerUps = new ArrayList<>();
     private LevelManager levelManager;
@@ -112,6 +117,7 @@ public class GameManager {
         }
         return instance;
     }
+
     /**
      * Khởi tạo hoặc reset toàn bộ trạng thái game về ban đầu.
      */
@@ -251,32 +257,46 @@ public class GameManager {
                     brick.takeHit();
 
                     if (!brickWasDestroyed && brick.isDestroyed()) {
-                        int multiplier = 1;
-                        double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
-                        if (scoreMultTime > 0) {
-                            multiplier = 2;
-                        }
-
+//                        int multiplier = 1;
+//                        double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
+//                        if (scoreMultTime > 0) {
+//                            multiplier = 2;
+//                        }
+//
+//                        score += 10 * multiplier;
+//                        stateManager.updateStats(score, lives);
+//                        System.out.println(hitBrickType + " Brick destroyed! Score: " + score);
+//
+//                        SoundManager.getInstance().play("break");
+//                        // XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK
+//
+//                        if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
+//                            System.out.println("Explosive Brick detonated!");
+//                            handleExplosion(brick.getX(), brick.getY());
+//                        }
+//
+//                        if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
+//                            spawnPowerUp(
+//                                    brick.getX() + brick.getWidth() / 2,
+//                                    brick.getY() + brick.getHeight() / 2
+//                            );
+//                        }
+//
+//                        brickIterator.remove();
+                        int multiplier = effectManager.getRemainingTime("SCORE_MULTIPLIER") > 0 ? 2 : 1;
                         score += 10 * multiplier;
                         stateManager.updateStats(score, lives);
-                        System.out.println(hitBrickType + " Brick destroyed! Score: " + score);
-
                         SoundManager.getInstance().play("break");
-                        // XỬ LÝ NỔ NẾU LÀ EXPLOSIVE BRICK
+                        spawnScorePopup(Integer.toString(10 * multiplier), brick.getX() + brick.getWidth() / 2, brick.getY());
 
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             System.out.println("Explosive Brick detonated!");
-                            handleExplosion(brick.getX(), brick.getY());
+                            handleExplosion(brick.getX(), brick.getY()); // KHÔNG xoá tại đây
                         }
 
                         if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
-                            spawnPowerUp(
-                                    brick.getX() + brick.getWidth() / 2,
-                                    brick.getY() + brick.getHeight() / 2
-                            );
+                            spawnPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight() / 2);
                         }
-
-                        brickIterator.remove();
                     } else if (hitBrickType == Brick.BrickType.INDESTRUCTIBLE) {
                         System.out.println("Indestructible brick hit!");
                     }
@@ -334,9 +354,10 @@ public class GameManager {
         updateLasers(dt);
         // UPDATE POWERUPS
         updatePowerUps(dt);
-
+        updateScore(dt);
         // UPDATE EFFECTS
         effectManager.update(dt);
+        bricks.removeIf(Brick::isDestroyed);
 
         // Kiểm tra bóng rơi khỏi màn hình (mất mạng)
         if (balls.isEmpty()) {
@@ -352,7 +373,7 @@ public class GameManager {
                 recordHighScore();
                 stateManager.markGameOver();
 
-                return;
+               // return;
             } else {
                 resetBallAndPaddlePosition();
                 stateManager.setStatusMessage("Lives remaining: " + lives);
@@ -388,17 +409,44 @@ public class GameManager {
         }
     }
 
+    private void updateScore(double dt) {
+        Iterator<Score> it = scores.iterator();
+        while (it.hasNext()) {
+            Score text = it.next();
+            text.update(dt);
+            if (text.isFinished()) {
+                it.remove();
+            }
+        }
+    }
+
+    private void spawnScorePopup(String point, double x, double y) {
+        scores.add(new Score(point, x, y, Color.CYAN));
+    }
+
     private void recordHighScore() {
         recordHighScore(currentLevel);
     }
 
     private void recordHighScore(int roundsPlayed) {
         int clampedRounds = Math.max(1, Math.min(roundsPlayed, Constants.MAX_LEVELS));
-        ScoreEntry entry = new ScoreEntry(resolvePlayerName(), score, clampedRounds, totalTimeElapsed);
-        HighScoreRepository.recordScore(entry);
+        ScoreEntry entry = new ScoreEntry(PlayerContext.playerName, score, clampedRounds, totalTimeElapsed);
+
+        // Dòng cũ (local)
+        // HighScoreRepository.recordScore(entry);
+
+        // DÒNG MỚI (online)
+        FirebaseScoreService.submitScore(entry);
     }
 
     private String resolvePlayerName() {
+        String contextName = PlayerContext.playerName;
+        if (contextName != null) {
+            String trimmedContextName = contextName.trim();
+            if (!trimmedContextName.isEmpty()) {
+                return trimmedContextName;
+            }
+        }
         String systemUser = System.getProperty("user.name");
         if (systemUser == null) {
             return "Player";
@@ -410,93 +458,86 @@ public class GameManager {
     private void updateLasers(double dt) {
         List<Laser> lasers = paddle.getLasers();
         if (lasers.isEmpty()) return;
+
         Iterator<Laser> laserIt = lasers.iterator();
         while (laserIt.hasNext()) {
             Laser laser = laserIt.next();
+            // cập nhật nếu cần
+            // laser.update(dt);  // nếu Laser có update riêng (bạn đang update ở ngoài thì bỏ)
+
             Iterator<Brick> brickIt = bricks.iterator();
             while (brickIt.hasNext()) {
                 Brick brick = brickIt.next();
                 if (!brick.isDestroyed() && laser.istersected(brick)) {
                     Brick.BrickType hitBrickType = brick.getType();
                     boolean brickWasDestroyed = brick.isDestroyed();
+
                     brick.takeHit();
-                    lasers.remove(laser);
                     SoundManager.getInstance().play("laser_hit");
+
                     if (!brickWasDestroyed && brick.isDestroyed()) {
-                        int multiplier = 1;
-                        double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
-                        if (scoreMultTime > 0) {
-                            multiplier = 2;
+                        int multiplier = effectManager.getRemainingTime("SCORE_MULTIPLIER") > 0 ? 2 : 1;
+                        score += 10 * multiplier;
+                        spawnScorePopup(Integer.toString(10 * multiplier), brick.getX() +
+                                brick.getWidth() / 2, brick.getY());
+                        stateManager.updateStats(score, lives);
+                        SoundManager.getInstance().play("break");
+
+                        if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
+                            handleExplosion(brick.getX(), brick.getY()); // CHỈ đánh dấu phá hủy, KHÔNG remove ở đây
                         }
+
+                        // Không remove brick trực tiếp ở đây nữa, để dọn ở cuối update():
+                        // brickIt.remove();
+                    }
+
+                    // Xoá laser bằng iterator để tránh CME
+                    laserIt.remove();
+                    break; // laser đã va chạm -> dừng kiểm tra brick cho laser này
+                }
+            }
+        }
+    }
+
+    /**
+     * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
+     * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
+     *
+     * @param explosionX Tọa độ X của tâm vụ nổ (gạch nổ)
+     * @param explosionY Tọa độ Y của tâm vụ nổ (gạch nổ)
+     */
+    private void handleExplosion(double explosionX, double explosionY) {
+        CollisionArea explosionZone = new CollisionArea(
+                explosionX - Constants.BRICK_WIDTH - Constants.BRICK_PADDING_X,
+                explosionY - Constants.BRICK_HEIGHT - Constants.BRICK_PADDING_Y,
+                Constants.BRICK_WIDTH * 3 + Constants.BRICK_PADDING_X * 2,
+                Constants.BRICK_HEIGHT * 3 + Constants.BRICK_PADDING_Y * 2
+        );
+
+        // DUYỆT nhưng KHÔNG remove ở đây để tránh CME (vì có thể đang ở vòng bricks khác)
+        for (Brick brick : bricks) {
+            if (!brick.isDestroyed() && brick.istersected(explosionZone)) {
+                if (brick.getType() != Brick.BrickType.INDESTRUCTIBLE) {
+                    brick.takeHit(); // chỉ đánh dấu phá hủy/nảy số máu
+                    if (brick.isDestroyed()) {
+                        int multiplier = effectManager.getRemainingTime("SCORE_MULTIPLIER") > 0 ? 2 : 1;
                         score += 10 * multiplier;
                         stateManager.updateStats(score, lives);
                         SoundManager.getInstance().play("break");
-                        // Handle explosion
-                        if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
-                            handleExplosion(brick.getX(), brick.getY());
-                        }
-                        // Spawn powerup
-                        if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
+                        spawnScorePopup( Integer.toString(10 * multiplier), brick.getX() + brick.getWidth() / 2, brick.getY());
+                        if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE / 2) {
                             spawnPowerUp(
                                     brick.getX() + brick.getWidth() / 2,
                                     brick.getY() + brick.getHeight() / 2
                             );
                         }
-                        brickIt.remove();
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    /**
-     * Xử lý hiệu ứng nổ khi một ExplosiveBrick bị phá hủy.
-     * Sẽ tìm và phá hủy các gạch trong ô 3x3 xung quanh vị trí nổ.
-     * @param explosionX Tọa độ X của tâm vụ nổ (gạch nổ)
-     * @param explosionY Tọa độ Y của tâm vụ nổ (gạch nổ)
-     */
-    private void handleExplosion(double explosionX, double explosionY) {
-        // Tạo một vùng bao quanh 3x3
-        double explosionRadiusX = Constants.BRICK_WIDTH * 1.5 + Constants.BRICK_PADDING_X; // Khoảng 1.5 gạch mỗi bên
-        double explosionRadiusY = Constants.BRICK_HEIGHT * 1.5 + Constants.BRICK_PADDING_Y; // Khoảng 1.5 gạch mỗi bên
-
-        // Vùng hình chữ nhật đại diện cho khu vực nổ
-        // Tạo một đối tượng CollisionArea đại diện cho khu vực nổ
-        CollisionArea explosionZone = new CollisionArea(
-                explosionX - Constants.BRICK_WIDTH - Constants.BRICK_PADDING_X, // X trái của khu vực nổ
-                explosionY - Constants.BRICK_HEIGHT - Constants.BRICK_PADDING_Y, // Y trên của khu vực nổ
-                Constants.BRICK_WIDTH * 3 + Constants.BRICK_PADDING_X * 2,       // Chiều rộng 3 gạch + 2 padding
-                Constants.BRICK_HEIGHT * 3 + Constants.BRICK_PADDING_Y * 2       // Chiều cao 3 gạch + 2 padding
-        );
-
-        Iterator<Brick> it = bricks.iterator();
-        while (it.hasNext()) {
-            Brick brick = it.next();
-            if (!brick.isDestroyed() && brick.istersected(explosionZone)) { // Sử dụng istersected của bạn
-                // Kiểm tra lại để không phá hủy gạch INDESTRUCTIBLE
-                if (brick.getType() != Brick.BrickType.INDESTRUCTIBLE) {
-
-                    // --- Đây là dòng quan trọng ---
-                    boolean wasDestroyedBeforeHit = brick.isDestroyed(); // Luôn false ở đây vì đã check ở if trên
-                    brick.takeHit(); // <--- Gạch chỉ nhận MỘT hit từ vụ nổ
-
-                    // Nếu gạch bị phá hủy SAU cú hit này
-                    if (!wasDestroyedBeforeHit && brick.isDestroyed()) { // Điều kiện này ĐÃ LÀM CHÍNH XÁC NHỮNG GÌ BẠN MUỐN
-                        score += 10; // Tăng điểm cho mỗi gạch bị nổ
-                        stateManager.updateStats(score, lives);
-                        System.out.println("Brick destroyed by explosion! Score: " + score);
-                        SoundManager.getInstance().play("break");
-                        it.remove(); // Xóa gạch khỏi danh sách
-
-                        // Có thể spawn PowerUp từ các gạch bị nổ phụ nếu muốn
-                        if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE / 2) { // Giảm tỷ lệ spawn
-                            spawnPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight() / 2);
-                        }
                     }
                 }
             }
         }
+        // KHÔNG gọi it.remove() ở đây!
     }
+
 
     // POWERUP UPDATE LOGIC
     private void updatePowerUps(double dt) {
@@ -531,6 +572,7 @@ public class GameManager {
             System.out.println("💎 PowerUp spawned at (" + x + ", " + y + ")");
         }
     }
+
     /**
      * Đặt lại vị trí của bóng và paddle sau khi mất mạng.
      * Bóng sẽ bắt đầu di chuyển ngay lập tức.
@@ -582,6 +624,10 @@ public class GameManager {
         // RENDER POWERUPS
         for (PowerUp p : powerUps) {
             p.render(g);
+        }
+
+        for (Score text : scores) {
+            text.render(g);
         }
 
         // Không hiển thị Level vì không có khái niệm level phức tạp
