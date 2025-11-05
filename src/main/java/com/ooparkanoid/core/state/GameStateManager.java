@@ -91,7 +91,13 @@ public class GameStateManager {
             statusMessage.set("Back to the action!");
         }
     }
-
+    public void togglePause() {
+        if (currentState.get() == GameState.RUNNING) {
+            pauseGame();
+        } else if (currentState.get() == GameState.PAUSED) {
+            resumeGame();
+        }
+    }
     /**
      * chuyển trạng thái game về kết thúc.
      */
