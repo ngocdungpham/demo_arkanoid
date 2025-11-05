@@ -54,35 +54,33 @@ public class LevelManager {
         InputStream is = getClass().getResourceAsStream(levelFilePath);
         if (is == null) {
             System.err.println("Level file not found: " + levelFilePath);
-            return bricks; // Trả về danh sách rỗng
+            return bricks;
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-            // Đánh dấu để đọc dòng đầu tiên và reset lại
-            reader.mark(1000);
-            String firstLine = reader.readLine();
-            if (firstLine == null) {
-                System.out.println("Level file is empty: " + levelFilePath);
-                return bricks;
-            }
-            reader.reset();
-
-            // Tính toán vị trí bắt đầu để căn giữa
-            int colsInMap = firstLine.trim().length();
-            double totalBricksWidth = colsInMap * Constants.BRICK_WIDTH + (colsInMap - 1) * Constants.BRICK_PADDING_X;
+            // ===== THAY ĐỔI 1: TÍNH TOÁN CĂN GIỮA DỰA TRÊN HẰNG SỐ =====
+            // Không cần đọc dòng đầu tiên nữa. Luôn tính toán dựa trên khung cố định.
+            double totalBricksWidth = Constants.MAX_COLS_PER_LEVEL * Constants.BRICK_WIDTH + (Constants.MAX_COLS_PER_LEVEL - 1) * Constants.BRICK_PADDING_X;
             double startX = Constants.PLAYFIELD_LEFT + (Constants.PLAYFIELD_WIDTH - totalBricksWidth) / 2;
 
             String line;
             int row = 0;
             while ((line = reader.readLine()) != null) {
-                for (int col = 0; col < line.length(); col++) {
+                // ===== THAY ĐỔI 2: ÁP DỤNG GIỚI HẠN HÀNG =====
+                if (row >= Constants.MAX_ROWS_PER_LEVEL) {
+                    System.out.println("Warning: Level " + levelNum + " has more than " + Constants.MAX_ROWS_PER_LEVEL + " rows. Truncating.");
+                    break; // Dừng đọc file nếu quá giới hạn hàng
+                }
+
+                // ===== THAY ĐỔI 3: ÁP DỤNG GIỚI HẠN CỘT =====
+                int colsToRead = Math.min(line.length(), Constants.MAX_COLS_PER_LEVEL);
+                for (int col = 0; col < colsToRead; col++) {
                     char brickChar = line.charAt(col);
                     if (brickChar == ' ') continue;
 
                     double brickX = startX + col * (Constants.BRICK_WIDTH + Constants.BRICK_PADDING_X);
                     double brickY = Constants.BRICK_OFFSET_TOP + row * (Constants.BRICK_HEIGHT + Constants.BRICK_PADDING_Y);
 
-                    // Sử dụng hệ thống Factory để tạo gạch
                     BrickFactory factory = brickFactories.get(brickChar);
                     if (factory != null) {
                         Brick newBrick = factory.createBrick(brickX, brickY);
