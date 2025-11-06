@@ -87,6 +87,7 @@ public class PowerUpSprite {
             return PowerUpCategory.NONE;
         }
     }
+
     private int getRowForType(PowerUpType type) {
         switch (type) {
             case FAST_BALL:

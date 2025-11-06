@@ -83,7 +83,7 @@ public class SoundManager {
     }
 
     // Load 1 sound file từ resources
-    private void loadSound(String name, String path) {
+    public void loadSound(String name, String path) {
         URL resource = getClass().getResource(path);
         if (resource == null) {
             System.err.println("Sound not found: " + path);
