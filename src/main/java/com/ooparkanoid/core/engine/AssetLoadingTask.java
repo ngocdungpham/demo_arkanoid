@@ -5,11 +5,11 @@ import com.ooparkanoid.sound.SoundManager;
 import javafx.concurrent.Task;
 
 /**
- * Một Task (luồng nền) chuyên dụng để tải TẤT CẢ tài nguyên game
- * (hình ảnh, âm thanh) mà không làm "đơ" giao diện chính.
+ * Một luồng chuyên dụng để tải TẤT CẢ tài nguyên game
+ * hình ảnh, âm thanh mà không làm "đơ" giao diện chính.
  */
 public class AssetLoadingTask extends Task<Void> {
-
+    private static final long MIN_LOAD_TIME_MS = 2000;
     // Danh sách TẤT CẢ các file hình ảnh
     private static final String[] IMAGES_TO_LOAD = {
             // Paddle
@@ -45,6 +45,7 @@ public class AssetLoadingTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
+        long startTime = System.currentTimeMillis();
         ResourceManager rm = ResourceManager.getInstance();
         SoundManager sm = SoundManager.getInstance();   // Tự load âm thanh khi khởi tạo
 
@@ -66,6 +67,14 @@ public class AssetLoadingTask extends Task<Void> {
         updateMessage("Tải tài nguyên hoàn tất!");
         updateProgress(totalAssets, totalAssets);
 
+        long timeElapsed = System.currentTimeMillis() - startTime;
+        if (timeElapsed < MIN_LOAD_TIME_MS) {
+            long timeToWait = MIN_LOAD_TIME_MS - timeElapsed;
+            try {
+                Thread.sleep(timeToWait);
+            } catch (InterruptedException e) {
+            }
+        }
         return null;
     }
 }
