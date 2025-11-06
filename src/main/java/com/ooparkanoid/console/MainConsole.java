@@ -1,9 +1,12 @@
 // File: src/main/java/com/ooparkanoid/console/MainConsole.java
 package com.ooparkanoid.console;
 
+import com.ooparkanoid.core.engine.AssetLoadingTask;
 import com.ooparkanoid.core.state.OnlinePresenceService;
 import com.ooparkanoid.core.state.PlayerContext;
+
 import java.util.ArrayList;
+
 import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
 import com.ooparkanoid.AlertBox;
@@ -19,6 +22,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
@@ -48,7 +53,8 @@ public class MainConsole extends Application {
 
     private Parent menuRoot;
     private MenuController menuController;
-    private GameMode nextGameMode = GameMode.ADVENTURE;;
+    private GameMode nextGameMode = GameMode.ADVENTURE;
+    ;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -72,10 +78,7 @@ public class MainConsole extends Application {
             controller.setOnLoginSuccess(() -> {
                 // Báo danh online VỚI UID
                 OnlinePresenceService.goOnline(PlayerContext.uid);
-
-                // Bắt đầu game (chuyển tới Menu)
-                startTransition(); // Giống như hàm bạn đã có
-
+                showLoadingScreen();
             });
 
             controller.setOnGoToSignUp(() -> {
@@ -102,7 +105,7 @@ public class MainConsole extends Application {
             // Gán callback khi đăng ký thành công
             controller.setOnSignUpSuccess(() -> {
                 OnlinePresenceService.goOnline(PlayerContext.uid);
-                startTransition(); // Chuyển vào game
+                showLoadingScreen();
             });
 
             // Gán callback khi nhấn link "Login"
@@ -115,6 +118,43 @@ public class MainConsole extends Application {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void showLoadingScreen() {
+        try {
+            // Tải FXML của màn hình Loading
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/loading.fxml"));
+            Pane root = loader.load();
+
+            // Lấy các control từ FXML
+            ProgressBar progressBar = (ProgressBar) root.lookup("#progressBar");
+            Label statusLabel = (Label) root.lookup("#statusLabel");
+
+            stage.getScene().setRoot(root);
+            AssetLoadingTask loadingTask = new AssetLoadingTask();
+
+            // Liên kết (bind) UI với các thuộc tính của Task
+            progressBar.progressProperty().bind(loadingTask.progressProperty());
+            statusLabel.textProperty().bind(loadingTask.messageProperty());
+
+            loadingTask.setOnSucceeded(e -> {
+                System.out.println("Tải tài nguyên đa luồng thành công");
+                startTransition();
+            });
+
+            // Xử lý khi bị lỗi
+            loadingTask.setOnFailed(e -> {
+                System.err.println("Lỗi khi tải tài nguyên game:");
+                loadingTask.getException().printStackTrace();
+                AlertBox.display("Lỗi nghiêm trọng", "Không thể tải tài nguyên game. Vui lòng thử lại.");
+                Platform.exit();
+            });
+            new Thread(loadingTask).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Không thể tải loading.fxml, vào thẳng menu...");
+            startTransition();
         }
     }
 
@@ -304,6 +344,7 @@ public class MainConsole extends Application {
     /**
      * THÊM HÀM NÀY VÀO (Hàm trợ giúp từ lần hỏi trước)
      * Tạo hiệu ứng mờ dần sang màu đen trên toàn bộ màn hình.
+     *
      * @param onFinished Hành động (Runnable) sẽ được gọi khi hiệu ứng kết thúc.
      */
     private void fadeToBlack(Runnable onFinished) {
@@ -367,7 +408,6 @@ public class MainConsole extends Application {
         // 5. Chạy
         fadeBlack.play();
     }
-
 
 
     /**
