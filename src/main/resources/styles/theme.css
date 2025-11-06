@@ -1,124 +1,107 @@
-/* theme.css (JavaFX) */
+/* src/main/resources/styles/theme.css */
 
-/* đặt biến màu (looked-up colors) tại .root */
-.root {
-    -fx-background-color: linear-gradient(to bottom right, #0b1220, #0e1b3a);
-    -fx-font-family: "Inter", "Segoe UI", Roboto, Arial;
-    -fx-text-fill: #e6eefc;
-    -color-primary:      #3b82f6;
-    -color-primary-900:  #16a34a;
-}
-
-/* nền app */
-.app {
-    -fx-background-color: -color-bg;
+/* Gốc: Đặt ảnh nền vũ trụ */
+.root-pane {
+    /* Hãy đảm bảo bạn có ảnh nền vũ trụ.
+      Tôi thấy bạn có file 'picture/space3.jpg' có vẻ phù hợp.
+      Nếu bạn dùng ảnh khác, hãy đổi đường dẫn ở đây.
+    */
+    -fx-background-image: url('../picture/space3.jpg');
+    -fx-background-size: cover;
+    -fx-background-position: center center;
 }
 
-/* HUD Dùng cho các nhãn hiển thị thông tin như Score, Lives, Level, v.v. */
-.hud {
-    -fx-text-fill: -color-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
+/* Khung kính mờ phát sáng */
+.login-container {
+    -fx-max-width: 420px;
+    -fx-background-color: rgba(10, 20, 40, 0.4); /* Nền kính mờ */
+    -fx-background-radius: 20px;
+    -fx-border-color: rgba(0, 230, 255, 0.7); /* Viền xanh neon */
+    -fx-border-width: 2px;
+    -fx-border-radius: 20px;
+    -fx-padding: 35px;
+    -fx-spacing: 18px; /* Khoảng cách giữa các mục */
+
+    /* Hiệu ứng phát sáng chính */
+    -fx-effect: dropshadow(gaussian, rgba(0, 230, 255, 0.3), 25, 0, 0, 0);
 }
 
-/* overlay Một lớp mờ phủ lên toàn màn hình khi hiển thị menu tạm dừng hoặc thông báo.
- * overlay-title Đặt kiểu chữ cho tiêu đề và phụ đề của overlay.
- */
-.overlay {
-    -fx-background-color: rgba(0,0,0,0.7);
-    -fx-padding: 24;
-    -fx-background-radius: -radius;
-}
-.overlay-title {
-    -fx-text-fill: -color-text;
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
-}
-.overlay-subtitle {
-    -fx-text-fill: -color-muted;
-    -fx-font-size: 16px;
-}
-
-/* button */
-.btn {
-    -fx-background-color: linear-gradient(to right, #3478ff, #2e6cf0);
-    -fx-text-fill: white;
-    -fx-font-size: 16px;
-    -fx-font-weight: 700;
-    -fx-background-radius: 999;
-    -fx-padding: 5 18 5 18;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 8, 0.15, 0, 2);
-}
-.btn:focused {
-    /* JavaFX có :focused — IDE có thể cảnh báo nhưng chạy được */
-    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.15), 8, 0.2, 0, 0);
-}
-
-.btn-primary {
-    -fx-background-color: -color-primary;
-    -fx-text-fill: white;
-}
-.btn-primary:pressed {   /* JavaFX có :pressed */
-    -fx-opacity: 0.9;
-}
-.btn-primary:hover {
-    -fx-background-color: -color-primary-900;
-}
-
-.btn-secondary {
-    -fx-background-color: -color-surface;
-    -fx-text-fill: -color-text;
-    -fx-border-color: rgba(255,255,255,0.12);
-    -fx-border-width: 1;
-    -fx-background-insets: 0, 1;
-}
-.btn-secondary:hover { -fx-background-color: #1f2937; }
-
-.btn-ghost {
-    -fx-background-color: transparent;
-    -fx-text-fill: -color-text;
-}
-.btn-ghost:hover { -fx-background-color: rgba(255,255,255,0.06); }
-
-/*.hint { -fx-text-fill: -color-muted; -fx-font-size: 13px; }*/
-/*.btn:hover {*/
-/*    -fx-background-color: linear-gradient(to right, #3d7fff, #3372ff);*/
-/*}*/
-/*.btn:pressed {*/
-/*    -fx-translate-y: 1;*/
-/*    -fx-opacity: 0.95;*/
-/*}*/
-
-/*!* Biến thể nút phụ (viền) nếu cần *!*/
-/*.btn-ghost {*/
-/*    -fx-background-color: transparent;*/
-/*    -fx-border-color: rgba(255,255,255,0.25);*/
-/*    -fx-border-width: 1;*/
-/*    -fx-border-radius: 999;*/
-/*    -fx-text-fill: #ffffff;*/
-/*}*/
-/*.btn-ghost:hover {*/
-/*    -fx-border-color: rgba(255,255,255,0.45);*/
-/*}*/
-
-/*!* Ẩn/hiện: khi setVisible(false) thì setManaged(false) để không chừa khoảng trống *!*/
-/*.hidden { visibility: hidden; }*/
-/*!* Container thẻ menu (card) giữa màn hình *!*/
-/*.menu-card {*/
-/*    -fx-background-color: rgba(255,255,255,0.06);*/
-/*    -fx-background-radius: 24;*/
-/*    -fx-padding: 32 40 32 40;*/
-/*    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.2, 0, 8);*/
-/*}*/
-
-/* Tiêu đề, mô tả */
-.heading-xl {
+/* Tiêu đề "LOGIN" / "SIGN UP" */
+.form-title {
+    -fx-font-family: "Arial", sans-serif; /* Orbitron hơi khó đọc, dùng font rõ ràng */
     -fx-font-size: 36px;
-    -fx-font-weight: 800;
-    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 230, 255, 0.5), 10, 0, 0, 0);
+    -fx-padding-bottom: 10px; /* Thêm khoảng cách dưới tiêu đề */
 }
-.subtitle {
+
+/* Các ô nhập liệu */
+.text-field, .password-field {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(0, 230, 255, 0.8);
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-text-fill: white; /* Màu chữ khi gõ */
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.6); /* Màu chữ mờ */
     -fx-font-size: 16px;
-    -fx-opacity: 0.85;
+    -fx-pref-height: 48px;
+}
+
+/* Nút bấm chính "LOGIN" / "ĐĂNG KÝ" */
+.form-button {
+    -fx-background-color: rgba(0, 230, 255, 0.8);
+    -fx-text-fill: #051020; /* Chữ màu tối */
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-background-radius: 10px;
+    -fx-pref-height: 45px;
+    -fx-pref-width: 350px; /* Giãn hết cỡ */
+    -fx-cursor: hand;
+}
+.form-button:hover {
+    -fx-background-color: rgba(0, 230, 255, 1); /* Sáng hơn khi di chuột */
+    -fx-effect: dropshadow(gaussian, rgba(0, 230, 255, 0.4), 15, 0, 0, 0);
+}
+
+/* Nút "Đăng nhập bằng Google" */
+.google-button {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(0, 230, 255, 0.8);
+    -fx-border-width: 1px;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-background-radius: 10px;
+    -fx-pref-height: 45px;
+    -fx-pref-width: 350px;
+    -fx-alignment: center-left;
+    -fx-padding: 0 15px;
+    -fx-cursor: hand;
+}
+.google-button:hover {
+    -fx-background-color: rgba(0, 230, 255, 0.1);
+}
+
+/* Chữ nhỏ "Don't have an account?" / "HOẶC" */
+.form-text {
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
+    -fx-font-size: 14px;
+}
+
+/* Chữ link "Sign Up" / "Login" */
+.form-link {
+    -fx-fill: white; /* Dùng -fx-fill vì đây là Text, không phải Label */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.form-link:hover {
+    -fx-underline: true;
+}
+
+/* Báo lỗi */
+#errorText {
+    -fx-fill: #FF8080; /* Màu đỏ nhạt */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
 }

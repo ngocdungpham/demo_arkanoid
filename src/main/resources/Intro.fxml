@@ -1,42 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.text.Font?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
 
-<Pane fx:id="introRoot"
-      xmlns="http://javafx.com/javafx/17"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.ooparkanoid.ui.IntroController"
-      prefHeight="720.0" prefWidth="1280.0">
+<StackPane alignment="CENTER"
+           xmlns="http://javafx.com/javafx/11"
+           xmlns:fx="http://javafx.com/fxml/1"
+           styleClass="root-pane"
+           stylesheets="@/styles/theme.css"> <VBox fx:id="formContainer" alignment="CENTER"
+                                                   fx:controller="com.ooparkanoid.ui.LoginController"
+                                                   styleClass="login-container">
 
-    <children>
-        <ImageView fitHeight="720.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="true">
-            <image>
-                <Image url="@picture/net.jpeg" />
-            </image>
-        </ImageView>
+    <Label text="LOGIN" styleClass="form-title" />
 
-        <Pane prefHeight="720.0" prefWidth="1280.0">
-            <children>
-                <ImageView fx:id="logo" fitHeight="555.0" fitWidth="1065.0" layoutX="136.0" layoutY="-4.0"
-                           pickOnBounds="true" preserveRatio="true">
-                    <image>
-                        <Image url="@picture/logo.png" />
-                    </image>
-                </ImageView>
+    <TextField fx:id="nameField" promptText="nhập tên đăng nhập" />
+    <TextField fx:id="emailField" promptText="nhập email" />
+    <PasswordField fx:id="passwordField" promptText="nhập mật khẩu" />
 
-                <Label fx:id="start" alignment="CENTER" layoutX="507.0" layoutY="566.0"
-                       prefHeight="68.0" prefWidth="286.0"
-                       text="PRESS SPACE TO START" textAlignment="CENTER"
-                       textFill="white">
-                    <font>
-                        <Font name="System Bold" size="24.0" />
-                    </font>
-                </Label>
-            </children>
-        </Pane>
-    </children>
-</Pane>
+    <Button fx:id="signInButton" text="LOGIN"
+            styleClass="form-button"
+            onAction="#handleSignIn" />
+
+    <Text fx:id="errorText" textAlignment="CENTER" wrappingWidth="330" />
+
+    <HBox alignment="CENTER" spacing="5">
+        <VBox.margin>
+            <Insets top="10" />
+        </VBox.margin>
+        <Label text="Don't have an account?" styleClass="form-text" />
+
+        <Text fx:id="signUpLink" text="Sign Up"
+              styleClass="form-link"
+              onMouseClicked="#handleSignUpLinkClick" />
+    </HBox>
+
+</VBox>
+</StackPane>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<StackPane alignment="CENTER"
+           xmlns="http://javafx.com/javafx/11"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.ooparkanoid.ui.SignupController"
+           styleClass="root-pane"
+           stylesheets="@/styles/theme.css">
+
+    <VBox fx:id="formContainer" alignment="CENTER"
+          styleClass="login-container">
+
+        <Label text="SIGN UP" styleClass="form-title" />
+
+        <TextField fx:id="nameField" promptText="nhập tên đăng nhập" />
+        <TextField fx:id="emailField" promptText="nhập email" />
+        <PasswordField fx:id="passwordField" promptText="nhập mật khẩu" />
+        <PasswordField fx:id="confirmPasswordField" promptText="nhập lại mật khẩu" />
+
+        <Button fx:id="signUpButton" text="ĐĂNG KÝ"
+                styleClass="form-button"
+                onAction="#handleSignUp" />
+
+        <Label text="HOẶC" styleClass="form-text" />
+
+        <Button fx:id="googleSignInButton" text="Đăng nhập bằng Google"
+                styleClass="google-button"
+                onAction="#handleGoogleSignIn">
+
+        </Button>
+
+        <Text fx:id="errorText" textAlignment="CENTER" wrappingWidth="330" />
+
+        <HBox alignment="CENTER" spacing="5">
+            <VBox.margin>
+                <Insets top="10" />
+            </VBox.margin>
+            <Label text="Already have an account?" styleClass="form-text" />
+            <Text fx:id="loginLink" text="Login"
+                  styleClass="form-link"
+                  onMouseClicked="#handleLoginLinkClick" />
+        </HBox>
+    </VBox>
+</StackPane>

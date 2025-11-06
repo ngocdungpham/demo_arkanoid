@@ -8,7 +8,7 @@ import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
 import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.graphics.ResourceManager;
-import com.ooparkanoid.ui.LoginController;
+import com.ooparkanoid.ui.*;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -28,9 +28,6 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import com.ooparkanoid.ui.LeaderboardController;
-import com.ooparkanoid.ui.MenuController;
-import com.ooparkanoid.ui.GameSceneRoot;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
@@ -78,10 +75,43 @@ public class MainConsole extends Application {
 
                 // Bắt đầu game (chuyển tới Menu)
                 startTransition(); // Giống như hàm bạn đã có
+
             });
 
-            Scene scene = new Scene(root, Constants.WIDTH, Constants.HEIGHT);
+            controller.setOnGoToSignUp(() -> {
+                showSignUpScreen(); // Gọi hàm hiển thị màn hình đăng ký
+            });
+
+            Scene scene = (stage.getScene() == null)
+                    ? new Scene(root, Constants.WIDTH, Constants.HEIGHT)
+                    : stage.getScene();
+            scene.setRoot(root);
             stage.setScene(scene);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showSignUpScreen() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/signup.fxml"));
+            Parent root = loader.load();
+            SignupController controller = loader.getController();
+
+            // Gán callback khi đăng ký thành công
+            controller.setOnSignUpSuccess(() -> {
+                OnlinePresenceService.goOnline(PlayerContext.uid);
+                startTransition(); // Chuyển vào game
+            });
+
+            // Gán callback khi nhấn link "Login"
+            controller.setOnGoToLogin(() -> {
+                showLoginScreen(); // Quay lại màn hình đăng nhập
+            });
+
+            // Đặt root mới cho scene hiện tại
+            stage.getScene().setRoot(root);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -152,19 +182,19 @@ public class MainConsole extends Application {
         );
 
         closeCurtain.setOnFinished(event -> {
-                    Parent menuContent;
-                    try {
-                        menuContent = loadMenuRoot();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                        transitionPane.getChildren().remove(curtain);
-                        scene.setRoot(currentRoot);
-                        startGame();
-                        return;
-                    }
+            Parent menuContent;
+            try {
+                menuContent = loadMenuRoot();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                transitionPane.getChildren().remove(curtain);
+                scene.setRoot(currentRoot);
+                startGame();
+                return;
+            }
 
 //        fadeBlack.setOnFinished(e -> showNewMenu());
-                    transitionPane.getChildren().set(0, menuContent);
+            transitionPane.getChildren().set(0, menuContent);
 //        fadeBlack.play();
             Timeline openCurtain = new Timeline(
                     new KeyFrame(Duration.ZERO, new KeyValue(curtainScale.xProperty(), 1, Interpolator.EASE_IN)),
@@ -421,7 +451,7 @@ public class MainConsole extends Application {
      * Hàm này giữ nguyên
      */
     private void startGame() {
-      //  GameSceneRoot gameSceneRoot = new GameSceneRoot();
+        //  GameSceneRoot gameSceneRoot = new GameSceneRoot();
         startGame(nextGameMode);
     }
 
