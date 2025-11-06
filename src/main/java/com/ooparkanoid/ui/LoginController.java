@@ -11,6 +11,36 @@ import javafx.scene.text.Text;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.concurrent.CompletableFuture;
+// THÊM CÁC IMPORT NÀY
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
+import javafx.application.Platform;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
+import com.ooparkanoid.core.auth.AuthService;
+import com.ooparkanoid.core.state.PlayerContext;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 public class LoginController {
 
@@ -18,21 +48,44 @@ public class LoginController {
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private Button signInButton;
-    @FXML private Button signUpButton;
+    private String defaultGoogleSignInText; // THÊM DÒNG NÀY
+    @FXML private Button googleSignInButton; // THÊM DÒNG NÀY
+//    @FXML private Button signUpButton;
     @FXML private Text errorText;
+    @FXML private Text signUpLink; // <- THÊM LINK NÀY
+
+    private static final String CLIENT_SECRETS_FILE = "client_secrets.json"; // File bạn tải về
+    private static final java.io.File DATA_STORE_DIR = new java.io.File(System.getProperty("user.home"), ".store/arkanoid_auth_cache");
+    private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private static NetHttpTransport HTTP_TRANSPORT;
+    private static FileDataStoreFactory dataStoreFactory;
 
     private Runnable onLoginSuccess;
     private String defaultSignInText;
-    private String defaultSignUpText;
+    private Runnable onGoToSignUp; // <- THÊM CALLBACK NÀY
+//    private String defaultSignUpText;
 
     public void setOnLoginSuccess(Runnable onLoginSuccess) {
         this.onLoginSuccess = onLoginSuccess;
     }
 
+    public void setOnGoToSignUp(Runnable onGoToSignUp) {
+        this.onGoToSignUp = onGoToSignUp;
+    }
+
     @FXML
     private void initialize() {
         defaultSignInText = signInButton.getText();
-        defaultSignUpText = signUpButton.getText();
+//        defaultSignUpText = signUpButton.getText();
+        defaultGoogleSignInText = googleSignInButton.getText(); // THÊM DÒNG NÀY
+
+        // Khởi tạo transport
+        try {
+            HTTP_TRANSPORT = new NetHttpTransport();
+            dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -72,45 +125,137 @@ public class LoginController {
         performAuthentication(AuthService.signIn(email, password), name, AuthAction.SIGN_IN);
     }
 
+    /**
+     * THÊM HÀM MỚI NÀY
+     */
     @FXML
-    private void handleSignUp() {
-        String email = emailField.getText();
-        String password = passwordField.getText();
-        String name = nameField.getText(); // Lấy tên hiển thị
-
-        if (!isInputValid(email, password, name)) {
+    private void handleGoogleSignIn() {
+        String name = nameField.getText();
+        if (name.isEmpty()) {
+            showError("Vui lòng nhập Tên hiển thị trước khi đăng nhập bằng Google.");
             return;
         }
 
-        performAuthentication(AuthService.signUp(email, password), name, AuthAction.SIGN_UP);
+        setLoading(true, AuthAction.GOOGLE_SIGN_IN);
+
+        // Chạy việc lấy token trong một luồng riêng để không block UI
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                // Bước A: Lấy Google ID Token
+                return getGoogleIdToken();
+            } catch (Exception e) {
+                // Bắt lỗi nếu người dùng đóng trình duyệt hoặc có lỗi mạng
+                throw new RuntimeException("Lỗi khi lấy Google ID Token: " + e.getMessage(), e);
+            }
+        }).thenCompose(idToken -> {
+            if (idToken == null) {
+                return CompletableFuture.completedFuture(AuthResult.failure("Không thể lấy Google ID Token."));
+            }
+            // Bước B: Có ID Token, giờ gọi Firebase
+            return AuthService.signInWithGoogleIdToken(idToken)
+                    .thenApply(responseBody -> parseAuthResponse(responseBody, name));
+        }).exceptionally(ex -> {
+            // Bắt lỗi chung
+            System.err.println("Lỗi đăng nhập Google: " + ex.getMessage());
+            return AuthResult.failure("Quá trình đăng nhập Google thất bại.");
+        }).thenAccept(result -> {
+            // Bước C: Cập nhật UI
+            Platform.runLater(() -> {
+                setLoading(false, AuthAction.GOOGLE_SIGN_IN);
+                if (result.isSuccess()) {
+                    finalizeLogin(result);
+                } else {
+                    showError(result.errorMessage());
+                }
+            });
+        });
     }
+
+    /**
+     * THÊM HÀM MỚI NÀY
+     * Thực hiện luồng OAuth 2.0 cho desktop app để lấy ID Token.
+     */
+    private String getGoogleIdToken() throws Exception {
+//        InputStream in = LoginController.class.getResourceAsStream(CLIENT_SECRETS_FILE);
+//        InputStream in = LoginController.class.getResourceAsStream("/" + CLIENT_SECRETS_FILE);
+        // Dòng 143 (Code mới - đáng tin cậy hơn)
+//        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(CLIENT_SECRETS_FILE);
+        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(CLIENT_SECRETS_FILE);
+        if (in == null) {
+            throw new FileNotFoundException("Không tìm thấy file resource: " + CLIENT_SECRETS_FILE + ". Bạn đã tải về và đặt nó vào src/main/resources chưa?");
+        }
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets,
+                Collections.singleton("openid email profile")) // Yêu cầu scope
+                .setDataStoreFactory(dataStoreFactory)
+                .setAccessType("offline")
+                .build();
+
+        // 1. Khởi tạo receiver
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+        String redirectUri = receiver.getRedirectUri();
+
+        // 2. Tự tạo URL và mở trình duyệt
+        String url = flow.newAuthorizationUrl().setRedirectUri(redirectUri).build();
+        browse(url); // Mở trình duyệt (bạn cần thêm hàm browse bên dưới)
+
+        // 3. Đợi người dùng đồng ý và lấy 'code'
+        String code = receiver.waitForCode();
+
+        // 4. Dùng 'code' để trao đổi lấy TokenResponse
+        // Đây là bước quan trọng, chúng ta cần GoogleTokenResponse, không phải Credential
+        com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse tokenResponse =
+                (com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse) flow.newTokenRequest(code)
+                        .setRedirectUri(redirectUri)
+                        .execute();
+
+        // 5. ✅ LẤY ID TOKEN THÀNH CÔNG!
+        String idTokenString = tokenResponse.getIdToken();
+
+        // 6. [Bonus] Tạo và lưu credential để lần sau không cần đăng nhập lại
+        // Dòng này sẽ lưu token (bao gồm cả refresh token) vào DataStoreFactory
+        flow.createAndStoreCredential(tokenResponse, "user");
+
+        // 7. Nhớ dừng server lại
+        receiver.stop();
+
+        return idTokenString;
+    }
+
+    /**
+     * THÊM HÀM NÀY: Dùng để mở trình duyệt
+     */
+    private void browse(String url) {
+        try {
+            if (java.awt.Desktop.isDesktopSupported() &&
+                    java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+            } else {
+                // Xử lý nếu không hỗ trợ mở trình duyệt
+                System.err.println("Không thể mở trình duyệt tự động. Vui lòng mở URL sau: " + url);
+                showError("Không thể mở trình duyệt. Hãy kiểm tra console.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Lỗi khi mở trình duyệt.");
+        }
+    }
+
+    @FXML
+    private void handleSignUpLinkClick() {
+        if (onGoToSignUp != null) {
+            onGoToSignUp.run();
+        }
+    }
+
     private boolean isInputValid(String email, String password, String name) {
         if (email.isEmpty() || password.isEmpty() || name.isEmpty()) {
             showError("Vui lòng nhập Tên, Email và Mật khẩu.");
             return false;
         }
 
-//        setLoading(true);
-//        AuthService.signUp(email, password).thenAccept(response -> {
-//            Platform.runLater(() -> {
-//                processAuthResponse(response, name);
-//                setLoading(false);
-//            });
-//        });
-//        AuthService.signUp(email, password)
-//                .thenAccept(response -> {
-//                    Platform.runLater(() -> {
-//                        processAuthResponse(response, name);
-//                        setLoading(false);
-//                    });
-//                })
-//                .exceptionally(ex -> {
-//                    Platform.runLater(() -> {
-//                        showError("Không thể kết nối đến máy chủ. Vui lòng thử lại.");
-//                        setLoading(false);
-//                    });
-//                    return null;
-//                });
         clearError();
         return true;
     }
@@ -145,30 +290,37 @@ public class LoginController {
     private AuthResult parseAuthResponse(String responseBody, String displayName) {
         try {
             JSONObject json = new JSONObject(responseBody);
+            if (json.has("localId") && json.has("idToken")) {
+                String uid = json.getString("localId");
+//                String email = json.getString("email");
+//                String idToken = json.getString("idToken");
+//                return AuthResult.success(uid, email, idToken, displayName);
+                String email = json.optString("email", "");
+                String idToken = json.getString("idToken");
+                return AuthResult.success(uid, email, idToken, displayName);
+            }
+
+            // Xử lý response từ email/password (code cũ của bạn)
             if (json.has("idToken")) {
                 String uid = json.getString("localId");
                 String email = json.getString("email");
                 String idToken = json.getString("idToken");
                 return AuthResult.success(uid, email, idToken, displayName);
             }
+
             // Gọi callback để chuyển cảnh
-//            if (onLoginSuccess != null) {
-//                onLoginSuccess.run();
             if (json.has("error")) {
                 JSONObject errorObject = json.getJSONObject("error");
                 String message = errorObject.optString("message", "Lỗi không xác định.");
                 return AuthResult.failure(translateErrorMessage(message));
             }
-//        } else if (json.has("error")) {
-//            String message = json.getJSONObject("error").getString("message");
-//            showError(message);
-//        } else {
-//            showError("Lỗi không xác định.");
             return AuthResult.failure("Lỗi không xác định.");
         } catch (JSONException ex) {
             return AuthResult.failure("Phản hồi không hợp lệ từ máy chủ.");
         }
     }
+
+    private record AuthData(AuthResult authResult, String googleDisplayName) {}
 
     private void finalizeLogin(AuthResult result) {
         PlayerContext.setSession(result.uid(), result.email(), result.idToken(), result.displayName());
@@ -201,67 +353,84 @@ public class LoginController {
 
     private void setLoading(boolean isLoading, AuthAction action) {
         signInButton.setDisable(isLoading);
-        signUpButton.setDisable(isLoading);
+        // signUpButton.setDisable(isLoading); // <- Xóa
+        signUpLink.setDisable(isLoading); // <- Thêm
+        googleSignInButton.setDisable(isLoading); // CẬP NHẬT
         nameField.setDisable(isLoading);
         emailField.setDisable(isLoading);
         passwordField.setDisable(isLoading);
+        googleSignInButton.setText(defaultGoogleSignInText); // CẬP NHẬT
 
         if (isLoading) {
-            if (action == AuthAction.SIGN_IN) {
-                signInButton.setText("Đang đăng nhập...");
-                signUpButton.setText(defaultSignUpText);
-            } else {
-                signUpButton.setText("Đang đăng ký...");
-                signInButton.setText(defaultSignInText);
+            // Chỉ đặt text "loading" cho nút được nhấn
+            switch (action) {
+                case SIGN_IN:
+                    signInButton.setText("Đang đăng nhập...");
+                    break;
+                case GOOGLE_SIGN_IN:
+                    googleSignInButton.setText("Đang chờ Google..."); // CẬP NHẬT
+                    break;
             }
-        } else {
-            signInButton.setText(defaultSignInText);
-            signUpButton.setText(defaultSignUpText);
         }
     }
 
     private enum AuthAction {
         SIGN_IN,
-        SIGN_UP
+        SIGN_UP,
+        GOOGLE_SIGN_IN
     }
 
-    private record AuthResult(boolean isSuccess,
-                              String uid,
-                              String email,
-                              String idToken,
-                              String displayName,
-                              String errorMessage) {
+//    private record AuthResult(boolean isSuccess,
+//                              String uid,
+//                              String email,
+//                              String idToken,
+//                              String displayName,
+//                              String errorMessage) {
+//
+//        static AuthResult success(String uid, String email, String idToken, String displayName) {
+//            return new AuthResult(true, uid, email, idToken, displayName, null);
+//        }
+//
+//        static AuthResult failure(String errorMessage) {
+//            return new AuthResult(false, null, null, null, null, errorMessage);
+//        }
+//
+//        public boolean isSuccess() {
+//            return isSuccess;
+//        }
+//
+//        public String errorMessage() {
+//            return errorMessage;
+//        }
+//
+//        public String uid() {
+//            return uid;
+//        }
+//
+//        public String email() {
+//            return email;
+//        }
+//
+//        public String idToken() {
+//            return idToken;
+//        }
+//
+//        public String displayName() {
+//            return displayName;
+//        }
+//    }
+private record AuthResult(boolean isSuccess,
+                          String uid,
+                          String email,
+                          String idToken,
+                          String displayName,
+                          String errorMessage) {
 
-        static AuthResult success(String uid, String email, String idToken, String displayName) {
-            return new AuthResult(true, uid, email, idToken, displayName, null);
-        }
-
-        static AuthResult failure(String errorMessage) {
-            return new AuthResult(false, null, null, null, null, errorMessage);
-        }
-
-        public boolean isSuccess() {
-            return isSuccess;
-        }
-
-        public String errorMessage() {
-            return errorMessage;
-        }
-
-        public String uid() {
-            return uid;
-        }
-
-        public String email() {
-            return email;
-        }
-
-        public String idToken() {
-            return idToken;
-        }
-
-        public String displayName() {
-            return displayName;
-        }
+    static AuthResult success(String uid, String email, String idToken, String displayName) {
+        return new AuthResult(true, uid, email, idToken, displayName, null);
     }
+    static AuthResult failure(String errorMessage) {
+        return new AuthResult(false, null, null, null, null, errorMessage);
+    }
+}
 }
