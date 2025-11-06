@@ -50,7 +50,7 @@ public class LoginController {
     @FXML private Button signInButton;
     private String defaultGoogleSignInText; // THÊM DÒNG NÀY
     @FXML private Button googleSignInButton; // THÊM DÒNG NÀY
-//    @FXML private Button signUpButton;
+    //    @FXML private Button signUpButton;
     @FXML private Text errorText;
     @FXML private Text signUpLink; // <- THÊM LINK NÀY
 
@@ -130,12 +130,12 @@ public class LoginController {
      */
     @FXML
     private void handleGoogleSignIn() {
-        String name = nameField.getText();
-        if (name.isEmpty()) {
-            showError("Vui lòng nhập Tên hiển thị trước khi đăng nhập bằng Google.");
-            return;
-        }
-
+//        String name = nameField.getText();
+//        if (name.isEmpty()) {
+//            showError("Vui lòng nhập Tên hiển thị trước khi đăng nhập bằng Google.");
+//            return;
+//        }
+        clearError();
         setLoading(true, AuthAction.GOOGLE_SIGN_IN);
 
         // Chạy việc lấy token trong một luồng riêng để không block UI
@@ -153,7 +153,8 @@ public class LoginController {
             }
             // Bước B: Có ID Token, giờ gọi Firebase
             return AuthService.signInWithGoogleIdToken(idToken)
-                    .thenApply(responseBody -> parseAuthResponse(responseBody, name));
+//                    .thenApply(responseBody -> parseAuthResponse(responseBody, name));
+                    .thenApply(responseBody -> parseAuthResponse(responseBody, null));
         }).exceptionally(ex -> {
             // Bắt lỗi chung
             System.err.println("Lỗi đăng nhập Google: " + ex.getMessage());
@@ -290,34 +291,106 @@ public class LoginController {
     private AuthResult parseAuthResponse(String responseBody, String displayName) {
         try {
             JSONObject json = new JSONObject(responseBody);
-            if (json.has("localId") && json.has("idToken")) {
-                String uid = json.getString("localId");
+//            if (json.has("localId") && json.has("idToken")) {
+//                String uid = json.getString("localId");
+////                String email = json.getString("email");
+////                String idToken = json.getString("idToken");
+////                return AuthResult.success(uid, email, idToken, displayName);
+//                String email = json.optString("email", "");
+//                String idToken = json.getString("idToken");
+//                return AuthResult.success(uid, email, idToken, displayName);
+//            }
+//
+//            // Xử lý response từ email/password (code cũ của bạn)
+//            if (json.has("idToken")) {
+//                String uid = json.getString("localId");
 //                String email = json.getString("email");
 //                String idToken = json.getString("idToken");
 //                return AuthResult.success(uid, email, idToken, displayName);
-                String email = json.optString("email", "");
-                String idToken = json.getString("idToken");
-                return AuthResult.success(uid, email, idToken, displayName);
-            }
-
-            // Xử lý response từ email/password (code cũ của bạn)
-            if (json.has("idToken")) {
-                String uid = json.getString("localId");
-                String email = json.getString("email");
-                String idToken = json.getString("idToken");
-                return AuthResult.success(uid, email, idToken, displayName);
-            }
-
-            // Gọi callback để chuyển cảnh
+//            }
+//
+//            // Gọi callback để chuyển cảnh
             if (json.has("error")) {
                 JSONObject errorObject = json.getJSONObject("error");
                 String message = errorObject.optString("message", "Lỗi không xác định.");
                 return AuthResult.failure(translateErrorMessage(message));
             }
-            return AuthResult.failure("Lỗi không xác định.");
+//            return AuthResult.failure("Lỗi không xác định.");
+            if (!json.has("idToken")) {
+                return AuthResult.failure("Phản hồi không hợp lệ từ máy chủ.");
+            }
+
+            String uid = json.optString("localId", "");
+            if (uid.isBlank()) {
+                return AuthResult.failure("Không thể xác định tài khoản người dùng.");
+            }
+
+            String email = json.optString("email", "");
+            String idToken = json.getString("idToken");
+            String resolvedDisplayName = resolveDisplayName(json, displayName);
+            return AuthResult.success(uid, email, idToken, resolvedDisplayName);
+
         } catch (JSONException ex) {
+
+
             return AuthResult.failure("Phản hồi không hợp lệ từ máy chủ.");
         }
+    }
+
+    private String resolveDisplayName(JSONObject json, String fallbackDisplayName) {
+        String displayName = json.optString("displayName", "");
+        if (!displayName.isBlank()) {
+            return displayName.trim();
+        }
+
+        displayName = json.optString("fullName", "");
+        if (!displayName.isBlank()) {
+            return displayName.trim();
+        }
+
+        String firstName = json.optString("firstName", "");
+        String lastName = json.optString("lastName", "");
+        String combined = (firstName + " " + lastName).trim();
+        if (!combined.isBlank()) {
+            return combined;
+        }
+
+        String rawUserInfo = json.optString("rawUserInfo", "");
+        if (!rawUserInfo.isBlank()) {
+            try {
+                JSONObject raw = new JSONObject(rawUserInfo);
+                String rawDisplayName = raw.optString("displayName", "");
+                if (!rawDisplayName.isBlank()) {
+                    return rawDisplayName.trim();
+                }
+                JSONObject nameObject = raw.optJSONObject("name");
+                if (nameObject != null) {
+                    String given = nameObject.optString("givenName", "");
+                    String family = nameObject.optString("familyName", "");
+                    String rawCombined = (given + " " + family).trim();
+                    if (!rawCombined.isBlank()) {
+                        return rawCombined;
+                    }
+                }
+            } catch (JSONException ignored) {
+                // Bỏ qua nếu rawUserInfo không phải JSON hợp lệ
+            }
+        }
+
+        if (fallbackDisplayName != null && !fallbackDisplayName.isBlank()) {
+            return fallbackDisplayName.trim();
+        }
+
+        String email = json.optString("email", "");
+        if (!email.isBlank()) {
+            int atIndex = email.indexOf('@');
+            if (atIndex > 0) {
+                return email.substring(0, atIndex);
+            }
+            return email;
+        }
+
+        return PlayerContext.playerName != null ? PlayerContext.playerName : "Player";
     }
 
     private record AuthData(AuthResult authResult, String googleDisplayName) {}
@@ -380,7 +453,7 @@ public class LoginController {
         GOOGLE_SIGN_IN
     }
 
-//    private record AuthResult(boolean isSuccess,
+    //    private record AuthResult(boolean isSuccess,
 //                              String uid,
 //                              String email,
 //                              String idToken,
@@ -419,18 +492,18 @@ public class LoginController {
 //            return displayName;
 //        }
 //    }
-private record AuthResult(boolean isSuccess,
-                          String uid,
-                          String email,
-                          String idToken,
-                          String displayName,
-                          String errorMessage) {
+    private record AuthResult(boolean isSuccess,
+                              String uid,
+                              String email,
+                              String idToken,
+                              String displayName,
+                              String errorMessage) {
 
-    static AuthResult success(String uid, String email, String idToken, String displayName) {
-        return new AuthResult(true, uid, email, idToken, displayName, null);
+        static AuthResult success(String uid, String email, String idToken, String displayName) {
+            return new AuthResult(true, uid, email, idToken, displayName, null);
+        }
+        static AuthResult failure(String errorMessage) {
+            return new AuthResult(false, null, null, null, null, errorMessage);
+        }
     }
-    static AuthResult failure(String errorMessage) {
-        return new AuthResult(false, null, null, null, null, errorMessage);
-    }
-}
 }
