@@ -3,15 +3,34 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="720.0" prefWidth="1280.0" spacing="20.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
-    <children>
-        <Label style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-family: 'Arial Black';" text="ARKANOID" />
-        <ProgressBar fx:id="progressBar" prefWidth="600.0" progress="0.0" />
-        <Label fx:id="statusLabel" style="-fx-text-fill: lightgray; -fx-font-size: 14px;" text="Đang khởi tạo..." />
-    </children>
-    <padding>
-        <Insets bottom="100.0" />
-    </padding>
-</VBox>
+<BorderPane prefHeight="720.0" prefWidth="1280.0"
+            styleClass="loading-root"
+            stylesheets="@loading.css"
+            xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
+
+    <center>
+        <ImageView fx:id="logoImageView" fitWidth="700.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
+            <image>
+                <Image url="@/images/arkanoid_logo.png" />
+            </image>
+        </ImageView>
+    </center>
+
+    <bottom>
+        <VBox alignment="CENTER" prefWidth="1280.0" spacing="15.0" BorderPane.alignment="CENTER">
+            <children>
+                <ProgressBar fx:id="progressBar" prefWidth="600.0" progress="0.0" />
+                <Label fx:id="statusLabel" text="Đang khởi tạo..." />
+            </children>
+            <padding>
+                <Insets bottom="50.0" />
+            </padding>
+        </VBox>
+    </bottom>
+
+</BorderPane>
