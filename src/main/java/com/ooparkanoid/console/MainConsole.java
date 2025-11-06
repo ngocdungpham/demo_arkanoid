@@ -121,6 +121,8 @@ public class MainConsole extends Application {
     @Override
     public void stop() throws Exception {
         System.out.println("Game đang đóng... Báo danh offline.");
+        // Shutdown SoundManager
+        SoundManager.getInstance().shutdown();
 
         // Báo danh offline VỚI UID
         if (PlayerContext.isLoggedIn()) {
