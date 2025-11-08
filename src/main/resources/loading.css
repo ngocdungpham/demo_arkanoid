@@ -1,0 +1,47 @@
+.loading-root {
+    -fx-background-image: url("/images/background.jpg");
+    -fx-background-position: center center;
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+}
+
+
+
+/* Thanh tiến trình */
+#progressBar {
+    -fx-accent: #00ffff;
+    -fx-control-inner-background: rgba(40, 40, 60, 0.5);
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 2px;
+    -fx-background-insets: 0;
+}
+
+
+#progressBar .track {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: rgba(0, 255, 255, 0.3); /* Viền mờ */
+    -fx-border-width: 1px;
+}
+
+#progressBar .bar {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #00ffff, #00b0b0);
+    -fx-background-insets: 1;
+    -fx-background-radius: 0;
+    -fx-effect: innershadow(gaussian, rgba(255, 255, 255, 0.3), 10, 0, 0, 0);
+}
+
+
+#statusLabel {
+    -fx-font-family: "Segoe UI", "Arial", "System";
+    -fx-font-size: 16px;
+
+    -fx-text-fill: #f0f0f0;
+
+    -fx-font-style: normal;
+    -fx-font-weight: bold;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 5, 0.5, 0, 1);
+}
