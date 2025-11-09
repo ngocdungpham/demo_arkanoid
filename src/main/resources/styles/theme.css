@@ -105,3 +105,22 @@
     -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
+.start-text {
+    /* Phông chữ mới:
+      - "Orbitron" là một phông chữ sci-fi/game rất đẹp.
+      - "Impact" là phông chữ dự phòng, đậm, rõ ràng.
+      - "Consolas" cũng là một lựa chọn kiểu công nghệ.
+      Bạn có thể chọn một trong các phông này, tôi sẽ ưu tiên "Orbitron".
+    */
+    -fx-font-family: "Orbitron", "Impact", "Consolas", sans-serif;
+
+    /* Tăng kích thước phông chữ từ 28px lên 36px (bạn có thể chỉnh to hơn) */
+    -fx-font-size: 26px;
+
+    /* Thêm -fx-font-weight để chữ đậm hơn */
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+
+    /* Giữ hiệu ứng phát sáng */
+    -fx-effect: dropshadow(gaussian, rgba(0, 230, 255, 0.7), 15, 0, 0, 0);
+}

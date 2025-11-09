@@ -8,6 +8,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import com.ooparkanoid.sound.SoundManager;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -45,6 +46,7 @@ public class LeaderboardController {
     private Button backButton;
 
     private Runnable backAction;
+
 
     @FXML
     private void initialize() {
@@ -141,6 +143,7 @@ public class LeaderboardController {
                 + " • TB/Round: " + formatDuration(entry.getAverageSecondsPerRound())
                 + " • Tổng: " + formatDuration(entry.getTotalSeconds());
     }
+
 
     private String formatDuration(double seconds) {
         long totalSeconds = Math.max(0, Math.round(seconds));

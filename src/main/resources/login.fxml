@@ -26,7 +26,7 @@
         <TextField fx:id="emailField" promptText="nhập email" />
         <PasswordField fx:id="passwordField" promptText="nhập mật khẩu" />
 
-        <Button fx:id="signInButton" text="LOGIN"
+        <Button fx:id="signInButton" text="Đăng nhập"
                 styleClass="form-button"
                 onAction="#handleSignIn" />
 
@@ -41,10 +41,10 @@
                   styleClass="form-link"
                   onMouseClicked="#handleSignUpLinkClick" />
         </HBox>
-<!--        <HBox spacing="10" alignment="CENTER">-->
-<!--            <Button fx:id="signInButton" text="Đăng nhập" styleClass="menu-button" onAction="#handleSignIn"/>-->
-<!--            <Button fx:id="signUpButton" text="Đăng ký" styleClass="menu-button" onAction="#handleSignUp"/>-->
-<!--        </HBox>-->
+        <!--        <HBox spacing="10" alignment="CENTER">-->
+        <!--            <Button fx:id="signInButton" text="Đăng nhập" styleClass="menu-button" onAction="#handleSignIn"/>-->
+        <!--            <Button fx:id="signUpButton" text="Đăng ký" styleClass="menu-button" onAction="#handleSignUp"/>-->
+        <!--        </HBox>-->
 
         <Label text="HOẶC" styleClass="form-text" />
 
@@ -53,10 +53,10 @@
                 onAction="#handleGoogleSignIn">
 
         </Button>
-<!--        <Button fx:id="googleSignInButton" text="Đăng nhập với Google" styleClass="menu-button"-->
-<!--                onAction="#handleGoogleSignIn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>-->
+        <!--        <Button fx:id="googleSignInButton" text="Đăng nhập với Google" styleClass="menu-button"-->
+        <!--                onAction="#handleGoogleSignIn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>-->
 
-<!--        <Text fx:id="errorText" fill="RED" wrappingWidth="300" textAlignment="CENTER"/>-->
+        <!--        <Text fx:id="errorText" fill="RED" wrappingWidth="300" textAlignment="CENTER"/>-->
     </VBox>
 
 </StackPane>
