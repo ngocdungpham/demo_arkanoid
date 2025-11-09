@@ -1,21 +1,22 @@
 .root {
-    -fx-background-color: radial-gradient(center 50% 20%, radius 90%, #1a0246, #050114 75%);
+    -fx-background-color: radial-gradient(center 50% 20%, radius 90%, #4a0a02, #000000 75%);
     -fx-font-family: "Orbitron", "Segoe UI", sans-serif;
     -fx-text-fill: #f4f8ff;
 }
 
 .leaderboard-title {
     -fx-font-size: 48px;
-    -fx-font-weight: 800;
+    -fx-font-weight: 900; /* Tăng độ đậm cho tiêu đề */
     -fx-letter-spacing: 4px;
-    -fx-text-fill: linear-gradient(to bottom, #8be9ff, #ffffff);
-    -fx-effect: dropshadow(gaussian, rgba(0, 255, 255, 0.35), 18, 0.2, 0, 0);
+    -fx-text-fill: linear-gradient(to bottom, #ffdd00, #ff8c00);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 0, 0.8), 25, 0.4, 0, 0); /* Tăng hiệu ứng phát sáng */
 }
 
 .leaderboard-subtitle {
     -fx-font-size: 20px;
-    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-text-fill: #ffffff; /* Đổi thành trắng tinh cho dễ đọc */
     -fx-letter-spacing: 2px;
+    -fx-font-weight: 700; /* In đậm phụ đề */
 }
 
 .leaderboard-card {
@@ -23,88 +24,108 @@
 }
 
 .leaderboard-card .table-view {
-    -fx-background-color: rgba(13, 21, 53, 0.88);
+    -fx-background-color: rgba(20, 5, 5, 0.9);
     -fx-background-radius: 24;
-    -fx-border-color: rgba(0, 255, 255, 0.45);
+    -fx-border-color: #ff5000; /* Viền cam rõ hơn */
     -fx-border-radius: 24;
-    -fx-border-width: 1.5;
-    -fx-effect: dropshadow(gaussian, rgba(0, 10, 30, 0.65), 32, 0.25, 0, 18);
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 40, 0.3, 0, 20);
 }
 
 .table-view {
     -fx-table-cell-border-color: transparent;
     -fx-padding: 12;
-    -fx-selection-bar: rgba(0, 217, 255, 0.45);
-    -fx-selection-bar-non-focused: rgba(0, 217, 255, 0.35);
+    /* Màu nền khi chọn hàng: Cam đậm hơn để nổi chữ trắng */
+    -fx-selection-bar: #b33d00;
+    -fx-selection-bar-non-focused: #8c3000;
     -fx-border-insets: 0;
     -fx-background-insets: 0;
 }
 
 .table-view .column-header-background {
-    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-background-color: rgba(60, 10, 5, 0.8);
     -fx-background-radius: 24 24 0 0;
     -fx-padding: 12 6 12 6;
 }
 
 .table-view .column-header .label {
-    -fx-text-fill: rgba(255, 255, 255, 0.9);
-    -fx-font-weight: 700;
-    -fx-font-size: 18px;
+    -fx-text-fill: #ffcc00; /* Tiêu đề cột màu vàng rực */
+    -fx-font-weight: 900;
+    -fx-font-size: 19px;
     -fx-alignment: CENTER;
+    -fx-effect: dropshadow(gaussian, black, 2, 1.0, 0, 1); /* Thêm bóng đen nhẹ giúp chữ nổi bật trên nền */
 }
 
+/* --- PHẦN CHỈNH SỬA QUAN TRỌNG --- */
 .table-view .table-row-cell {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-font-size: 16px;
-    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-font-size: 17px; /* Tăng nhẹ kích thước chữ */
+    -fx-text-fill: #ffffff; /* <--- CHỮ MÀU TRẮNG TINH */
+    -fx-font-weight: bold; /* <--- IN ĐẬM ĐỂ DỄ NHÌN HƠN */
 }
 
+/* Thêm đoạn này vào file CSS */
+.table-view .table-cell {
+    -fx-font-size: 16px;
+    -fx-text-fill: #ffffff; /* CHỮ MÀU TRẮNG NỔI BẬT */
+    -fx-border-color: transparent;
+    -fx-background-color: transparent; /* Đảm bảo ô trong suốt */
+}
+/* -------------------------------- */
+
 .table-view .table-row-cell:odd {
-    -fx-background-color: rgba(0, 0, 0, 0.12);
+    -fx-background-color: rgba(255, 50, 0, 0.1); /* Nền hàng lẻ đỏ rất nhạt để giữ tương phản tốt */
 }
 
 .table-view .table-row-cell:selected {
-    -fx-text-fill: #051321;
-    -fx-font-weight: 700;
+    -fx-text-fill: #ffffff; /* Hàng được chọn vẫn giữ chữ trắng */
+    -fx-font-weight: 900; /* Đậm hơn nữa khi chọn */
+    -fx-effect: dropshadow(gaussian, black, 3, 1.0, 0, 1); /* Giúp chữ nổi bật trên nền cam */
 }
 
 .table-view .placeholder .label {
-    -fx-text-fill: rgba(255, 255, 255, 0.6);
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
     -fx-font-size: 18px;
 }
 
 .leaderboard-back-button {
-    -fx-background-color: linear-gradient(to right, #082343, #0c386b);
-    -fx-text-fill: #e4f9ff;
+    -fx-background-color: linear-gradient(to right, #8b0000, #ff3c00);
+    -fx-text-fill: #ffffff;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
-    -fx-padding: 10 28 10 28;
-    -fx-background-radius: 999;
-    -fx-effect: dropshadow(gaussian, rgba(0, 255, 255, 0.35), 18, 0.2, 0, 0);
+    -fx-font-weight: 800;
+    -fx-padding: 12 32 12 32;
+    -fx-background-radius: 30;
+    -fx-border-color: #ff7b00;
+    -fx-border-radius: 30;
+    -fx-border-width: 2;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255, 60, 0, 0.4), 20, 0.3, 0, 0);
 }
 
 .leaderboard-back-button:hover {
-    -fx-background-color: linear-gradient(to right, #0a3b74, #1157b7);
+    -fx-background-color: linear-gradient(to right, #a60000, #ff5e00);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 0, 0.6), 25, 0.4, 0, 0);
 }
 
 .leaderboard-back-button:armed {
-    -fx-translate-y: 1;
+    -fx-translate-y: 2;
 }
 
 .leaderboard-back-hint {
-    -fx-text-fill: rgba(255, 255, 255, 0.55);
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
     -fx-font-size: 16px;
-    -fx-letter-spacing: 2px;
+    -fx-font-weight: bold;
 }
 
 .leaderboard-tooltip {
-    -fx-font-size: 13px;
-    -fx-background-color: rgba(8, 17, 43, 0.92);
-    -fx-text-fill: #d8f7ff;
-    -fx-padding: 8 12 8 12;
-    -fx-background-radius: 8;
-    -fx-border-color: rgba(0, 255, 255, 0.6);
-    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #1a0505;
+    -fx-text-fill: #ffcc00;
+    -fx-padding: 10 15 10 15;
+    -fx-background-radius: 10;
+    -fx-border-color: #ff4500;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
 }
