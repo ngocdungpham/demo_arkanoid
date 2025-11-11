@@ -27,6 +27,7 @@ public class ResourceManager {
         return instance;
     }
 
+    // Dùng trong AssetLoadingTask
     public Image loadImage(String filename) {
         if (imageCache.containsKey(filename)) {
             return imageCache.get(filename);
@@ -43,6 +44,7 @@ public class ResourceManager {
         }
     }
 
+    // Dùng trong AssetLoadingTask
     public SpriteSheet loadSpriteSheet(String filename, int frameWidth, int frameHeight) {
         if (spriteSheetCache.containsKey(filename)) {
             return spriteSheetCache.get(filename);
@@ -50,7 +52,7 @@ public class ResourceManager {
         try {
             String path = SPRITES_PATH + filename;
             Image image = new Image(getClass().getResourceAsStream(path));
-            SpriteSheet sheet = new SpriteSheet(image, frameWidth, frameHeight, 0 , 0);
+            SpriteSheet sheet = new SpriteSheet(image, frameWidth, frameHeight, 0, 0);
             spriteSheetCache.put(filename, sheet);
             System.out.println("Loaded spritesheet: " + filename);
             return sheet;
@@ -58,6 +60,22 @@ public class ResourceManager {
             System.err.println("Failed to load spritesheet: " + filename);
             return null;
         }
+    }
+
+    public Image getImage(String filename) {
+        Image image = imageCache.get(filename);
+        if (image == null) {
+            System.err.println("Image not loaded :" + filename);
+        }
+        return image;
+    }
+
+    public SpriteSheet getSpriteSheet(String filename) {
+        SpriteSheet sheet = spriteSheetCache.get(filename);
+        if (sheet == null) {
+            System.err.println("SpriteSheet not loaded : " + filename);
+        }
+        return sheet;
     }
 
     // resetgame

@@ -101,8 +101,8 @@ public class LocalBattleManager {
     public LocalBattleManager(GameStateManager stateManager) {
         this.stateManager = stateManager;
         ResourceManager resourceManager = ResourceManager.getInstance();
-        this.brickTexture = resourceManager.loadImage("brick_normal.png");
-        this.explosiveBrickTexture = resourceManager.loadImage("brick_explosive.png");
+        this.brickTexture = resourceManager.getImage("brick_normal.png");
+        this.explosiveBrickTexture = resourceManager.getImage("brick_explosive.png");
         initializeFactories();
     }
     /**

@@ -15,9 +15,9 @@ public class StrongBrick extends Brick {
     // Load textures một lần khi lớp được nạp
     static {
         ResourceManager rm = ResourceManager.getInstance();
-        strongBrickTextures.put(3, rm.loadImage("brick_strong_hit3.png"));
-        strongBrickTextures.put(2, rm.loadImage("brick_strong_hit2.png"));
-        strongBrickTextures.put(1, rm.loadImage("brick_strong_hit1.png"));
+        strongBrickTextures.put(3, rm.getImage("brick_strong_hit3.png"));
+        strongBrickTextures.put(2, rm.getImage("brick_strong_hit2.png"));
+        strongBrickTextures.put(1, rm.getImage("brick_strong_hit1.png"));
     }
 
 

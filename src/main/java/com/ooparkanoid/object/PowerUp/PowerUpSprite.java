@@ -27,7 +27,7 @@ public class PowerUpSprite {
 
     private void loadSpriteSheet() {
         ResourceManager rm = ResourceManager.getInstance();
-        Image sheeetImage = rm.loadImage("powerup_sheet.png");
+        Image sheeetImage = rm.getImage("powerup_sheet.png");
 
         if (sheeetImage != null) {
             powerUpSheet = new SpriteSheet(sheeetImage, FRAME_WIDTH, FRAME_HEIGHT, 0, 0);

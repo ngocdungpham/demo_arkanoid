@@ -54,8 +54,6 @@ public class SoundManager {
             t.setName("SoundManager-Scheduler");
             return t;
         });
-
-        loadAllSounds();
     }
 
     public static SoundManager getInstance() {
@@ -63,23 +61,6 @@ public class SoundManager {
             instance = new SoundManager();
         }
         return instance;
-    }
-
-    // Load tất cả sounds cần dùng vào bộ nhớ
-    private void loadAllSounds() {
-        // Sound effects
-        loadSound("bounce", "/sounds/paddle.mp3");
-        loadSound("break", "/sounds/break.mp3");
-        loadSound("powerup", "/sounds/powerup.wav");
-        loadSound("lose_life", "/sounds/lose_life.wav");
-        loadSound("transition", "/sounds/transition.mp3");
-        loadSound("card_transition", "/sounds/card_transition.mp3");
-        loadSound("selected", "/sounds/selected.mp3");
-        loadSound("pause", "/sounds/pause.mp3");
-        loadSound("laser_shoot", "/sounds/laser_shoot.wav");
-        loadSound("laser_hit", "/sounds/laser_hit.wav");
-
-        System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
     }
 
     // Load 1 sound file từ resources

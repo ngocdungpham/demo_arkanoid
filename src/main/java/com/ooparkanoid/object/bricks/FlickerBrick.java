@@ -27,8 +27,8 @@ public class FlickerBrick extends Brick {
 
     static {
         ResourceManager rm = ResourceManager.getInstance();
-        flickerTexture1 = rm.loadImage("brick_flicker1.png"); // Ảnh cho trạng thái hiển thị
-        flickerTexture2 = rm.loadImage("brick_flicker2.png"); // Ảnh cho trạng thái ẩn
+        flickerTexture1 = rm.getImage("brick_flicker1.png"); // Ảnh cho trạng thái hiển thị
+        flickerTexture2 = rm.getImage("brick_flicker2.png"); // Ảnh cho trạng thái ẩn
     }
 
     private final Color FLICKER_COLOR = Color.rgb(255, 165, 0); // Màu cam (chỉ dùng cho fallback)
