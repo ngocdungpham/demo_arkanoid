@@ -40,7 +40,7 @@ public class Ball extends MovableObject {
 
     private void loadGraphics() {
         ResourceManager resourceManager = ResourceManager.getInstance();
-        ballSprite = resourceManager.loadImage("ball.png");
+        ballSprite = resourceManager.getImage("ball.png");
         SpriteSheet ballSheet = resourceManager.loadSpriteSheet("ball_animation.png",
                 32, 32);
         if (ballSheet != null) {

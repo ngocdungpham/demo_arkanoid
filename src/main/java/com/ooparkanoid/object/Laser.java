@@ -17,7 +17,7 @@ public class Laser extends MovableObject {
 
     private void loadGraphics() {
         ResourceManager rm = ResourceManager.getInstance();
-        sprite = rm.loadImage("laser.png");
+        sprite = rm.getImage("laser.png");
     }
 
     @Override

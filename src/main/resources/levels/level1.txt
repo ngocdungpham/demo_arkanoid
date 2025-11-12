@@ -1,13 +1,5 @@
-SNX   XNS
-XSFN NFSX
-N#X   S#N
- XF   FS
- NS   SN
-  X   N
-   SFN
-  N   S
- SN   XS
- FS   FX
-XNS   NSX
-NSFX XFSN
-XSN   NSX
+    N
+   X S
+  SX XN
+   N X
+    S

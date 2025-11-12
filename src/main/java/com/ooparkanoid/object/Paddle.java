@@ -44,18 +44,16 @@ public class Paddle extends MovableObject {
 
     public void loadGraphics() {
         ResourceManager rm = ResourceManager.getInstance();
-        paddleSprite = rm.loadImage("paddle1.png");
-        laserGunSprite = rm.loadImage("laser_gun.png");
-//        paddleSpriteVerticalLeft = rm.loadImage("paddle3.png"); // dọc (ảnh bạn gửi)
-//        paddleSpriteVerticalRight = rm.loadImage("paddle2.png");
+        paddleSprite = rm.getImage("paddle1.png");
+        laserGunSprite = rm.getImage("laser_gun.png");
         paddleSpriteVerticalLeft = loadWithFallback(rm, "paddle_left.png", "paddle3.png"); // dọc (ảnh bạn gửi)
         paddleSpriteVerticalRight = loadWithFallback(rm, "paddle_right.png", "paddle2.png");
     }
 
     private Image loadWithFallback(ResourceManager rm, String preferred, String fallback) {
-        Image image = rm.loadImage(preferred);
+        Image image = rm.getImage(preferred);
         if (image == null && fallback != null) {
-            image = rm.loadImage(fallback);
+            image = rm.getImage(fallback);
         }
         return image;
     }

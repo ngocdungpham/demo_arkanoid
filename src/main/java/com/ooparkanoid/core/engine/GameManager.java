@@ -875,9 +875,9 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
 
     private void loadBrickTextures() {
         ResourceManager rm = ResourceManager.getInstance();
-        normalBrickTexture = rm.loadImage("brick_normal.png");
-        indestructibleBrickTexture = rm.loadImage("brick_enternal.png");
-        explosiveBrickTexture = rm.loadImage("brick_explosive.png");
+        normalBrickTexture = rm.getImage("brick_normal.png");
+        indestructibleBrickTexture = rm.getImage("brick_enternal.png");
+        explosiveBrickTexture = rm.getImage("brick_explosive.png");
         // ... (load other textures)
     }
 

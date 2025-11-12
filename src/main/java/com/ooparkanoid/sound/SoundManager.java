@@ -54,8 +54,6 @@ public class SoundManager {
             t.setName("SoundManager-Scheduler");
             return t;
         });
-
-        loadAllSounds();
     }
 
     public static SoundManager getInstance() {
@@ -81,6 +79,7 @@ public class SoundManager {
 
         System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
     }
+
 
     // Load 1 sound file từ resources
     public void loadSound(String name, String path) {
