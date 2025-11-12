@@ -191,7 +191,7 @@ public class CollisionHandler {
      * @param ball the ball to check for paddle collision
      */
     private void checkPaddleCollision(Ball ball) {
-        if (paddle != null && ball.istersected(paddle) && ball.getDy() > 0) {
+        if (paddle != null && ball.intersects(paddle) && ball.getDy() > 0) {
             // Push ball above paddle to prevent sticking
             ball.setY(paddle.getY() - ball.getHeight() - 1);
 
@@ -330,7 +330,7 @@ public class CollisionHandler {
             Iterator<Brick> brickIt = bricks.iterator();
             while (brickIt.hasNext()) {
                 Brick brick = brickIt.next();
-                if (!brick.isDestroyed() && laser.istersected(brick)) {
+                if (!brick.isDestroyed() && laser.intersects(brick)) {
                     Brick.BrickType hitBrickType = brick.getType();
                     boolean brickWasDestroyed = brick.isDestroyed();
 
@@ -379,7 +379,7 @@ public class CollisionHandler {
         int currentLives = stateManager.getLives();
 
         for (Brick brick : bricks) {
-            if (!brick.isDestroyed() && brick.istersected(explosionZone)) {
+            if (!brick.isDestroyed() && brick.intersects(explosionZone)) {
                 if (brick.getType() != Brick.BrickType.INDESTRUCTIBLE) {
                     brick.takeHit();
                     if (brick.isDestroyed()) {
@@ -411,7 +411,7 @@ public class CollisionHandler {
             PowerUp powerUp = it.next();
 
             // Check collision with paddle
-            if (!powerUp.isCollected() && powerUp.istersected(paddle)) {
+            if (!powerUp.isCollected() && powerUp.intersects(paddle)) {
                 powerUp.collect();
                 SoundManager.getInstance().play("powerup");
                 effectManager.activateEffect(
