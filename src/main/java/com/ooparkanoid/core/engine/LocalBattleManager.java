@@ -455,11 +455,11 @@ public class LocalBattleManager {
      * Updates last hitter for scoring attribution.
      */
     private void handlePaddleCollisions() {
-        if (playerOnePaddle != null && ball.istersected(playerOnePaddle) && ball.getDx() < 0) {
+        if (playerOnePaddle != null && ball.intersects(playerOnePaddle) && ball.getDx() < 0) {
             bounceFromPaddle(playerOnePaddle, true);
             lastHitter = ServingPlayer.PLAYER_ONE;
         }
-        if (playerTwoPaddle != null && ball.istersected(playerTwoPaddle) && ball.getDx() > 0) {
+        if (playerTwoPaddle != null && ball.intersects(playerTwoPaddle) && ball.getDx() > 0) {
             bounceFromPaddle(playerTwoPaddle, false);
             lastHitter = ServingPlayer.PLAYER_TWO;
         }
@@ -478,7 +478,7 @@ public class LocalBattleManager {
                 continue;
             }
 
-            if (ball.istersected(battleBrick.collisionBox)) {
+            if (ball.intersects(battleBrick.collisionBox)) {
                 double ballCenterX = ball.getX() + ball.getRadius();
                 double ballCenterY = ball.getY() + ball.getRadius();
                 double brickCenterX = battleBrick.collisionBox.getX() + battleBrick.collisionBox.getWidth() / 2;
