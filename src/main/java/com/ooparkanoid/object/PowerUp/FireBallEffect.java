@@ -16,7 +16,7 @@ public class FireBallEffect implements PowerUpEffect {
     @Override
     public void remove(GameContext context) {
         for (Ball ball : context.getBalls()) {
-            ball.resetTrainEffect();
+            ball.resetTrailEffect();
         }
     }
 
