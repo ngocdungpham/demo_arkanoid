@@ -1,10 +1,7 @@
-NNNNNNNNNN
-        N
-       N
-      N
-     N
-    N
-   N
-  N
- N
-NNNNNNNNNN
+ SN   NX
+XNSX SNNS
+NSNXXXSXN
+ XXNSNNS
+  SXNSX
+   NSN
+    X

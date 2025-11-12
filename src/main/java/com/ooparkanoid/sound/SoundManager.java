@@ -76,7 +76,7 @@ public class SoundManager {
         loadSound("card_transition", "/sounds/card_transition.mp3");
         loadSound("selected", "/sounds/selected.mp3");
         loadSound("pause", "/sounds/pause.mp3");
-        loadSound("laser_shoot", "/sounds/laser_shoot.wav");
+        loadSound("laser_shoot", "/sounds/laser_shoot.WAV");
         loadSound("laser_hit", "/sounds/laser_hit.wav");
 
         System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
