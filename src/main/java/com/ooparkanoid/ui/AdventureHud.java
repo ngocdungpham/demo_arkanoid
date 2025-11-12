@@ -13,19 +13,63 @@ import javafx.scene.text.FontWeight;
 import com.ooparkanoid.core.state.GameStateManager;
 import com.ooparkanoid.utils.Constants;
 
-/** Xây dựng HUD dạng “cards” (score/time/lives + ROUND). */
+/**
+ * Heads-Up Display (HUD) component for the Adventure game mode.
+ * Displays game statistics in card-based layout with left panel (stats) and right panel (round).
+ * Provides reactive UI updates through JavaFX bindings to GameStateManager properties.
+ *
+ * Layout Structure:
+ * - Left Panel: Score, Round Time, Game Time, Lives (vertical stack of cards)
+ * - Center: Spacer with subtle border for playfield separation
+ * - Right Panel: Current Round number (prominent display)
+ *
+ * Features:
+ * - Reactive data binding for automatic UI updates
+ * - Card-based design with drop shadows and glow effects
+ * - Formatted display (zero-padded scores, MM:SS time format)
+ * - Visibility controls for mode switching
+ * - Responsive column width adjustments
+ *
+ * Visual Design:
+ * - Semi-transparent dark backgrounds for readability
+ * - Color-coded cards (red for score, green for round)
+ * - Glow effects on value changes for visual feedback
+ * - Professional typography with Arial font family
+ *
+ * @author Arkanoid Team
+ * @version 2.0
+ */
 public class AdventureHud {
 
+    /** Main grid container for the HUD layout */
     private final GridPane grid;
+
+    /** Left panel containing game statistics cards */
     private final VBox leftPanel;
+
+    /** Right panel containing round display */
     private final VBox rightPanel;
+
+    /** Center spacer pane with border styling */
     private final Pane centerSpacer;
+
+    /** Column constraint for left panel */
     private final ColumnConstraints cLeft;
+
+    /** Column constraint for center spacer */
     private final ColumnConstraints cCenter;
+
+    /** Column constraint for right panel */
     private final ColumnConstraints cRight;
 
+    /**
+     * Constructs an AdventureHud with reactive bindings to game state.
+     * Creates all UI components, sets up data bindings, and configures layout.
+     *
+     * @param stateManager the game state manager providing observable properties
+     */
     public AdventureHud(GameStateManager stateManager) {
-        // Bindings
+        // Create reactive data bindings for UI updates
         StringBinding onePScore = Bindings.createStringBinding(
                 () -> String.format("%07d", Math.max(0, stateManager.getScore())),
                 stateManager.scoreProperty());
@@ -35,7 +79,7 @@ public class AdventureHud {
                 () -> String.format("%d", Math.max(0, stateManager.livesProperty().get())),
                 stateManager.livesProperty());
 
-        // Cards trái
+        // Create left panel cards
         VBox scoreCard = createScoreCard(onePScore);
         VBox roundCard = createStatCard("Round Time", roundTime);
         VBox gameCard  = createStatCard("Game Time",  gameTime);
@@ -51,7 +95,7 @@ public class AdventureHud {
         leftPanel.setMinWidth(Constants.LEFT_PANEL_WIDTH);
         leftPanel.setMaxWidth(Constants.LEFT_PANEL_WIDTH);
 
-        // Panel phải – ROUND
+        // Create right panel with round display
         VBox roundOnly = createRoundCard(stateManager);
         rightPanel = new VBox(roundOnly);
         rightPanel.setAlignment(Pos.TOP_RIGHT);
@@ -61,7 +105,7 @@ public class AdventureHud {
         rightPanel.setMinWidth(Constants.RIGHT_PANEL_WIDTH);
         rightPanel.setMaxWidth(Constants.RIGHT_PANEL_WIDTH);
 
-        // Grid 3 cột
+        // Set up main grid layout (3 columns)
         grid = new GridPane();
         grid.setMouseTransparent(true);
         grid.setPickOnBounds(false);
@@ -88,21 +132,49 @@ public class AdventureHud {
         grid.add(rightPanel, 2, 0);
     }
 
-    public GridPane getGrid() { return grid; }
+    /**
+     * Gets the main grid container for this HUD.
+     *
+     * @return the GridPane containing all HUD elements
+     */
+    public GridPane getGrid() {
+        return grid;
+    }
 
+    /**
+     * Controls visibility of adventure HUD elements.
+     * Used when switching between different game modes.
+     *
+     * @param visible true to show adventure HUD, false to hide
+     */
     public void setAdventureVisible(boolean visible) {
         leftPanel.setVisible(visible);  leftPanel.setManaged(visible);
         rightPanel.setVisible(visible); rightPanel.setManaged(visible);
         centerSpacer.setVisible(visible); centerSpacer.setManaged(visible);
     }
 
+    /**
+     * Adjusts column width percentages for responsive layout.
+     * Allows dynamic resizing of HUD panels based on game requirements.
+     *
+     * @param leftPct percentage width for left panel (0-100)
+     * @param centerPct percentage width for center spacer (0-100)
+     * @param rightPct percentage width for right panel (0-100)
+     */
     public void setColumnPercents(double leftPct, double centerPct, double rightPct) {
         cLeft.setPercentWidth(leftPct);
         cCenter.setPercentWidth(centerPct);
         cRight.setPercentWidth(rightPct);
     }
 
-    // ====== helpers ======
+    // ==================== Helper Methods ====================
+
+    /**
+     * Creates a column constraint with specified width ratio.
+     *
+     * @param ratio the width ratio for this column
+     * @return configured ColumnConstraints object
+     */
     private ColumnConstraints createColumn(double ratio) {
         ColumnConstraints c = new ColumnConstraints();
         c.setPercentWidth(ratio * 100.0);
@@ -110,6 +182,14 @@ public class AdventureHud {
         return c;
     }
 
+    /**
+     * Creates a formatted duration binding for time display.
+     * Converts seconds to MM:SS format with optional prefix label.
+     *
+     * @param secondsProperty observable property containing seconds value
+     * @param label optional prefix label (can be empty string)
+     * @return StringBinding with formatted time display
+     */
     private StringBinding formatDurationBinding(ObservableNumberValue secondsProperty, String label) {
         return Bindings.createStringBinding(() -> {
             long totalSeconds = (long) Math.floor(secondsProperty.doubleValue());
@@ -119,6 +199,14 @@ public class AdventureHud {
         }, secondsProperty);
     }
 
+    /**
+     * Creates a standard statistics card with title and reactive value.
+     * Used for Round Time, Game Time, and Lives displays.
+     *
+     * @param title the card title text
+     * @param valueBinding reactive binding for the displayed value
+     * @return configured VBox card container
+     */
     private VBox createStatCard(String title, StringBinding valueBinding) {
         Label titleLbl = new Label(title.toUpperCase());
         titleLbl.setTextFill(Color.web("#FFDFDF"));
@@ -134,11 +222,18 @@ public class AdventureHud {
         box.setBackground(new Background(new BackgroundFill(Color.color(0, 0, 0, 0.60), new CornerRadii(12), Insets.EMPTY)));
         box.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 16, 0.4, 0, 6);");
         box.setBackground(Background.EMPTY);
-        box.setStyle(null); // nếu muốn bỏ luôn drop shadow
+        box.setStyle(null); // Remove drop shadow if desired
         UiUtils.addCardGlowOnChange(valueLbl);
         return box;
     }
 
+    /**
+     * Creates the score display card with distinctive red styling.
+     * Features larger font and red background to emphasize score importance.
+     *
+     * @param scoreBinding reactive binding for the score value
+     * @return configured VBox score card container
+     */
     private VBox createScoreCard(StringBinding scoreBinding) {
         Label titleLbl = new Label("1P SCORE");
         titleLbl.setTextFill(Color.WHITE);
@@ -158,6 +253,13 @@ public class AdventureHud {
         return box;
     }
 
+    /**
+     * Creates the round display card with prominent green styling.
+     * Features large font size to make current round highly visible.
+     *
+     * @param stateManager game state manager for round property binding
+     * @return configured VBox round card container
+     */
     private VBox createRoundCard(GameStateManager stateManager) {
         Label rTitle = new Label("ROUND");
         rTitle.setTextFill(Color.LIMEGREEN);
@@ -176,7 +278,7 @@ public class AdventureHud {
         box.setBackground(new Background(new BackgroundFill(Color.color(0, 0, 0, 0.55), new CornerRadii(14), Insets.EMPTY)));
         box.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 18, 0.45, 0, 7);");
         box.setBackground(Background.EMPTY);
-        box.setStyle(null); // nếu muốn bỏ luôn drop shadow
+        box.setStyle(null); // Remove drop shadow if desired
         UiUtils.addCardGlowOnChange(rValue);
         return box;
     }

@@ -10,44 +10,54 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * Quản lý âm thanh với:
- * Thread pool để không block main thread
- * Giới hạn số lần phát cùng 1 sound
- * Volume control
+ * Manages all sound effects and background music for the game.
+ * Features:
+ * - Thread pool to avoid blocking the main JavaFX thread
+ * - Prevents sound spam by limiting concurrent playback
+ * - Configurable volume control for SFX and music
+ * - Singleton pattern for global access
+ *
+ * @author Arkanoid Team
+ * @version 2.0
  */
 public class SoundManager {
     private static SoundManager instance;
 
     private Map<String, AudioClip> soundEffects;
-    private Map<String, Long> lastPlayTime; // Track thời gian phát gần nhất
-    private Map<String, Integer> playCount;  // Đếm số lần đang phát
+    private Map<String, Long> lastPlayTime; // Tracks last play time to prevent spam
+    private Map<String, Integer> playCount;  // Counts concurrent playback of same sound
     private MediaPlayer musicPlayer;
 
-    // Thread pool cho sounds
+    // Thread pool for asynchronous sound playback
     private ExecutorService soundExecutor;
-    // Scheduler để xử lý delay (giảm playCount, restore volume, ...)
+    // Scheduler for delayed tasks (e.g., resetting play count, restoring volume)
     private final ScheduledExecutorService scheduler;
-    // Settings
-    private static final long MIN_PLAY_INTERVAL = 150; // giữa các lần phát cùng sound
+
+    // Sound playback settings
+    private static final long MIN_PLAY_INTERVAL = 150; // Minimum milliseconds between same sound plays
     private static final int MAX_CONCURRENT_SAME_SOUND = 1;
     private double sfxVolume = 1.0;
     private double musicVolume = 0.5;
     private boolean sfxEnabled = true;
     private boolean musicEnabled = true;
 
+    /**
+     * Private constructor for singleton pattern.
+     * Initializes thread pools and data structures.
+     */
     private SoundManager() {
         soundEffects = new HashMap<>();
         lastPlayTime = new HashMap<>();
         playCount = new HashMap<>();
 
-        // Tạo thread pool với 4 threads
+        // Create thread pool with 4 worker threads for sound playback
         soundExecutor = Executors.newFixedThreadPool(4, r -> {
             Thread t = new Thread(r);
-            t.setDaemon(true); // Daemon thread tự động tắt khi app đóng
+            t.setDaemon(true); // Daemon threads automatically terminate when app closes
             t.setName("SoundManager-Thread");
             return t;
         });
-        // scheduler chung (dùng cho delay)
+        // Scheduler for delayed operations
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r);
             t.setDaemon(true);
@@ -56,6 +66,11 @@ public class SoundManager {
         });
     }
 
+    /**
+     * Gets the singleton instance of SoundManager.
+     *
+     * @return the singleton SoundManager instance
+     */
     public static SoundManager getInstance() {
         if (instance == null) {
             instance = new SoundManager();
@@ -63,9 +78,18 @@ public class SoundManager {
         return instance;
     }
 
-    // Load tất cả sounds cần dùng vào bộ nhớ
-    private void loadAllSounds() {
-        // Sound effects
+    /**
+     * Initializes and loads all sound effects into memory.
+     * This method is idempotent - calling it multiple times will only load sounds once.
+     * Should be called early in the application lifecycle for better performance.
+     */
+    public void init() {
+        // Skip if sounds are already loaded
+        if (!soundEffects.isEmpty()) {
+            return;
+        }
+
+        // Load all sound effects
         loadSound("bounce", "/sounds/paddle.mp3");
         loadSound("break", "/sounds/break.mp3");
         loadSound("powerup", "/sounds/powerup.wav");
@@ -81,7 +105,12 @@ public class SoundManager {
     }
 
 
-    // Load 1 sound file từ resources
+    /**
+     * Loads a single sound file from resources and caches it.
+     *
+     * @param name unique identifier for this sound
+     * @param path resource path to the sound file
+     */
     public void loadSound(String name, String path) {
         URL resource = getClass().getResource(path);
         if (resource == null) {
@@ -100,7 +129,12 @@ public class SoundManager {
         }
     }
 
-    // Phát sound effect (với giới hạn)
+    /**
+     * Plays a sound effect asynchronously with spam protection.
+     * Prevents the same sound from playing too frequently or too many times concurrently.
+     *
+     * @param name the sound identifier to play
+     */
     public void play(String name) {
         if (!sfxEnabled) return;
 
@@ -110,7 +144,7 @@ public class SoundManager {
             return;
         }
 
-        // Check spam
+        // Prevent sound spam - check minimum interval between plays
         long currentTime = System.currentTimeMillis();
         long lastTime = lastPlayTime.getOrDefault(name, 0L);
 
@@ -118,26 +152,27 @@ public class SoundManager {
             return;
         }
 
-        // Check Số lượng đang phát
+        // Check concurrent playback limit
         int currentCount = playCount.getOrDefault(name, 0);
         if (currentCount >= MAX_CONCURRENT_SAME_SOUND) {
-            // Đã đủ, bỏ qua
+            // Already at max concurrent plays, skip
             return;
         }
 
-        // Update tracking
+        // Update tracking data
         lastPlayTime.put(name, currentTime);
         playCount.put(name, currentCount + 1);
-        // Phát sound trên thread pool - không block main thread
+
+        // Play sound on thread pool - avoids blocking main thread
         soundExecutor.submit(() -> {
             try {
                 clip.play();
-                // Giảm count sau khi phát xong
-                // AudioClip.play() là non-blocking, nên cần delay
+                // Decrement count after playback completes
+                // AudioClip.play() is non-blocking, so we need a delay
                 scheduler.schedule(() -> {
                     synchronized (playCount) {
                         int count = playCount.getOrDefault(name, 0);
-                        playCount.put(name, Math.max(0, count - 1)); // Giảm count, không để âm
+                        playCount.put(name, Math.max(0, count - 1)); // Decrement, never go negative
                     }
                 }, 300, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
@@ -147,7 +182,10 @@ public class SoundManager {
     }
 
     /**
-     * Phát sound với volume custom
+     * Plays a sound effect with custom volume.
+     *
+     * @param name the sound identifier to play
+     * @param volume custom volume level (0.0 to 1.0)
      */
     public void play(String name, double volume) {
         if (!sfxEnabled) return;
@@ -155,23 +193,26 @@ public class SoundManager {
         AudioClip clip = soundEffects.get(name);
         if (clip == null) return;
 
-        // Lưu lại âm lượng gốc
+        // Save original volume level
         double originalVolume = clip.getVolume();
         clip.setVolume(volume * sfxVolume);
         play(name);
 
-        // Restore volume sau khi phát
+        // Restore original volume after playback
         scheduler.schedule(() -> {
             try {
                 clip.setVolume(originalVolume);
             } catch (Exception e) {
-                // Ignore
+                // Ignore - clip may have been cleared
             }
         }, 300, TimeUnit.MILLISECONDS);
     }
 
     /**
-     * Phát sound effect (bỏ qua giới hạn - dùng cho sounds quan trọng)
+     * Plays a sound effect immediately, bypassing spam protection.
+     * Use this for critical sounds that must always play.
+     *
+     * @param name the sound identifier to play
      */
     public void playForce(String name) {
         if (!sfxEnabled) return;
@@ -182,11 +223,16 @@ public class SoundManager {
         soundExecutor.submit(() -> clip.play());
     }
 
-    // Phát nhạc nền
+    /**
+     * Plays background music on loop.
+     * Stops any currently playing music before starting the new track.
+     *
+     * @param filename the music file name (e.g., "intro.mp3")
+     */
     public void playMusic(String filename) {
         if (!musicEnabled) return;
 
-        // Dừng nhạc cũ
+        // Stop and dispose of current music
         if (musicPlayer != null) {
             musicPlayer.stop();
             musicPlayer.dispose();
@@ -211,36 +257,54 @@ public class SoundManager {
         }
     }
 
-    // Dừng nhạc nền
+    /**
+     * Stops the currently playing background music.
+     */
     public void stopMusic() {
         if (musicPlayer != null) {
             musicPlayer.stop();
         }
     }
 
-    //  Pause/Resume nhạc
+    /**
+     * Pauses the currently playing background music.
+     */
     public void pauseMusic() {
         if (musicPlayer != null) {
             musicPlayer.pause();
         }
     }
 
+    /**
+     * Resumes paused background music.
+     */
     public void resumeMusic() {
         if (musicPlayer != null && musicEnabled) {
             musicPlayer.play();
         }
     }
 
-    // Volume control
+    // ==================== Volume Control ====================
 
+    /**
+     * Sets the volume level for all sound effects.
+     * Updates the volume of all currently loaded sound clips.
+     *
+     * @param volume volume level (0.0 to 1.0), will be clamped to valid range
+     */
     public void setSfxVolume(double volume) {
         this.sfxVolume = Math.max(0, Math.min(1, volume));
-        // Update tất cả clips
+        // Update all loaded sound clips
         for (AudioClip clip : soundEffects.values()) {
             clip.setVolume(this.sfxVolume);
         }
     }
 
+    /**
+     * Sets the volume level for background music.
+     *
+     * @param volume volume level (0.0 to 1.0), will be clamped to valid range
+     */
     public void setMusicVolume(double volume) {
         this.musicVolume = Math.max(0, Math.min(1, volume));
         if (musicPlayer != null) {
@@ -248,19 +312,41 @@ public class SoundManager {
         }
     }
 
+    /**
+     * Gets the current sound effects volume level.
+     *
+     * @return volume level (0.0 to 1.0)
+     */
     public double getSfxVolume() {
         return sfxVolume;
     }
 
+    /**
+     * Gets the current music volume level.
+     *
+     * @return volume level (0.0 to 1.0)
+     */
     public double getMusicVolume() {
         return musicVolume;
     }
 
-    // Bật tắt âm thanh
+    // ==================== Enable/Disable ====================
+
+    /**
+     * Enables or disables all sound effects.
+     *
+     * @param enabled true to enable, false to disable
+     */
     public void setSfxEnabled(boolean enabled) {
         this.sfxEnabled = enabled;
     }
 
+    /**
+     * Enables or disables background music.
+     * Stops music immediately if disabled.
+     *
+     * @param enabled true to enable, false to disable
+     */
     public void setMusicEnabled(boolean enabled) {
         this.musicEnabled = enabled;
         if (!enabled) {
@@ -268,19 +354,34 @@ public class SoundManager {
         }
     }
 
+    /**
+     * Checks if sound effects are enabled.
+     *
+     * @return true if enabled, false otherwise
+     */
     public boolean isSfxEnabled() {
         return sfxEnabled;
     }
+
+    /**
+     * Checks if background music is enabled.
+     *
+     * @return true if enabled, false otherwise
+     */
 
     public boolean isMusicEnabled() {
         return musicEnabled;
     }
 
-    // cleanup
+    // ==================== Cleanup ====================
 
-    // Dừng tất cả sounds và dispose resources
+    /**
+     * Shuts down the SoundManager and releases all resources.
+     * Stops all sounds, disposes of the music player, and terminates thread pools.
+     * Should be called when the application is closing.
+     */
     public void shutdown() {
-        // Stop music
+        // Stop and dispose of music player
         stopMusic();
         if (musicPlayer != null) {
             musicPlayer.dispose();
