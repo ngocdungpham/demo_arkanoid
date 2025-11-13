@@ -95,7 +95,7 @@ public class SoundManager {
         loadSound("pause", "/sounds/pause.mp3");
         loadSound("laser_shoot", "/sounds/laser_shoot.WAV");
         loadSound("laser_hit", "/sounds/laser_hit.wav");
-
+        loadSound("collision", "/sounds/collision.mp3");
         System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
     }
 

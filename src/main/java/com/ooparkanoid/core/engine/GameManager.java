@@ -134,6 +134,39 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
     private boolean ballLaunched = false;
     private boolean isLosingLife = false;
 
+    /**
+     * Callback for round transition events
+     */
+    private RoundTransitionCallback roundTransitionCallback;
+
+    /**
+     * Flag indicating if waiting for round transition
+     */
+    private boolean waitingForRoundTransition = false;
+
+    /**
+     * Timer for round transition delay
+     */
+    private double roundTransitionTimer = 0.0;
+
+    /**
+     * Delay before showing round transition (in seconds)
+     */
+    private static final double ROUND_TRANSITION_DELAY = 0.01;
+
+    // ==================== Callback Interfaces ====================
+
+    /**
+     * Callback interface for round transition events.
+     */
+    public interface RoundTransitionCallback {
+        /**
+         * Called when transitioning to a new round.
+         * @param roundNumber the new round number
+         */
+        void onRoundTransition(int roundNumber);
+    }
+
     // ==================== Visual Assets ====================
     /**
      * Texture for normal bricks
@@ -246,6 +279,8 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         totalTimeElapsed = 0;
         isLosingLife = false;
         ballLaunched = false;
+        waitingForRoundTransition = false;
+        roundTransitionTimer = 0.0;
 
         // Load first level and reset ball position
         loadLevel(currentLevel);
@@ -286,6 +321,28 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         if (!stateManager.isRunning()) {
             return;
         }
+
+        // Handle round transition delay
+        if (waitingForRoundTransition) {
+            roundTransitionTimer += dt;
+            if (roundTransitionTimer >= ROUND_TRANSITION_DELAY) {
+                waitingForRoundTransition = false;
+                roundTransitionTimer = 0.0;
+                // Trigger the transition animation now
+                if (roundTransitionCallback != null) {
+                    roundTransitionCallback.onRoundTransition(currentLevel);
+                }
+            }
+            // Continue updating animations during delay
+            paddle.update(dt);
+            for (Ball b : balls) b.update(dt);
+            for (PowerUp p : powerUps) p.update(dt);
+            for (Score s : scores) s.update(dt);
+            for (Brick b : bricks) b.update(dt);
+            effectManager.update(dt);
+            return;
+        }
+
         if (isLosingLife) {
             // Chỉ update paddle (để chạy animation nổ)
             paddle.update(dt);
@@ -370,6 +427,11 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
             } else {
                 // Load next level
                 System.out.println("Starting Level " + currentLevel);
+
+                // Start transition delay timer (will trigger callback after delay)
+                waitingForRoundTransition = true;
+                roundTransitionTimer = 0.0;
+
                 loadLevel(currentLevel);
                 paddle.reset();
                 resetBallAndPaddlePosition();
@@ -573,5 +635,14 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      */
     public GameStateManager getStateManager() {
         return stateManager;
+    }
+
+    /**
+     * Sets the round transition callback.
+     *
+     * @param callback the callback to invoke when transitioning to a new round
+     */
+    public void setRoundTransitionCallback(RoundTransitionCallback callback) {
+        this.roundTransitionCallback = callback;
     }
 }

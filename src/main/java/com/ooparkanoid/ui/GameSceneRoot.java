@@ -116,6 +116,12 @@ public class GameSceneRoot {
     /** You win overlay view */
     private final YouWinView youWinView;
 
+    /** Round transition view */
+    private final RoundTransitionView roundTransitionView;
+
+    /** Flag to indicate if currently in round transition (to prevent showing pause view) */
+    private boolean isInRoundTransition = false;
+
     /** Stack of pressed keys for movement priority */
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
@@ -230,7 +236,18 @@ public class GameSceneRoot {
             }
         });
 
-        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView(), youWinView.getView());
+        roundTransitionView = new RoundTransitionView(new RoundTransitionView.Callbacks() {
+            @Override public void onComplete() {
+                // Clear the flag and resume game after transition
+                isInRoundTransition = false;
+                stateManager.resumeGame();
+            }
+        });
+
+        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView(), youWinView.getView(), roundTransitionView.getView());
+
+        // Wire up round transition callback to GameManager
+        gameManager.setRoundTransitionCallback(this::showRoundTransition);
 
         // Set up state listeners and input handlers
         setupStateListeners();
@@ -289,9 +306,12 @@ public class GameSceneRoot {
 
             // Handle pause state
             if (newState == GameState.PAUSED) {
-                SoundManager.getInstance().stopMusic();
-                SoundManager.getInstance().play("pause");
-                pauseView.show((StackPane) scene.getRoot());
+                // Only show pause view if not in round transition
+                if (!isInRoundTransition) {
+                    SoundManager.getInstance().stopMusic();
+                    SoundManager.getInstance().play("pause");
+                    pauseView.show((StackPane) scene.getRoot());
+                }
             } else if (newState == GameState.RUNNING) {
                 SoundManager.getInstance().playMusic("background.mp3");
                 pauseView.hide();
@@ -326,7 +346,21 @@ public class GameSceneRoot {
                 }
                 case F1 -> { startAdventureMode(); return; }
                 case F2 -> { startBattleMode();    return; }
-
+                case F9 -> {
+                    // Test GAME OVER view
+                    stateManager.markGameOver();
+                    return;
+                }
+                case F10 -> {
+                    // Test YOU WIN view
+                    stateManager.markGameWon();
+                    return;
+                }
+                case F11 -> {
+                    // Test ROUND TRANSITION view
+                    showRoundTransition(stateManager.roundProperty().get() + 1);
+                    return;
+                }
                 case ENTER -> {
                     if (stateManager.getCurrentState() == GameState.MENU) {
                         if (currentMode.get() == GameMode.LOCAL_BATTLE) startBattleMode(); else startAdventureMode();
@@ -590,5 +624,17 @@ public class GameSceneRoot {
      */
     public GraphicsContext getGraphicsContext() {
         return graphicsContext;
+    }
+
+    /**
+     * Shows the round transition animation.
+     * Pauses the game during transition and resumes automatically when complete.
+     *
+     * @param roundNumber the round number to display
+     */
+    public void showRoundTransition(int roundNumber) {
+        isInRoundTransition = true;
+        stateManager.pauseGame();
+        roundTransitionView.show(roundNumber);
     }
 }

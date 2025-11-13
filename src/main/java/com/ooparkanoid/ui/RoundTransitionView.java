@@ -1,0 +1,265 @@
+package com.ooparkanoid.ui;
+
+import com.ooparkanoid.utils.Constants;
+import javafx.animation.*;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
+
+/**
+ * Displays a quick round transition screen with a horizontal sliding animation effect.
+ * Shows two halves sliding in from left and right to form a central band with "ROUND X" text,
+ * then quickly disappears. Used when transitioning between levels.
+ *
+ * Animation Sequence:
+ * 1. Two blue bands slide in from left/right to meet in center (0.3s)
+ * 2. "ROUND X" text fades in (0.2s)
+ * 3. Wait for 1 second to display
+ * 4. Text fades out (0.2s) while bands slide out (0.3s)
+ * 5. Automatically trigger completion callback
+ *
+ * Features:
+ * - Quick, smooth sliding animation with easing
+ * - Semi-transparent blue band background
+ * - Large, stylized "ROUND X" text with drop shadow
+ * - Automatic timeout with callback execution
+ * - Non-blocking animation with proper cleanup
+ *
+ * Visual Design:
+ * - Blue semi-transparent band (height: 120px)
+ * - White Orbitron font with blue drop shadow
+ * - Transparent overlay (doesn't block other UI)
+ * - Centered horizontal layout
+ *
+ * Usage:
+ * Create with Callbacks implementation, call show(roundNumber) to display.
+ * Animation runs automatically and calls onComplete() when finished.
+ *
+ * @author Arkanoid Team
+ * @version 2.0
+ */
+public class RoundTransitionView {
+
+    /** Root overlay container (transparent background) */
+    private final StackPane root;
+
+    /** Container limiting height for the horizontal band */
+    private final Pane container;
+
+    /** Left half of the sliding band */
+    private final Pane leftHalf;
+
+    /** Right half of the sliding band */
+    private final Pane rightHalf;
+
+    /** "ROUND X" title label */
+    private final Label title;
+
+    /** Callback interface for completion handling */
+    private final Callbacks callbacks;
+
+    /** Currently playing animation (for cleanup) */
+    private Animation currentAnimation;
+
+    // ==================== Band Configuration ====================
+    /** Height of the transition band */
+    private static final double BAND_HEIGHT = 120.0;
+
+    /** Width of each sliding half */
+    private static final double HALF_WIDTH = Constants.WIDTH / 2.0;
+
+    /** Background color for the band (blue, semi-transparent) */
+    private static final Color BAND_COLOR = Color.web("#0066CC").deriveColor(0, 1, 1, 0.5);
+
+    /**
+     * Callback interface for handling round transition completion.
+     * Implement onComplete() to resume game after transition.
+     */
+    public interface Callbacks {
+        /** Called when the round transition animation completes */
+        void onComplete();
+    }
+
+    /**
+     * Constructs a RoundTransitionView with the specified callback handler.
+     * Initializes all UI components with proper positioning and styling.
+     * Sets up the sliding band animation components.
+     *
+     * @param cb callback handler for completion events
+     */
+    public RoundTransitionView(Callbacks cb) {
+        this.callbacks = cb;
+
+        // Root overlay: COMPLETELY TRANSPARENT
+        root = new StackPane();
+        root.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
+        root.setVisible(false);
+        root.setMouseTransparent(false); // Block input during transition
+        root.setStyle("-fx-background-color: transparent;");
+
+        // Container: Centered, height-limited, contains sliding halves
+        container = new Pane();
+        container.setPrefSize(Constants.WIDTH, BAND_HEIGHT);
+        container.setMaxSize(Constants.WIDTH, BAND_HEIGHT);
+        // Clip necessary to hide parts moved by TranslateX
+        container.setClip(new javafx.scene.shape.Rectangle(Constants.WIDTH, BAND_HEIGHT));
+
+        // Title label
+        title = new Label("ROUND 1");
+        title.setFont(Font.font("Orbitron", FontWeight.EXTRA_BOLD, 70));
+        title.setTextFill(Color.WHITE);
+        title.setEffect(new DropShadow(30, Color.web("#00AAFF")));
+        title.setOpacity(0.0);
+        title.setStyle("-fx-font-family: 'Orbitron', 'Segoe UI', Arial;");
+        title.setViewOrder(-1);
+        StackPane.setAlignment(title, Pos.CENTER);
+
+        // Left Half Pane (first piece)
+        leftHalf = createHalfPane(BAND_COLOR, HALF_WIDTH, BAND_HEIGHT);
+        leftHalf.setTranslateX(-HALF_WIDTH); // Start outside left
+        leftHalf.setLayoutX(0); // IMPORTANT: Initial position is 0
+
+        // Right Half Pane (second piece)
+        rightHalf = createHalfPane(BAND_COLOR, HALF_WIDTH, BAND_HEIGHT);
+        rightHalf.setTranslateX(HALF_WIDTH); // Start outside right
+        rightHalf.setLayoutX(HALF_WIDTH); // IMPORTANT: Initial position is HALF_WIDTH
+
+        // Add pieces to Container
+        container.getChildren().addAll(leftHalf, rightHalf);
+
+        // Add Container and Title to Root
+        root.getChildren().addAll(container, title);
+        StackPane.setAlignment(container, Pos.CENTER);
+    }
+
+    /**
+     * Creates a pane with specified dimensions and background color.
+     * Used for creating the sliding band halves.
+     *
+     * @param color background color for the pane
+     * @param width width of the pane
+     * @param height height of the pane
+     * @return configured Pane with styling applied
+     */
+    private Pane createHalfPane(Color color, double width, double height) {
+        Pane pane = new Pane();
+        pane.setPrefSize(width, height);
+        pane.setMaxSize(width, height);
+        pane.setStyle("-fx-background-color: " + color.toString().replace("0x", "#") + ";");
+        return pane;
+    }
+
+    /**
+     * Shows the round transition screen with sliding animation.
+     * If already visible, does nothing. Stops any current animation.
+     * Animation sequence: slide in → show text → wait → slide out → complete.
+     *
+     * @param roundNumber the round number to display (e.g., 1, 2, 3...)
+     */
+    public void show(int roundNumber) {
+        if (root.isVisible()) return;
+
+        if (currentAnimation != null) currentAnimation.stop();
+
+        // Update text
+        title.setText("ROUND " + roundNumber);
+
+        // Reset to initial state
+        root.setVisible(true);
+        // Set initial TranslateX positions
+        leftHalf.setTranslateX(-HALF_WIDTH);
+        rightHalf.setTranslateX(HALF_WIDTH);
+        title.setOpacity(0.0);
+
+        // Phase 1: Slide In (0.3s - faster than game over)
+        Duration slideInDuration = Duration.millis(300);
+
+        Timeline slideIn = new Timeline(
+                // Move leftHalf from -HALF_WIDTH to 0
+                new KeyFrame(slideInDuration,
+                        new KeyValue(leftHalf.translateXProperty(), 0, Interpolator.EASE_BOTH)),
+                // Move rightHalf from HALF_WIDTH to 0
+                new KeyFrame(slideInDuration,
+                        new KeyValue(rightHalf.translateXProperty(), 0, Interpolator.EASE_BOTH))
+        );
+
+        // Phase 2: Show Text, Wait, Slide Out & Complete
+        slideIn.setOnFinished(e -> {
+            // Show Text (0.2s)
+            FadeTransition fadeInText = new FadeTransition(Duration.millis(200), title);
+            fadeInText.setToValue(1.0);
+
+            // Wait (1.0s - shorter than game over)
+            PauseTransition delay = new PauseTransition(Duration.seconds(1.0));
+            delay.setOnFinished(ev -> hideAndComplete());
+
+            SequentialTransition transition = new SequentialTransition(fadeInText, delay);
+            transition.play();
+        });
+
+        currentAnimation = slideIn;
+        currentAnimation.play();
+    }
+
+    /**
+     * Hides the round transition screen with reverse sliding animation and triggers completion.
+     * Called automatically after the display timeout.
+     * Animation sequence: fade out text → slide out bands → hide → call callback.
+     */
+    private void hideAndComplete() {
+        // Fade out text first (0.2s)
+        FadeTransition fadeOutText = new FadeTransition(Duration.millis(200), title);
+        fadeOutText.setToValue(0.0);
+
+        // Phase 3: Slide Out (0.3s)
+        Duration slideOutDuration = Duration.millis(300);
+
+        Timeline slideOut = new Timeline(
+                // Move leftHalf from 0 to -HALF_WIDTH (left)
+                new KeyFrame(slideOutDuration,
+                        new KeyValue(leftHalf.translateXProperty(), -HALF_WIDTH, Interpolator.EASE_BOTH)),
+                // Move rightHalf from 0 to HALF_WIDTH (right)
+                new KeyFrame(slideOutDuration,
+                        new KeyValue(rightHalf.translateXProperty(), HALF_WIDTH, Interpolator.EASE_BOTH))
+        );
+
+        slideOut.setOnFinished(e -> {
+            root.setVisible(false);
+            if (callbacks != null) {
+                callbacks.onComplete();
+            }
+        });
+
+        // Play sequentially: fadeOutText → slideOut
+        SequentialTransition transition = new SequentialTransition(fadeOutText, slideOut);
+        currentAnimation = transition;
+        currentAnimation.play();
+    }
+
+    /**
+     * Gets the root node for this round transition view.
+     * Add this to your scene graph to display the transition screen.
+     *
+     * @return the root StackPane containing all transition UI elements
+     */
+    public Node getView() {
+        return root;
+    }
+
+    /**
+     * Checks if the transition is currently visible/playing.
+     *
+     * @return true if transition is visible, false otherwise
+     */
+    public boolean isVisible() {
+        return root.isVisible();
+    }
+}
+
