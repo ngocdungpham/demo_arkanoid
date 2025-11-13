@@ -94,9 +94,12 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 
 ## Installation
 
-1. Clone the project from the repository.
-2. Open the project in the IDE.
-3. Run the project.
+1. Clone the project: git clone [YOUR_REPO_URL]
+2. Open the project in an IDE that supports Maven (e.g., IntelliJ IDEA).
+3. Ensure you have Java 17+ installed.
+4. Build the project (Maven will download dependencies).
+5. Run the project using the Maven JavaFX plugin:
+    **mvn javafx:run**
 
 ## Usage
 
@@ -136,8 +139,8 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 | ![B](docs/screenshots/life_B.png)        | Extra Life      | Instant Effect: Grants 1 extra life |
 
 ### Scoring System
-- Normal Brick: 100 points
-- Strong Brick: 300 points
+- Normal Brick: 10 points
+- Strong Brick: 30 points
 - Explosive Brick: 500 points + nearby bricks
 - Power-up Collection: 50 points
 - Combo Multiplier: x2, x3, x4... for consecutive hits
@@ -181,7 +184,7 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 ![Power-ups in Action](docs/screenshots/PowerUpAction.png)
 
 ### Video Demo
-[![Video Demo](docs/screenshots/video-thumbnail.png)](docs/demo/gameplay.mp4)
+[![Video Demo](docs/screenshots/Login.png)](docs/screenshots/Demo8.mp4)
 
 ---
 
