@@ -203,6 +203,21 @@ public class LocalBattleManager {
     /** Playfield boundaries */
     private double fieldLeft, fieldRight, fieldTop, fieldBottom;
 
+    /** Callback for battle end events */
+    private BattleEndCallback battleEndCallback;
+
+    /**
+     * Callback interface for battle end events.
+     */
+    public interface BattleEndCallback {
+        /**
+         * Called when the battle ends with a winner.
+         *
+         * @param winner the winning player
+         */
+        void onBattleEnd(ServingPlayer winner);
+    }
+
     /**
      * Constructs a LocalBattleManager with specified state manager.
      * Loads required textures and initializes brick factories.
@@ -215,6 +230,15 @@ public class LocalBattleManager {
         this.brickTexture = resourceManager.getImage("brick_normal.png");
         this.explosiveBrickTexture = resourceManager.getImage("brick_explosive.png");
         initializeFactories();
+    }
+
+    /**
+     * Sets the callback for battle end events.
+     *
+     * @param callback the callback to invoke when battle ends
+     */
+    public void setBattleEndCallback(BattleEndCallback callback) {
+        this.battleEndCallback = callback;
     }
 
     /**
@@ -586,7 +610,7 @@ public class LocalBattleManager {
 
     /**
      * Ends the match with a winner declaration.
-     * Stops ball movement, plays victory/defeat sounds, and displays result message.
+     * Stops ball movement, plays victory/defeat sounds, and triggers battle end callback.
      *
      * @param winner the winning player
      * @param message the victory message to display
@@ -600,9 +624,13 @@ public class LocalBattleManager {
         if (winner == ServingPlayer.PLAYER_ONE) soundManager.play("battle_victory");
         else soundManager.play("battle_defeat");
 
-        stateManager.markGameOver();
-        stateManager.setStatusMessage(message + " Press ENTER to restart.");
+        stateManager.setStatusMessage(message);
         stopPlayers();
+
+        // Trigger callback instead of markGameOver to show player win view
+        if (battleEndCallback != null) {
+            battleEndCallback.onBattleEnd(winner);
+        }
     }
 
     /**

@@ -116,6 +116,9 @@ public class GameSceneRoot {
     /** You win overlay view */
     private final YouWinView youWinView;
 
+    /** Player win overlay view for versus mode */
+    private final PlayerWinView playerWinView;
+
     /** Round transition view */
     private final RoundTransitionView roundTransitionView;
 
@@ -236,6 +239,14 @@ public class GameSceneRoot {
             }
         });
 
+        playerWinView = new PlayerWinView(new PlayerWinView.Callbacks() {
+            @Override public void onExit() {
+                gameLoop.stop();
+                SoundManager.getInstance().stopMusic();
+                onExitToMenuCallback.run();
+            }
+        });
+
         roundTransitionView = new RoundTransitionView(new RoundTransitionView.Callbacks() {
             @Override public void onComplete() {
                 // Clear the flag and resume game after transition
@@ -244,10 +255,13 @@ public class GameSceneRoot {
             }
         });
 
-        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView(), youWinView.getView(), roundTransitionView.getView());
+        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView(), youWinView.getView(), playerWinView.getView(), roundTransitionView.getView());
 
         // Wire up round transition callback to GameManager
         gameManager.setRoundTransitionCallback(this::showRoundTransition);
+
+        // Wire up battle end callback to LocalBattleManager
+        battleManager.setBattleEndCallback(this::handleBattleEnd);
 
         // Set up state listeners and input handlers
         setupStateListeners();
@@ -636,5 +650,20 @@ public class GameSceneRoot {
         isInRoundTransition = true;
         stateManager.pauseGame();
         roundTransitionView.show(roundNumber);
+    }
+
+    /**
+     * Handles battle end event when a player wins in versus mode.
+     * Shows the player win view instead of game over view.
+     *
+     * @param winner the winning player
+     */
+    private void handleBattleEnd(LocalBattleManager.ServingPlayer winner) {
+        gameLoop.stop();
+        SoundManager.getInstance().stopMusic();
+
+        // Show player win view with the winner's number
+        int playerNumber = winner == LocalBattleManager.ServingPlayer.PLAYER_ONE ? 1 : 2;
+        playerWinView.show(playerNumber);
     }
 }
