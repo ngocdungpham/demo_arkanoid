@@ -48,7 +48,7 @@ Beyond the basic mechanics, this project integrates modern features including:
 ## UML Diagram
 
 ### Class Diagram
-![Class Diagram](docs/uml/demo_arkanoid.png)
+![Class Diagram](docs/uml/diagram.png)
 
 ---
 
