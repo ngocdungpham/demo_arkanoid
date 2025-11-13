@@ -44,24 +44,6 @@ public class ResourceManager {
         }
     }
 
-    // Dùng trong AssetLoadingTask
-    public SpriteSheet loadSpriteSheet(String filename, int frameWidth, int frameHeight) {
-        if (spriteSheetCache.containsKey(filename)) {
-            return spriteSheetCache.get(filename);
-        }
-        try {
-            String path = SPRITES_PATH + filename;
-            Image image = new Image(getClass().getResourceAsStream(path));
-            SpriteSheet sheet = new SpriteSheet(image, frameWidth, frameHeight, 0, 0);
-            spriteSheetCache.put(filename, sheet);
-            System.out.println("Loaded spritesheet: " + filename);
-            return sheet;
-        } catch (Exception e) {
-            System.err.println("Failed to load spritesheet: " + filename);
-            return null;
-        }
-    }
-
     public Image getImage(String filename) {
         Image image = imageCache.get(filename);
         if (image == null) {

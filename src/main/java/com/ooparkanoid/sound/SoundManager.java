@@ -28,8 +28,8 @@ public class SoundManager {
     // Scheduler để xử lý delay (giảm playCount, restore volume, ...)
     private final ScheduledExecutorService scheduler;
     // Settings
-    private static final long MIN_PLAY_INTERVAL = 150; // giữa các lần phát cùng sound
-    private static final int MAX_CONCURRENT_SAME_SOUND = 1;
+    private static final long MIN_PLAY_INTERVAL = 100; // giữa các lần phát cùng sound
+    private static final int MAX_CONCURRENT_SAME_SOUND = 3;
     private double sfxVolume = 1.0;
     private double musicVolume = 0.5;
     private boolean sfxEnabled = true;
@@ -62,24 +62,6 @@ public class SoundManager {
         }
         return instance;
     }
-
-    // Load tất cả sounds cần dùng vào bộ nhớ
-    private void loadAllSounds() {
-        // Sound effects
-        loadSound("bounce", "/sounds/paddle.mp3");
-        loadSound("break", "/sounds/break.mp3");
-        loadSound("powerup", "/sounds/powerup.wav");
-        loadSound("lose_life", "/sounds/lose_life.wav");
-        loadSound("transition", "/sounds/transition.mp3");
-        loadSound("card_transition", "/sounds/card_transition.mp3");
-        loadSound("selected", "/sounds/selected.mp3");
-        loadSound("pause", "/sounds/pause.mp3");
-        loadSound("laser_shoot", "/sounds/laser_shoot.WAV");
-        loadSound("laser_hit", "/sounds/laser_hit.wav");
-
-        System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
-    }
-
 
     // Load 1 sound file từ resources
     public void loadSound(String name, String path) {
@@ -139,7 +121,7 @@ public class SoundManager {
                         int count = playCount.getOrDefault(name, 0);
                         playCount.put(name, Math.max(0, count - 1)); // Giảm count, không để âm
                     }
-                }, 300, TimeUnit.MILLISECONDS);
+                }, 100, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 System.err.println("Error playing sound: " + name);
             }
@@ -232,7 +214,6 @@ public class SoundManager {
     }
 
     // Volume control
-
     public void setSfxVolume(double volume) {
         this.sfxVolume = Math.max(0, Math.min(1, volume));
         // Update tất cả clips

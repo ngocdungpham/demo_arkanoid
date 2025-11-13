@@ -2186,7 +2186,8 @@ public class MainConsole extends Application {
     public void stop() throws Exception {
         System.out.println("Game đang đóng... Báo danh offline.");
         SoundManager.getInstance().shutdown();
-
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         if (PlayerContext.isLoggedIn()) {
             OnlinePresenceService.goOffline(PlayerContext.uid);
         }
@@ -2197,8 +2198,7 @@ public class MainConsole extends Application {
     }
 
     public static void main(String[] args) {
-        ResourceManager resourceManager = ResourceManager.getInstance();
-        resourceManager.clearCache();
+
         launch();
     }
 }

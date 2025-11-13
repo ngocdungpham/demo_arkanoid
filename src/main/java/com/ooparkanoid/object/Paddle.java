@@ -3,6 +3,8 @@ package com.ooparkanoid.object;
 
 import com.ooparkanoid.graphics.Animation;
 import com.ooparkanoid.graphics.ResourceManager;
+import com.ooparkanoid.graphics.SpriteSheet;
+import com.ooparkanoid.sound.SoundManager;
 import com.ooparkanoid.utils.Constants;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -19,10 +21,29 @@ public class Paddle extends MovableObject {
         VERTICAL_RIGHT
     }
 
+    private enum State {
+        SPAWNING,
+        LIVE,
+        DESTROYED
+    }
+
+    private State currentState = State.LIVE;
+
     private Image paddleSprite;
     private Image laserGunSprite;
     private Image paddleSpriteVerticalLeft; // paddle left side
     private Image paddleSpriteVerticalRight; // paddle right side
+    private SpriteSheet explosionSheet;
+    private SpriteSheet spawnSheet;
+
+    private Animation explosionAnimation;
+    private Animation spawnAnimation;
+
+    private static final int EXPLOSION_FRAME_WIDTH = 140;
+    private static final int EXPLOSION_FRAME_HEIGHT = 142;
+
+    private static final int SPAWN_FRAME_WIDTH = 93;
+    private static final int SPAWN_FRAME_HEIGHT = 38;
 
     private Orientation orientation = Orientation.HORIZONTAL;
     private Double lockedX = null;
@@ -37,6 +58,7 @@ public class Paddle extends MovableObject {
     private double boundTop = 0;
     private double boundBottom = Constants.HEIGHT;
 
+
     public Paddle(double x, double y) {
         super(x, y, Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, 0, 0);
         loadGraphics();
@@ -48,7 +70,39 @@ public class Paddle extends MovableObject {
         laserGunSprite = rm.getImage("laser_gun.png");
         paddleSpriteVerticalLeft = loadWithFallback(rm, "paddle_left.png", "paddle3.png"); // dọc (ảnh bạn gửi)
         paddleSpriteVerticalRight = loadWithFallback(rm, "paddle_right.png", "paddle2.png");
+        Image expSheetImg = rm.getImage("paddle_explosion.png");
+        if (expSheetImg != null) {
+            explosionSheet = new SpriteSheet(
+                    expSheetImg,
+                    EXPLOSION_FRAME_WIDTH,
+                    EXPLOSION_FRAME_HEIGHT,
+                    0, 0);
+            explosionAnimation = loadAnimationFromSheet(explosionSheet, 7, 0.1, false);
+        } else {
+            System.err.println("Failed to load paddle_explosion.png");
+        }
+
+        Image spawnSheetImg = rm.getImage("paddle_spawn.png");
+        if (spawnSheetImg != null) {
+            spawnSheet = new SpriteSheet(
+                    spawnSheetImg,
+                    SPAWN_FRAME_WIDTH,
+                    SPAWN_FRAME_HEIGHT,
+                    0, 0);
+            spawnAnimation = loadAnimationFromSheet(spawnSheet, 4, 0.3, false);
+        } else {
+            System.err.println("Failed to load paddle_spawn_sheet.png");
+        }
     }
+
+    private Animation loadAnimationFromSheet(SpriteSheet sheet, int countFrame, double frameDuration, boolean loop) {
+        Image[] frames = new Image[countFrame];
+        for (int i = 0; i < countFrame; i++) {
+            frames[i] = sheet.getFrame(i);
+        }
+        return new Animation(frames, frameDuration, loop);
+    }
+
 
     private Image loadWithFallback(ResourceManager rm, String preferred, String fallback) {
         Image image = rm.getImage(preferred);
@@ -67,55 +121,92 @@ public class Paddle extends MovableObject {
         this.dy = dy;
     }
 
+    public void destroy() {
+        if (currentState == State.DESTROYED) return;
+        currentState = State.DESTROYED;
+        explosionAnimation.reset();
+        spawnAnimation.reset();
+        SoundManager.getInstance().play("lose_life");
+    }
+
+    public boolean isSpawning() {
+        return currentState == State.SPAWNING;
+    }
+
+    public boolean isDestroyed() {
+        return currentState == State.DESTROYED;
+    }
+
+    public boolean isExplosionFinished() {
+        if (currentState != State.DESTROYED) return false;
+
+        if (explosionAnimation == null) {
+            return true;
+        }
+        return explosionAnimation.isFinished();
+    }
+
+    public void reset() {
+        currentState = State.LIVE;
+    }
+
+
     @Override
     public void update(double dt) {
         // Cập nhật vị trí dựa trên vận tốc và thời gian
-        move(dt);
+        switch (currentState) {
+            case LIVE:
+                move(dt);
 
-        if (lockedX != null) {
-            x = lockedX;
-        }
+                if (lockedX != null) {
+                    x = lockedX;
+                }
+                if (shootCooldown > 0) {
+                    shootCooldown -= dt;
+                }
+                Iterator<Laser> it = lasers.iterator();
+                while (it.hasNext()) {
+                    Laser laser = it.next();
+                    laser.update(dt);
+                    if (!laser.isActive()) {
+                        it.remove();
+                    }
+                }
 
-        if (shootCooldown > 0) {
-            shootCooldown -= dt;
-        }
-
-        Iterator<Laser> it = lasers.iterator();
-        while (it.hasNext()) {
-            Laser laser = it.next();
-            laser.update(dt);
-            if (!laser.isActive()) {
-                it.remove();
-            }
-        }
-
-        // Giới hạn thanh đỡ trong màn hình
-//        if (x < 0) {
-//            x = 0;
-//        if (x < Constants.PLAYFIELD_LEFT) {
-//            x = Constants.PLAYFIELD_LEFT;
-//        if (x < boundLeft) {
-//            x = boundLeft;
-//        }
-        if (lockedX == null) {
-            if (x < boundLeft) {
-                x = boundLeft;
-            }
-//        if (x + width > Constants.WIDTH) {
-//            x = Constants.WIDTH - width;
-//        if (x + width > Constants.PLAYFIELD_RIGHT) {
-//            x = Constants.PLAYFIELD_RIGHT - width;
-//        if (x + width > boundRight) {
-//            x = boundRight - width;
-            if (x + width > boundRight) {
-                x = boundRight - width;
-            }
-        }
-        if (y < boundTop) {
-            y = boundTop;
-        }
-        if (y + height > boundBottom) {
-            y = boundBottom - height;
+                if (lockedX == null) {
+                    if (x < boundLeft) {
+                        x = boundLeft;
+                    }
+                    if (x + width > boundRight) {
+                        x = boundRight - width;
+                    }
+                }
+                if (y < boundTop) {
+                    y = boundTop;
+                }
+                if (y + height > boundBottom) {
+                    y = boundBottom - height;
+                }
+                return;
+            case SPAWNING:
+                if (spawnAnimation != null) {
+                    spawnAnimation.update(dt);
+                    if (spawnAnimation.isFinished()) {
+                        currentState = State.LIVE; // Chuyển sang LIVE khi xong
+                    }
+                } else {
+                    currentState = State.LIVE; // Nếu không có anim, xong ngay
+                }
+                return;
+            case DESTROYED:
+                if (explosionAnimation != null) {
+                    explosionAnimation.update(dt);
+                    if (explosionAnimation.isFinished()) {
+                        currentState = State.SPAWNING;
+                        SoundManager.getInstance().play("transition");
+                    }
+                }
+                return;
         }
     }
 
@@ -144,31 +235,55 @@ public class Paddle extends MovableObject {
 
     @Override
     public void render(GraphicsContext gc) {
-//        if (paddleSprite != null) {
-//            gc.drawImage(paddleSprite, x, y, width, height);
-        Image spriteToRender;
-        switch (orientation) {
-            case VERTICAL_LEFT -> spriteToRender = paddleSpriteVerticalLeft != null
-                    ? paddleSpriteVerticalLeft
-                    : paddleSprite;
-            case VERTICAL_RIGHT -> spriteToRender = paddleSpriteVerticalRight != null
-                    ? paddleSpriteVerticalRight
-                    : paddleSprite;
-            default -> spriteToRender = paddleSprite;
-        }
+        switch (currentState) {
+            case LIVE:
+                Image spriteToRender;
+                switch (orientation) {
+                    case VERTICAL_LEFT -> spriteToRender = paddleSpriteVerticalLeft != null
+                            ? paddleSpriteVerticalLeft
+                            : paddleSprite;
+                    case VERTICAL_RIGHT -> spriteToRender = paddleSpriteVerticalRight != null
+                            ? paddleSpriteVerticalRight
+                            : paddleSprite;
+                    default -> spriteToRender = paddleSprite;
+                }
 
-        if (spriteToRender != null) {
-            gc.drawImage(spriteToRender, x, y, width, height);
-        } else {
-            gc.setFill(Color.WHITE);
-            gc.fillRect(x, y, width, height);
-        }
+                if (spriteToRender != null) {
+                    gc.drawImage(spriteToRender, x, y, width, height);
+                } else {
+                    gc.setFill(Color.WHITE);
+                    gc.fillRect(x, y, width, height);
+                }
 
-        if (laserEnabled) {
-            rederLaserPaddle(gc);
-        }
-        for (Laser laser : lasers) {
-            laser.render(gc);
+                if (laserEnabled) {
+                    rederLaserPaddle(gc);
+                }
+                for (Laser laser : lasers) {
+                    laser.render(gc);
+                }
+                return;
+            case SPAWNING:
+                if (spawnAnimation != null) {
+                    Image frame = spawnAnimation.getCurrentFrame();
+                    if (frame != null) {
+                        double frameWidth = frame.getWidth();
+                        double frameHeight = frame.getHeight();
+                        gc.drawImage(frame, x + (width - frameWidth) / 2,
+                                y + (height - frameHeight) / 2);
+                    }
+                }
+                return;
+            case DESTROYED:
+                if (explosionAnimation != null) {
+                    Image frame = explosionAnimation.getCurrentFrame();
+                    if (frame != null) {
+                        double frameWidth = frame.getWidth();
+                        double frameHeight = frame.getHeight();
+                        gc.drawImage(frame, x + (width - frameWidth) / 2,
+                                y + (height - frameHeight) / 2);
+                    }
+                }
+                return;
         }
     }
 

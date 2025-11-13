@@ -3,7 +3,6 @@ package com.ooparkanoid.object;
 import com.ooparkanoid.graphics.Animation;
 import com.ooparkanoid.graphics.GlowTrail;
 import com.ooparkanoid.graphics.ResourceManager;
-import com.ooparkanoid.graphics.SpriteSheet;
 import com.ooparkanoid.object.bricks.Brick;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -12,10 +11,8 @@ import javafx.scene.paint.Color;
 public class Ball extends MovableObject {
     private double speed;
     private double dirX, dirY;      // Normalized Direction Vector;
-
-    private Animation ballAnimation;
+    
     private Image ballSprite;
-    private boolean useAnimation = false;
     private double rotation = 0;
 
     private GlowTrail trail;
@@ -41,16 +38,6 @@ public class Ball extends MovableObject {
     private void loadGraphics() {
         ResourceManager resourceManager = ResourceManager.getInstance();
         ballSprite = resourceManager.getImage("ball.png");
-        SpriteSheet ballSheet = resourceManager.loadSpriteSheet("ball_animation.png",
-                32, 32);
-        if (ballSheet != null) {
-            Image[] frames = new Image[ballSheet.getFrameCount()];
-            for (int i = 0; i < frames.length; i++) {
-                frames[i] = ballSheet.getFrame(i);
-            }
-            ballAnimation = new Animation(frames, 0.05, true);
-            useAnimation = true;
-        }
     }
 
     public void setupTrail() {
@@ -77,9 +64,6 @@ public class Ball extends MovableObject {
         if (rotation >= 360) {
             rotation -= 360;
         }
-        if (useAnimation && ballAnimation != null) {
-            ballAnimation.update(deltaTime);
-        }
         move(deltaTime);
         // thêm point vào trail (tâm của ball)
         if (showTrail && trail != null) {
@@ -103,10 +87,7 @@ public class Ball extends MovableObject {
         gc.translate(x + width / 2, y + height / 2);
         gc.rotate(rotation);
 
-        if (useAnimation && ballAnimation != null) {
-            Image frame = ballAnimation.getCurrentFrame();
-            gc.drawImage(frame, -width / 2, -height / 2, width, height);
-        } else if (ballSprite != null) {
+        if (ballSprite != null) {
             gc.drawImage(ballSprite, -width / 2, -height / 2, width, height);
         } else {
             gc.setFill(Color.WHITE);
@@ -153,7 +134,7 @@ public class Ball extends MovableObject {
     public void activateSlowBallEffect() {
         trail.setColor(Color.LIGHTBLUE);
         trail.setMaxLength(20);
-        trail.setGlowIntensity(0.7);
+        trail.setGlowIntensity(0.5);
         setGlow(true, Color.LIGHTBLUE);
     }
 
@@ -164,15 +145,7 @@ public class Ball extends MovableObject {
         trail.setGlowIntensity(1.8);
         setGlow(true, Color.ORANGERED);
     }
-
-    // Invincibale: Trail vàng, cực sáng
-    public void activateInvincibleEffect() {
-        trail.setColor(Color.GOLD);
-        trail.setMaxLength(30);
-        trail.setGlowIntensity(2.0);
-        setGlow(true, Color.GOLD);
-    }
-
+    
     // Reset mặc định
     public void resetTrainEffect() {
         trail.setColor(Color.CYAN);

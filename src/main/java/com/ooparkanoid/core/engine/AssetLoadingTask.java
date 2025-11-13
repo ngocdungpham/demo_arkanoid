@@ -17,7 +17,7 @@ public class AssetLoadingTask extends Task<Void> {
     private static final String[] IMAGES_TO_LOAD = {
             // Paddle
             "paddle1.png", "laser_gun.png", "paddle2.png", "paddle3.png",
-
+            "paddle_spawn.png", "paddle_explosion.png",
             // Ball
             "ball.png", "ball_fire.png",
 
@@ -45,6 +45,8 @@ public class AssetLoadingTask extends Task<Void> {
         SOUNDS_TO_LOAD.put("pause", "/sounds/pause.mp3");
         SOUNDS_TO_LOAD.put("laser_shoot", "/sounds/laser_shoot.wav");
         SOUNDS_TO_LOAD.put("laser_hit", "/sounds/laser_hit.wav");
+        SOUNDS_TO_LOAD.put("menu", "/sounds/menu.mp3");
+        SOUNDS_TO_LOAD.put("collision", "/sounds/collision.mp3");
     }
 
 

@@ -178,8 +178,9 @@ public class CollisionHandler {
                     if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
                         callbacks.spawnPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight() / 2);
                     }
-
-                    // KHÔNG cần xóa brick ở đây.
+                }
+                else if (!brick.isDestroyed()) {
+                    SoundManager.getInstance().play("collision");
                 }
 
                 // Dừng kiểm tra va chạm nếu va chạm đã xảy ra (và không phải FireBall đang xuyên qua)
@@ -237,7 +238,6 @@ public class CollisionHandler {
                     boolean brickWasDestroyed = brick.isDestroyed();
 
                     brick.takeHit();
-                    SoundManager.getInstance().play("laser_hit");
 
                     if (!brickWasDestroyed && brick.isDestroyed()) {
                         int multiplier = effectManager.isEffectActive("SCORE_MULTIPLIER") ? 2 : 1;
@@ -250,6 +250,8 @@ public class CollisionHandler {
                         if (hitBrickType == Brick.BrickType.EXPLOSIVE) {
                             handleExplosion(brick.getX(), brick.getY());
                         }
+                    } else {
+                        SoundManager.getInstance().play("laser_hit");
                     }
 
                     laserIt.remove();
