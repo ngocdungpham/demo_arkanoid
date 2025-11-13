@@ -124,15 +124,16 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 ### Power-ups
 | Icon | Name | Effect |
 |------|------|--------|
-| 🟦 | Expand Paddle | Increases paddle width for 10 seconds |
-| 🟥 | Shrink Paddle | Decreases paddle width for 10 seconds |
-| ⚡ | Fast Ball | Increases ball speed by 30% |
-| 🐌 | Slow Ball | Decreases ball speed by 30% |
+| 🟦 | Expand Paddle | Increases paddle width by 35% (x1.35) for 10 seconds |
+| 🟥 | Shrink Paddle | Decreases paddle width by 40% (x0.6) for 10 seconds |
+| ⚡ | Fast Ball | Increases ball speed by 25% (x1.25) for 10 seconds |
+| 🐌 | Slow Ball | Decreases ball speed by 40% (x0.6) for 10 seconds |
 | 🎯 | Multi Ball | Spawns 2 additional balls |
-| 🔫 | Laser Gun | Shoot lasers to destroy bricks for 15 seconds |
-| 🧲 | Magnet | Ball sticks to paddle, launch with SPACE |
-| 🛡️ | Shield | Protects from losing one life |
-| 🔥 | Fire Ball | Ball passes through bricks for 12 seconds |
+| 🔫 | Laser Gun | Shoot lasers to destroy bricks for 10 seconds |
+| 🔥 | Magnet | Ball passes through bricks (no bounce) for 10 seconds |
+| 🛡️ | Shield | Ball bounces off the bottom edge for 10 seconds |
+| 💰 | Extra Life | Doubles (x2.0) all score gained for 10 seconds |
+| ❤️ | Extra Life | Instant Effect: Grants 1 extra life |
 
 ### Scoring System
 - Normal Brick: 100 points
