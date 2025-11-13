@@ -22,15 +22,15 @@
 
         <Label text="LOGIN" styleClass="form-title" />
 
-        <TextField fx:id="nameField" promptText="nhập tên đăng nhập" />
-        <TextField fx:id="emailField" promptText="nhập email" />
-        <PasswordField fx:id="passwordField" promptText="nhập mật khẩu" />
+        <TextField fx:id="nameField" promptText="Enter display name" />
+        <TextField fx:id="emailField" promptText="Enter email" />
+        <PasswordField fx:id="passwordField" promptText="Enter password" />
 
-        <Button fx:id="signInButton" text="Đăng nhập"
+        <Button fx:id="signInButton" text="Sign In"
                 styleClass="form-button"
                 onAction="#handleSignIn" />
 
-        <Text fx:id="errorText" textAlignment="CENTER" wrappingWidth="330" />
+        <Text fx:id="errorText" styleClass="error-text" textAlignment="CENTER" wrappingWidth="330" />
 
         <HBox alignment="CENTER" spacing="5">
             <VBox.margin>
@@ -41,18 +41,16 @@
                   styleClass="form-link"
                   onMouseClicked="#handleSignUpLinkClick" />
         </HBox>
-        <!--        <HBox spacing="10" alignment="CENTER">-->
-        <!--            <Button fx:id="signInButton" text="Đăng nhập" styleClass="menu-button" onAction="#handleSignIn"/>-->
-        <!--            <Button fx:id="signUpButton" text="Đăng ký" styleClass="menu-button" onAction="#handleSignUp"/>-->
-        <!--        </HBox>-->
 
-        <Label text="HOẶC" styleClass="form-text" />
+        <Label text="OR" styleClass="form-text">
+            <VBox.margin>
+                <Insets top="10" bottom="5" />
+            </VBox.margin>
+        </Label>
 
-        <Button fx:id="googleSignInButton" text="Đăng nhập bằng Google"
+        <Button fx:id="googleSignInButton" text="Sign in with Google"
                 styleClass="google-button"
-                onAction="#handleGoogleSignIn">
-
-        </Button>
+                onAction="#handleGoogleSignIn" />
         <!--        <Button fx:id="googleSignInButton" text="Đăng nhập với Google" styleClass="menu-button"-->
         <!--                onAction="#handleGoogleSignIn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>-->
 

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
-import com.ooparkanoid.AlertBox;
 import com.ooparkanoid.graphics.ResourceManager;
 import com.ooparkanoid.ui.*;
 
@@ -177,11 +176,7 @@ public class MainConsole extends Application {
     // ==================== AUTHENTICATION SCREENS ====================
 
     /**
-     * Transitions to login screen with curtain opening animation.
-     * Creates smooth visual effect for scene transition.
-     */
-    /**
-     * Transitions to login screen with curtain opening animation.
+     * Transitions to login screen with fade from black animation.
      * Creates smooth visual effect for scene transition.
      */
     private void transitionToLogin() {
@@ -202,26 +197,25 @@ public class MainConsole extends Application {
 
             Scene scene = stage.getScene();
 
-            // Create curtain effect for transition
-            Rectangle curtain = new Rectangle(Constants.WIDTH, Constants.HEIGHT, Color.BLACK);
-            Scale curtainScale = new Scale(1, 1, Constants.WIDTH / 2.0, Constants.HEIGHT / 2.0);
-            curtain.getTransforms().add(curtainScale);
+            // Create black overlay for fade effect
+            Rectangle blackOverlay = new Rectangle(Constants.WIDTH, Constants.HEIGHT, Color.BLACK);
+            blackOverlay.setOpacity(1); // Start fully black (already faded to black from intro)
 
-            StackPane transitionPane = new StackPane(loginRoot, curtain);
+            StackPane transitionPane = new StackPane(loginRoot, blackOverlay);
             scene.setRoot(transitionPane);
 
-            // Animate curtain opening
-            Timeline openCurtain = new Timeline(
-                    new KeyFrame(Duration.ZERO, new KeyValue(curtainScale.xProperty(), 1, Interpolator.EASE_IN)),
-                    new KeyFrame(Duration.seconds(0.5), new KeyValue(curtainScale.xProperty(), 0, Interpolator.EASE_OUT))
+            // Animate fade from black to reveal login screen
+            Timeline fadeIn = new Timeline(
+                    new KeyFrame(Duration.ZERO, new KeyValue(blackOverlay.opacityProperty(), 1)),
+                    new KeyFrame(Duration.seconds(0.5), new KeyValue(blackOverlay.opacityProperty(), 0))
             );
-            openCurtain.setOnFinished(e -> {
+            fadeIn.setOnFinished(e -> {
                 // Clean up transition pane before setting new root
                 transitionPane.getChildren().clear();
                 scene.setRoot(loginRoot);
                 loginRoot.requestFocus();
             });
-            openCurtain.play();
+            fadeIn.play();
         } catch (IOException e) {
             e.printStackTrace();
             showLoginScreen();
@@ -304,14 +298,13 @@ public class MainConsole extends Application {
             statusLabel.textProperty().bind(loadingTask.messageProperty());
 
             loadingTask.setOnSucceeded(e -> {
-                System.out.println("✅ Asset loading completed successfully");
+                System.out.println("Asset loading completed successfully");
                 startTransition(); // Transition to menu with curtain effect
             });
 
             loadingTask.setOnFailed(e -> {
-                System.err.println("❌ Error loading game assets:");
+                System.err.println("Error loading game assets:");
                 loadingTask.getException().printStackTrace();
-                AlertBox.display("Critical Error", "Unable to load game assets. Please try again.");
                 Platform.exit();
             });
 
@@ -444,7 +437,7 @@ public class MainConsole extends Application {
                 case "CREDITS":
                     fadeToBlack(this::showRanking);
                     break;
-                case "EXIT":
+                case "QUIT":
                     Platform.exit();
                     break;
                 default:
@@ -538,7 +531,7 @@ public class MainConsole extends Application {
             String videoPath = "/Videos/intro.mp4";
             URL videoUrl = getClass().getResource(videoPath);
             if (videoUrl == null) {
-                System.err.println("❌ Video not found for preload: " + videoPath);
+                System.err.println("Video not found for preload: " + videoPath);
                 return;
             }
 
@@ -547,11 +540,11 @@ public class MainConsole extends Application {
             introMediaPlayer.setAutoPlay(false);
 
             introMediaPlayer.setOnError(() -> {
-                System.err.println("❌ Video preload error: " + introMediaPlayer.getError().getMessage());
+                System.err.println("Video preload error: " + introMediaPlayer.getError().getMessage());
                 introMediaPlayer = null;
             });
         } catch (Exception e) {
-            System.err.println("❌ Error initializing media player: " + e.getMessage());
+            System.err.println("Error initializing media player: " + e.getMessage());
             introMediaPlayer = null;
         }
     }
@@ -563,7 +556,7 @@ public class MainConsole extends Application {
      */
     private void playIntroVideo() {
         if (introMediaPlayer == null) {
-            System.err.println("⚠️ Video player not ready. Skipping to game.");
+            System.err.println("Video player not ready. Skipping to game.");
             startGame(nextGameMode);
             return;
         }
@@ -585,17 +578,31 @@ public class MainConsole extends Application {
             startGame(nextGameMode);
         }));
 
-        // Allow skipping video
-        Runnable skipAction = () -> {
+        // Store event handlers for proper cleanup using array to allow self-reference
+        final javafx.event.EventHandler<MouseEvent>[] mouseHandlerRef = new javafx.event.EventHandler[1];
+
+        javafx.event.EventHandler<javafx.scene.input.KeyEvent> keyHandler = e -> {
             introMediaPlayer.stop();
             preloadIntroVideo();
             startGame(nextGameMode);
             stage.getScene().setOnKeyPressed(null);
-            stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
+            if (mouseHandlerRef[0] != null) {
+                stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandlerRef[0]);
+            }
         };
 
-        stage.getScene().setOnKeyPressed(e -> skipAction.run());
-        stage.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> skipAction.run());
+        javafx.event.EventHandler<MouseEvent> mouseHandler = e -> {
+            introMediaPlayer.stop();
+            preloadIntroVideo();
+            startGame(nextGameMode);
+            stage.getScene().setOnKeyPressed(null);
+            stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandlerRef[0]);
+        };
+
+        mouseHandlerRef[0] = mouseHandler;
+
+        stage.getScene().setOnKeyPressed(keyHandler);
+        stage.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandler);
 
         introMediaPlayer.play();
     }
@@ -661,7 +668,6 @@ public class MainConsole extends Application {
                 .thenAccept(scores -> Platform.runLater(() -> controller.setScores(scores)))
                 .exceptionally(e -> {
                     Platform.runLater(() -> {
-                        AlertBox.display("Network Error", "Unable to load Firebase leaderboard.");
                         returnToMenu();
                     });
                     return null;
@@ -700,7 +706,8 @@ public class MainConsole extends Application {
     public void stop() throws Exception {
         System.out.println("Application shutting down... Setting player offline.");
         SoundManager.getInstance().shutdown();
-
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         if (PlayerContext.isLoggedIn()) {
             OnlinePresenceService.goOffline(PlayerContext.uid);
         }
@@ -717,8 +724,6 @@ public class MainConsole extends Application {
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        ResourceManager resourceManager = ResourceManager.getInstance();
-        resourceManager.clearCache();
         launch();
     }
 }

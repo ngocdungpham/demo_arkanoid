@@ -16,15 +16,21 @@ import java.util.Map;
  * @version 2.0
  */
 public class AssetLoadingTask extends Task<Void> {
-    /** Minimum loading time in milliseconds for smooth user experience */
+    /**
+     * Minimum loading time in milliseconds for smooth user experience
+     */
     private static final long MIN_LOAD_TIME_MS = 2000;
 
-    /** List of all image files to preload */
+    /**
+     * List of all image files to preload
+     */
     private static final String[] IMAGES_TO_LOAD = {
             // Paddle sprites
             "paddle1.png", "laser_gun.png", "paddle2.png", "paddle3.png",
 
             // Ball sprites
+            "paddle_spawn.png", "paddle_explosion.png",
+            // Ball
             "ball.png", "ball_fire.png",
 
             // Brick sprites
@@ -37,7 +43,9 @@ public class AssetLoadingTask extends Task<Void> {
             "powerup_sheet.png", "laser.png", "google-icon.png", "google-icon1.png"
     };
 
-    /** Map of all sound effects to preload (name -> path) */
+    /**
+     * Map of all sound effects to preload (name -> path)
+     */
     private static final Map<String, String> SOUNDS_TO_LOAD = new HashMap<>();
 
     static {
@@ -51,6 +59,8 @@ public class AssetLoadingTask extends Task<Void> {
         SOUNDS_TO_LOAD.put("pause", "/sounds/pause.mp3");
         SOUNDS_TO_LOAD.put("laser_shoot", "/sounds/laser_shoot.wav");
         SOUNDS_TO_LOAD.put("laser_hit", "/sounds/laser_hit.wav");
+        SOUNDS_TO_LOAD.put("menu", "/sounds/menu.mp3");
+        SOUNDS_TO_LOAD.put("collision", "/sounds/collision.mp3");
     }
 
     /**

@@ -138,7 +138,7 @@ public class GameRenderer {
         double fastTime = effectManager.getRemainingTime("FAST_BALL");
         if (fastTime > 0) {
             g.setFill(Color.RED);
-            g.fillText("Fast: " + String.format("%.1f", fastTime) + "s", effectTextX, yOffset);
+        //    g.fillText("Fast: " + String.format("%.1f", fastTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -146,7 +146,7 @@ public class GameRenderer {
         double slowTime = effectManager.getRemainingTime("SLOW_BALL");
         if (slowTime > 0) {
             g.setFill(Color.PURPLE);
-            g.fillText("Slow: " + String.format("%.1f", slowTime) + "s", effectTextX, yOffset);
+          //  g.fillText("Slow: " + String.format("%.1f", slowTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -154,7 +154,7 @@ public class GameRenderer {
         double expandTime = effectManager.getRemainingTime("EXPAND_PADDLE");
         if (expandTime > 0) {
             g.setFill(Color.GREEN);
-            g.fillText("Expand: " + String.format("%.1f", expandTime) + "s", effectTextX, yOffset);
+        //    g.fillText("Expand: " + String.format("%.1f", expandTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -162,7 +162,7 @@ public class GameRenderer {
         double shrinkTime = effectManager.getRemainingTime("SHRINK_PADDLE");
         if (shrinkTime > 0) {
             g.setFill(Color.ORANGE);
-            g.fillText("Shrink: " + String.format("%.1f", shrinkTime) + "s", effectTextX, yOffset);
+         //   g.fillText("Shrink: " + String.format("%.1f", shrinkTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -170,7 +170,7 @@ public class GameRenderer {
         double invincibleTime = effectManager.getRemainingTime("INVINCIBLE_BALL");
         if (invincibleTime > 0) {
             g.setFill(Color.GOLD);
-            g.fillText("Invincible: " + String.format("%.1f", invincibleTime) + "s", effectTextX, yOffset);
+          //  g.fillText("Invincible: " + String.format("%.1f", invincibleTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -178,7 +178,7 @@ public class GameRenderer {
         double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
         if (scoreMultTime > 0) {
             g.setFill(Color.LIGHTGREEN);
-            g.fillText("x2 Score: " + String.format("%.1f", scoreMultTime) + "s", effectTextX, yOffset);
+           // g.fillText("x2 Score: " + String.format("%.1f", scoreMultTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -186,7 +186,7 @@ public class GameRenderer {
         double fireTime = effectManager.getRemainingTime("FIRE_BALL");
         if (fireTime > 0) {
             g.setFill(Color.ORANGERED);
-            g.fillText("Fire: " + String.format("%.1f", fireTime) + "s", effectTextX, yOffset);
+           // g.fillText("Fire: " + String.format("%.1f", fireTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
 
@@ -194,7 +194,7 @@ public class GameRenderer {
         double laserTime = effectManager.getRemainingTime("LASER_PADDLE");
         if (laserTime > 0) {
             g.setFill(Color.LIGHTBLUE);
-            g.fillText("Laser: " + String.format("%.1f", laserTime) + "s", effectTextX, yOffset);
+          //  g.fillText("Laser: " + String.format("%.1f", laserTime) + "s", effectTextX, yOffset);
             yOffset += 20;
         }
     }

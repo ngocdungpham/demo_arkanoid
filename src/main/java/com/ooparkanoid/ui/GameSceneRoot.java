@@ -113,6 +113,18 @@ public class GameSceneRoot {
     /** Game over overlay view */
     private final GameOverView gameOverView;
 
+    /** You win overlay view */
+    private final YouWinView youWinView;
+
+    /** Player win overlay view for versus mode */
+    private final PlayerWinView playerWinView;
+
+    /** Round transition view */
+    private final RoundTransitionView roundTransitionView;
+
+    /** Flag to indicate if currently in round transition (to prevent showing pause view) */
+    private boolean isInRoundTransition = false;
+
     /** Stack of pressed keys for movement priority */
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
@@ -219,7 +231,37 @@ public class GameSceneRoot {
             }
         });
 
-        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView());
+        youWinView = new YouWinView(new YouWinView.Callbacks() {
+            @Override public void onExit() {
+                gameLoop.stop();
+                SoundManager.getInstance().stopMusic();
+                onExitToMenuCallback.run();
+            }
+        });
+
+        playerWinView = new PlayerWinView(new PlayerWinView.Callbacks() {
+            @Override public void onExit() {
+                gameLoop.stop();
+                SoundManager.getInstance().stopMusic();
+                onExitToMenuCallback.run();
+            }
+        });
+
+        roundTransitionView = new RoundTransitionView(new RoundTransitionView.Callbacks() {
+            @Override public void onComplete() {
+                // Clear the flag and resume game after transition
+                isInRoundTransition = false;
+                stateManager.resumeGame();
+            }
+        });
+
+        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView(), youWinView.getView(), playerWinView.getView(), roundTransitionView.getView());
+
+        // Wire up round transition callback to GameManager
+        gameManager.setRoundTransitionCallback(this::showRoundTransition);
+
+        // Wire up battle end callback to LocalBattleManager
+        battleManager.setBattleEndCallback(this::handleBattleEnd);
 
         // Set up state listeners and input handlers
         setupStateListeners();
@@ -267,11 +309,23 @@ public class GameSceneRoot {
                 gameOverView.show();
             }
 
+            // Handle game won state
+            if (newState == GameState.GAME_WON) {
+                if (stateManager.statusMessageProperty().get()==null || stateManager.statusMessageProperty().get().isBlank())
+                    stateManager.setStatusMessage("You Win! Final Score: " + stateManager.getScore());
+                gameLoop.stop();
+                SoundManager.getInstance().stopMusic();
+                youWinView.show();
+            }
+
             // Handle pause state
             if (newState == GameState.PAUSED) {
-                SoundManager.getInstance().stopMusic();
-                SoundManager.getInstance().play("pause");
-                pauseView.show((StackPane) scene.getRoot());
+                // Only show pause view if not in round transition
+                if (!isInRoundTransition) {
+                    SoundManager.getInstance().stopMusic();
+                    SoundManager.getInstance().play("pause");
+                    pauseView.show((StackPane) scene.getRoot());
+                }
             } else if (newState == GameState.RUNNING) {
                 SoundManager.getInstance().playMusic("background.mp3");
                 pauseView.hide();
@@ -306,6 +360,21 @@ public class GameSceneRoot {
                 }
                 case F1 -> { startAdventureMode(); return; }
                 case F2 -> { startBattleMode();    return; }
+                case F9 -> {
+                    // Test GAME OVER view
+                    stateManager.markGameOver();
+                    return;
+                }
+                case F10 -> {
+                    // Test YOU WIN view
+                    stateManager.markGameWon();
+                    return;
+                }
+                case F11 -> {
+                    // Test ROUND TRANSITION view
+                    showRoundTransition(stateManager.roundProperty().get() + 1);
+                    return;
+                }
                 case ENTER -> {
                     if (stateManager.getCurrentState() == GameState.MENU) {
                         if (currentMode.get() == GameMode.LOCAL_BATTLE) startBattleMode(); else startAdventureMode();
@@ -569,5 +638,32 @@ public class GameSceneRoot {
      */
     public GraphicsContext getGraphicsContext() {
         return graphicsContext;
+    }
+
+    /**
+     * Shows the round transition animation.
+     * Pauses the game during transition and resumes automatically when complete.
+     *
+     * @param roundNumber the round number to display
+     */
+    public void showRoundTransition(int roundNumber) {
+        isInRoundTransition = true;
+        stateManager.pauseGame();
+        roundTransitionView.show(roundNumber);
+    }
+
+    /**
+     * Handles battle end event when a player wins in versus mode.
+     * Shows the player win view instead of game over view.
+     *
+     * @param winner the winning player
+     */
+    private void handleBattleEnd(LocalBattleManager.ServingPlayer winner) {
+        gameLoop.stop();
+        SoundManager.getInstance().stopMusic();
+
+        // Show player win view with the winner's number
+        int playerNumber = winner == LocalBattleManager.ServingPlayer.PLAYER_ONE ? 1 : 2;
+        playerWinView.show(playerNumber);
     }
 }

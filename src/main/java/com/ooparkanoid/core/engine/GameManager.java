@@ -35,78 +35,152 @@ import java.util.Random;
  * - Power-up effects and timers
  * - Rendering coordination
  * - Game flow control (life loss, level completion, game over)
- *
+ * <p>
  * This class follows the Single Responsibility Principle by delegating specific tasks
  * to dedicated managers (CollisionHandler, LevelManager, PowerUpEffectManager, GameRenderer).
- *
+ * <p>
  * Design Pattern: Implements Singleton pattern and Observer pattern (via callbacks).
  *
  * @author Arkanoid Team
  * @version 2.0
  */
 public class GameManager implements CollisionHandler.GameFlowCallbacks {
-    /** Singleton instance */
+    /**
+     * Singleton instance
+     */
     private static GameManager instance;
 
     // ==================== Game Objects ====================
-    /** Player-controlled paddle */
+    /**
+     * Player-controlled paddle
+     */
     private Paddle paddle;
 
-    /** Active balls in play */
+    /**
+     * Active balls in play
+     */
     private List<Ball> balls = new ArrayList<>();
 
-    /** Bricks in current level */
+    /**
+     * Bricks in current level
+     */
     private List<Brick> bricks;
 
-    /** Floating score indicators for visual feedback */
+    /**
+     * Floating score indicators for visual feedback
+     */
     private final List<Score> scores = new ArrayList<>();
 
-    /** Active power-ups falling on screen */
+    /**
+     * Active power-ups falling on screen
+     */
     private final List<PowerUp> powerUps = new ArrayList<>();
 
     // ==================== Core Systems ====================
-    /** Manages game state (score, lives, UI updates) - single source of truth */
+    /**
+     * Manages game state (score, lives, UI updates) - single source of truth
+     */
     private final GameStateManager stateManager;
 
-    /** Handles level loading and brick creation */
+    /**
+     * Handles level loading and brick creation
+     */
     private LevelManager levelManager;
 
-    /** Manages power-up effects and their durations */
+    /**
+     * Manages power-up effects and their durations
+     */
     private PowerUpEffectManager effectManager;
 
-    /** Provides context to power-up effects (access to paddle and balls) */
+    /**
+     * Provides context to power-up effects (access to paddle and balls)
+     */
     private GameContext gameContext;
 
-    /** Handles all collision detection and resolution */
+    /**
+     * Handles all collision detection and resolution
+     */
     private CollisionHandler collisionHandler;
 
-    /** Handles rendering of game objects and UI elements */
+    /**
+     * Handles rendering of game objects and UI elements
+     */
     private GameRenderer gameRenderer;
 
     // ==================== Game State ====================
-    /** Time elapsed in current round/level (seconds) */
+    /**
+     * Time elapsed in current round/level (seconds)
+     */
     private double roundTimeElapsed;
 
-    /** Total time elapsed across all rounds (seconds) */
+    /**
+     * Total time elapsed across all rounds (seconds)
+     */
     private double totalTimeElapsed;
 
-    /** Current level number (1-based) */
+    /**
+     * Current level number (1-based)
+     */
     private int currentLevel;
 
-    /** Random number generator for game logic */
+    /**
+     * Random number generator for game logic
+     */
     private Random random;
 
-    /** Flag indicating whether ball has been launched from paddle */
+    /**
+     * Flag indicating whether ball has been launched from paddle
+     */
     private boolean ballLaunched = false;
+    private boolean isLosingLife = false;
+
+    /**
+     * Callback for round transition events
+     */
+    private RoundTransitionCallback roundTransitionCallback;
+
+    /**
+     * Flag indicating if waiting for round transition
+     */
+    private boolean waitingForRoundTransition = false;
+
+    /**
+     * Timer for round transition delay
+     */
+    private double roundTransitionTimer = 0.0;
+
+    /**
+     * Delay before showing round transition (in seconds)
+     */
+    private static final double ROUND_TRANSITION_DELAY = 0.01;
+
+    // ==================== Callback Interfaces ====================
+
+    /**
+     * Callback interface for round transition events.
+     */
+    public interface RoundTransitionCallback {
+        /**
+         * Called when transitioning to a new round.
+         * @param roundNumber the new round number
+         */
+        void onRoundTransition(int roundNumber);
+    }
 
     // ==================== Visual Assets ====================
-    /** Texture for normal bricks */
+    /**
+     * Texture for normal bricks
+     */
     private Image normalBrickTexture;
 
-    /** Texture for indestructible bricks */
+    /**
+     * Texture for indestructible bricks
+     */
     private Image indestructibleBrickTexture;
 
-    /** Texture for explosive bricks */
+    /**
+     * Texture for explosive bricks
+     */
     private Image explosiveBrickTexture;
 
     public GameManager() {
@@ -167,7 +241,7 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Initializes or resets the entire game to starting state.
      * Sets up paddle, balls, bricks, and all game systems.
      * Loads the first level and prepares for gameplay.
-     *
+     * <p>
      * This method is called on game start and when restarting after game over.
      */
     public void initializeGame() {
@@ -203,6 +277,10 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         currentLevel = 1;
         roundTimeElapsed = 0;
         totalTimeElapsed = 0;
+        isLosingLife = false;
+        ballLaunched = false;
+        waitingForRoundTransition = false;
+        roundTransitionTimer = 0.0;
 
         // Load first level and reset ball position
         loadLevel(currentLevel);
@@ -244,14 +322,53 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
             return;
         }
 
+        // Handle round transition delay
+        if (waitingForRoundTransition) {
+            roundTransitionTimer += dt;
+            if (roundTransitionTimer >= ROUND_TRANSITION_DELAY) {
+                waitingForRoundTransition = false;
+                roundTransitionTimer = 0.0;
+                // Trigger the transition animation now
+                if (roundTransitionCallback != null) {
+                    roundTransitionCallback.onRoundTransition(currentLevel);
+                }
+            }
+            // Continue updating animations during delay
+            paddle.update(dt);
+            for (Ball b : balls) b.update(dt);
+            for (PowerUp p : powerUps) p.update(dt);
+            for (Score s : scores) s.update(dt);
+            for (Brick b : bricks) b.update(dt);
+            effectManager.update(dt);
+            return;
+        }
+
+        if (isLosingLife) {
+            // Chỉ update paddle (để chạy animation nổ)
+            paddle.update(dt);
+            if (paddle.isDestroyed()) {
+                return;
+            }
+            isLosingLife = false;
+            int currentScore = stateManager.getScore();
+            int currentLives = stateManager.getLives();
+
+            currentLives--;
+            stateManager.updateStats(currentScore, currentLives);
+
+            if (currentLives > 0) {
+                resetBallAndPaddlePosition(); // Reset game
+                stateManager.setStatusMessage("Lives remaining: " + currentLives);
+            }
+            // DỪNG update game chính khi đang nổ
+            return;
+        }
+
         // Update timers
         roundTimeElapsed += dt;
         totalTimeElapsed += dt;
         stateManager.updateTimers(roundTimeElapsed, totalTimeElapsed);
-
-        // Update all game objects
         paddle.update(dt);
-
         // Update balls (stick to paddle if not launched yet)
         for (Ball b : balls) {
             if (!ballLaunched) {
@@ -304,12 +421,19 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
             if (currentLevel > Constants.MAX_LEVELS) {
                 // All levels completed - Victory!
                 System.out.println("Congratulations! All levels completed!");
+                stateManager.setStatusMessage("You Win! Final Score: " + stateManager.getScore());
                 recordHighScore(Constants.MAX_LEVELS);
-                initializeGame(); // Restart game
+                stateManager.markGameWon(); // Show victory screen
             } else {
                 // Load next level
                 System.out.println("Starting Level " + currentLevel);
+
+                // Start transition delay timer (will trigger callback after delay)
+                waitingForRoundTransition = true;
+                roundTransitionTimer = 0.0;
+
                 loadLevel(currentLevel);
+                paddle.reset();
                 resetBallAndPaddlePosition();
                 roundTimeElapsed = 0;
                 stateManager.setCurrentRound(currentLevel);
@@ -322,11 +446,14 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
             return;
         }
 
-        // Check for game over (no lives remaining)
-        if (stateManager.getLives() <= 0) {
-            stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
-            recordHighScore();
-            stateManager.markGameOver();
+        // FIX: Đọc mạng từ stateManager
+        if (stateManager.getLives() <= 0 && !isLosingLife && !paddle.isSpawning()) {
+            // Check for game over (no lives remaining)
+            if (stateManager.getLives() <= 0) {
+                stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
+                recordHighScore();
+                stateManager.markGameOver();
+            }
         }
     }
 
@@ -336,39 +463,21 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Handles life loss when all balls fall off screen.
      * Clears active effects, decrements lives, and either resets ball position or triggers game over.
      * Called by CollisionHandler via callback interface when last ball is lost.
-     *
+     * <p>
      * Implementation of GameFlowCallbacks.loseLife()
      */
     @Override
     public void loseLife() {
+        if (!balls.isEmpty() || isLosingLife) return;
+        isLosingLife = true;
+        paddle.destroy();
         if (!balls.isEmpty()) return;
-
-        // Get current state from state manager (single source of truth)
-        int currentScore = stateManager.getScore();
-        int currentLives = stateManager.getLives();
-
-        currentLives--; // Decrement lives
-
-        effectManager.clearAll();
-        powerUps.clear();
-        SoundManager.getInstance().play("lose_life");
-
-        // Update state manager with new life count
-        stateManager.updateStats(currentScore, currentLives);
-
-        if (currentLives > 0) {
-            resetBallAndPaddlePosition();
-            stateManager.setStatusMessage("Lives remaining: " + currentLives);
-        } else {
-            // Game over - delegate to flow checker
-            checkGameFlowConditions();
-        }
     }
 
     /**
      * Spawns a random power-up at the specified location.
      * Called by CollisionHandler when a brick is destroyed and power-up drop is triggered.
-     *
+     * <p>
      * Implementation of GameFlowCallbacks.spawnPowerUp()
      *
      * @param x X coordinate for power-up spawn (typically brick center)
@@ -421,7 +530,6 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
                 + (Constants.PLAYFIELD_WIDTH - Constants.PADDLE_WIDTH) / 2.0;
         paddle.setX(paddleStartX);
         paddle.setDx(0);
-
         balls.clear();
         Ball newBall = new Ball(
                 Constants.PLAYFIELD_LEFT + Constants.PLAYFIELD_WIDTH / 2.0,
@@ -440,7 +548,7 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Renders all game objects and UI elements to the graphics context.
      * Delegates to GameRenderer for actual drawing operations.
      *
-     * @param gc the GraphicsContext to render to
+     * @param g the GraphicsContext to render to
      */
     public void render(GraphicsContext g) {
         gameRenderer.render(g);
@@ -463,6 +571,9 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Can only be called once per ball life until reset.
      */
     public void launchBall() {
+        if (isLosingLife || paddle.isSpawning()) { // (isSpawning() từ Paddle.java)
+            return;
+        }
         if (!ballLaunched) {
             ballLaunched = true;
             for (Ball b : balls) {
@@ -524,5 +635,14 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      */
     public GameStateManager getStateManager() {
         return stateManager;
+    }
+
+    /**
+     * Sets the round transition callback.
+     *
+     * @param callback the callback to invoke when transitioning to a new round
+     */
+    public void setRoundTransitionCallback(RoundTransitionCallback callback) {
+        this.roundTransitionCallback = callback;
     }
 }

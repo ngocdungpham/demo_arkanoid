@@ -37,6 +37,7 @@ public class PowerUp extends GameObject {
             hasAnimation = true;
         }
     }
+
     public void update(double deltaTime) {
         if (collected) {
             return;
@@ -59,7 +60,7 @@ public class PowerUp extends GameObject {
             gc.drawImage(frame, x, y, width, height);
         } else {
             gc.setFill(color);
-            gc.fillOval(-width / 2, - height / 2, width, height);
+            gc.fillOval(-width / 2, -height / 2, width, height);
             gc.setStroke(Color.WHITE);
             gc.strokeOval(-width / 2, -height / 2, width, height);
         }

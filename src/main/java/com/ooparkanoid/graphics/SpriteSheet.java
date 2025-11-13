@@ -8,17 +8,17 @@ import javafx.scene.image.WritableImage;
  * Utility class for extracting individual frames from sprite sheet images.
  * Provides methods to access frames by index, row/column coordinates, or entire rows.
  * Handles sprite sheet layout calculations including margins and spacing.
- *
+ * <p>
  * Sprite Sheet Layout:
  * - Frames are arranged in a grid with specified spacing and margins
  * - Margin: Empty space around the entire sprite sheet
  * - Spacing: Empty space between individual frames
  * - Frame dimensions are uniform across the entire sheet
- *
+ * <p>
  * Usage:
  * Create with sprite sheet image and layout parameters, then access frames
  * using getFrame() methods. Supports both linear indexing and 2D coordinates.
- *
+ * <p>
  * Performance Notes:
  * - Frames are extracted on-demand (not pre-cached)
  * - Each getFrame() call creates a new WritableImage
@@ -28,36 +28,50 @@ import javafx.scene.image.WritableImage;
  * @version 2.0
  */
 public class SpriteSheet {
-    /** The source sprite sheet image containing all frames */
+    /**
+     * The source sprite sheet image containing all frames
+     */
     private Image spriteSheet;
 
-    /** Width of each individual frame in pixels */
+    /**
+     * Width of each individual frame in pixels
+     */
     private int frameWidth;
 
-    /** Height of each individual frame in pixels */
+    /**
+     * Height of each individual frame in pixels
+     */
     private int frameHeight;
 
-    /** Horizontal and vertical spacing between frames in pixels */
+    /**
+     * Horizontal and vertical spacing between frames in pixels
+     */
     private int spacing;
 
-    /** Margin around the entire sprite sheet in pixels */
+    /**
+     * Margin around the entire sprite sheet in pixels
+     */
     private int margin;
 
-    /** Number of frame columns in the sprite sheet */
+    /**
+     * Number of frame columns in the sprite sheet
+     */
     private int columns;
 
-    /** Number of frame rows in the sprite sheet */
+    /**
+     * Number of frame rows in the sprite sheet
+     */
     private int rows;
 
     /**
      * Constructs a SpriteSheet with specified layout parameters.
      * Automatically calculates the number of rows and columns based on image dimensions.
      *
-     * @param sheet the sprite sheet image containing all frames
-     * @param frameWidth width of each individual frame in pixels
+     * @param sheet       the sprite sheet image containing all frames
+     * @param frameWidth  width of each individual frame in pixels
      * @param frameHeight height of each individual frame in pixels
-     * @param spacing spacing between frames in pixels (both horizontal and vertical)
-     * @param margin margin around the sprite sheet in pixels
+     * @param spacing     spacing between frames in pixels (both horizontal and vertical)
+     * @param margin      margin around the sprite sheet in pixels
      */
     public SpriteSheet(Image sheet, int frameWidth, int frameHeight, int spacing, int margin) {
         this.spriteSheet = sheet;
