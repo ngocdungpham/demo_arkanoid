@@ -9,12 +9,11 @@ public class PowerUpFactory {
     private static final double INSTANT_DURATION = 0.1; // Cho instant effects
 
 
-
     /**
      * Tạo random powerUp với 75% buff, 25% debuff
      */
     public static PowerUp createRandomPowerUp(double x, double y) {
-        boolean isBuff = random.nextDouble() < 0.6; // 60% buff
+        boolean isBuff = random.nextDouble() < 75; // 75% buff
         if (isBuff) {
             PowerUpSprite.PowerUpType[] buffs = {
                     PowerUpSprite.PowerUpType.FAST_BALL,

@@ -27,11 +27,17 @@ public class Paddle extends MovableObject {
      * Defines the orientation of the paddle.
      */
     public enum Orientation {
-        /** Paddle moves horizontally at the bottom of the screen */
+        /**
+         * Paddle moves horizontally at the bottom of the screen
+         */
         HORIZONTAL,
-        /** Paddle positioned vertically on the left side */
+        /**
+         * Paddle positioned vertically on the left side
+         */
         VERTICAL_LEFT,
-        /** Paddle positioned vertically on the right side */
+        /**
+         * Paddle positioned vertically on the right side
+         */
         VERTICAL_RIGHT
     }
 
@@ -136,9 +142,9 @@ public class Paddle extends MovableObject {
      * Loads an image with fallback support.
      * Attempts to load the preferred image first, falls back to alternative if unavailable.
      *
-     * @param rm the ResourceManager instance
+     * @param rm        the ResourceManager instance
      * @param preferred the preferred image filename
-     * @param fallback the fallback image filename
+     * @param fallback  the fallback image filename
      * @return the loaded image, or null if both fail
      */
     private Image loadWithFallback(ResourceManager rm, String preferred, String fallback) {
@@ -178,6 +184,9 @@ public class Paddle extends MovableObject {
     public boolean isSpawning() {
         return currentState == State.SPAWNING;
     }
+    public boolean isLive() {
+        return currentState == State.LIVE;
+    }
 
     public boolean isDestroyed() {
         return currentState == State.DESTROYED;
@@ -188,6 +197,14 @@ public class Paddle extends MovableObject {
     }
 
 
+    @Override
+    public void move(double dt) {
+        if (currentState == State.DESTROYED || currentState == State.SPAWNING) {
+            return;
+        }
+        super.move(dt);
+    }
+
     /**
      * Updates the paddle state for the current frame.
      * Handles movement, boundary checking, laser cooldown, and laser updates.
@@ -196,13 +213,9 @@ public class Paddle extends MovableObject {
      */
     @Override
     public void update(double dt) {
-        // Update position based on velocity and time
-        move(dt);
-        // Cập nhật vị trí dựa trên vận tốc và thời gian
         switch (currentState) {
             case LIVE:
                 move(dt);
-
                 if (lockedX != null) {
                     x = lockedX;
                 }
@@ -258,7 +271,7 @@ public class Paddle extends MovableObject {
     /**
      * Sets the vertical movement boundaries for the paddle.
      *
-     * @param top the top boundary Y coordinate
+     * @param top    the top boundary Y coordinate
      * @param bottom the bottom boundary Y coordinate
      */
     public void setVerticalMovementBounds(double top, double bottom) {
@@ -269,7 +282,7 @@ public class Paddle extends MovableObject {
     /**
      * Sets the horizontal movement boundaries for the paddle.
      *
-     * @param left the left boundary X coordinate
+     * @param left  the left boundary X coordinate
      * @param right the right boundary X coordinate
      */
     public void setMovementBounds(double left, double right) {
@@ -475,4 +488,5 @@ public class Paddle extends MovableObject {
     public void unlockHorizontalPosition() {
         this.lockedX = null;
     }
+
 }

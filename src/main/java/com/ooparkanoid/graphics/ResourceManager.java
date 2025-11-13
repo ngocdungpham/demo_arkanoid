@@ -68,8 +68,8 @@ public class ResourceManager {
      * If already cached, returns the cached version.
      * Used by AssetLoadingTask for preloading.
      *
-     * @param filename the sprite sheet filename
-     * @param frameWidth width of each frame in pixels
+     * @param filename    the sprite sheet filename
+     * @param frameWidth  width of each frame in pixels
      * @param frameHeight height of each frame in pixels
      * @return the loaded SpriteSheet, or null if loading fails
      */

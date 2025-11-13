@@ -32,7 +32,7 @@ import java.util.Random;
  * - Power-up collisions with paddle
  * - Explosion effects and chain reactions
  * - Score updates and visual feedback
- *
+ * <p>
  * This class acts as a bridge between game objects and the orchestrator (GameManager),
  * delegating game flow decisions through callbacks while handling physics and scoring internally.
  *
@@ -40,16 +40,24 @@ import java.util.Random;
  * @version 2.0
  */
 public class CollisionHandler {
-    /** Manages game state (score, lives, level progression) */
+    /**
+     * Manages game state (score, lives, level progression)
+     */
     private final GameStateManager stateManager;
 
-    /** Manages power-up effects and their durations */
+    /**
+     * Manages power-up effects and their durations
+     */
     private final PowerUpEffectManager effectManager;
 
-    /** List of floating score indicators for visual feedback */
+    /**
+     * List of floating score indicators for visual feedback
+     */
     private final List<Score> scores;
 
-    /** Random number generator for power-up drops and effects */
+    /**
+     * Random number generator for power-up drops and effects
+     */
     private final Random random;
 
     // References to game objects (injected by GameManager)
@@ -77,16 +85,18 @@ public class CollisionHandler {
         void spawnPowerUp(double x, double y);
     }
 
-    /** Callbacks to orchestrator for game flow decisions */
+    /**
+     * Callbacks to orchestrator for game flow decisions
+     */
     private final GameFlowCallbacks callbacks;
 
     /**
      * Constructs a CollisionHandler with required dependencies.
      *
-     * @param stateManager manages game state (score, lives, level)
+     * @param stateManager  manages game state (score, lives, level)
      * @param effectManager manages active power-up effects
-     * @param scores list for spawning score popups
-     * @param callbacks interface for delegating game flow decisions
+     * @param scores        list for spawning score popups
+     * @param callbacks     interface for delegating game flow decisions
      */
     public CollisionHandler(GameStateManager stateManager,
                             PowerUpEffectManager effectManager,
@@ -103,9 +113,9 @@ public class CollisionHandler {
      * Injects game object references from GameManager.
      * Must be called before handleCollisions() to avoid null pointer exceptions.
      *
-     * @param paddle the player's paddle
-     * @param balls list of active balls
-     * @param bricks list of bricks on the current level
+     * @param paddle   the player's paddle
+     * @param balls    list of active balls
+     * @param bricks   list of bricks on the current level
      * @param powerUps list of active power-ups
      */
     public void setGameObjects(Paddle paddle, List<Ball> balls, List<Brick> bricks, List<PowerUp> powerUps) {
@@ -261,8 +271,7 @@ public class CollisionHandler {
                     if (random.nextDouble() < Constants.POWERUP_DROP_CHANCE) {
                         callbacks.spawnPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight() / 2);
                     }
-                }
-                else if (!brick.isDestroyed()) {
+                } else if (!brick.isDestroyed()) {
                     SoundManager.getInstance().play("collision");
                 }
 
@@ -277,7 +286,7 @@ public class CollisionHandler {
      * Uses overlap detection to determine which side of the brick was hit,
      * then bounces the ball appropriately and adjusts position to prevent sticking.
      *
-     * @param ball the ball that hit the brick
+     * @param ball  the ball that hit the brick
      * @param brick the brick that was hit
      */
     private void handleBallBounceOffBrick(Ball ball, Brick brick) {
@@ -459,8 +468,8 @@ public class CollisionHandler {
      * Provides visual feedback for points earned.
      *
      * @param point score value to display
-     * @param x X coordinate for popup
-     * @param y Y coordinate for popup
+     * @param x     X coordinate for popup
+     * @param y     Y coordinate for popup
      */
     private void spawnScorePopup(String point, double x, double y) {
         scores.add(new Score(point, x, y, Color.CYAN));
