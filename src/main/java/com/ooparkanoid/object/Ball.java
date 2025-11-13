@@ -39,12 +39,12 @@ public class Ball extends MovableObject {
     /**
      * Constructs a new Ball with specified properties.
      *
-     * @param x initial X coordinate of ball center
-     * @param y initial Y coordinate of ball center
+     * @param x      initial X coordinate of ball center
+     * @param y      initial Y coordinate of ball center
      * @param radius ball radius in pixels
-     * @param speed movement speed in pixels per second
-     * @param dirX initial X direction component
-     * @param dirY initial Y direction component
+     * @param speed  movement speed in pixels per second
+     * @param dirX   initial X direction component
+     * @param dirY   initial Y direction component
      */
     public Ball(double x, double y, double radius, double speed, double dirX, double dirY) {
         super(x - radius, y - radius, radius * 2, radius * 2, 0, 0);
@@ -260,7 +260,7 @@ public class Ball extends MovableObject {
      * Enables or disables the glow effect around the ball.
      *
      * @param hasGlow true to enable glow, false to disable
-     * @param color the glow color
+     * @param color   the glow color
      */
     public void setGlow(boolean hasGlow, Color color) {
         this.hasGlow = hasGlow;
@@ -448,8 +448,8 @@ public class Ball extends MovableObject {
      * Utility method for collision detection calculations.
      *
      * @param value the value to clamp
-     * @param min minimum allowed value
-     * @param max maximum allowed value
+     * @param min   minimum allowed value
+     * @param max   maximum allowed value
      * @return the clamped value
      */
     private static double clamp(double value, double min, double max) {

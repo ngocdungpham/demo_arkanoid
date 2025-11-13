@@ -10,25 +10,25 @@ import java.util.Map;
 /**
  * Abstract base class for animated game objects that can display multiple animations.
  * Extends GameObject to provide animation management, sprite flipping, and rendering capabilities.
- *
+ * <p>
  * Features:
  * - Multiple animation support with named animations
  * - Horizontal and vertical sprite flipping
  * - Position offset adjustments for precise sprite alignment
  * - Automatic animation switching and frame management
  * - Canvas-based rendering with transformation support
- *
+ * <p>
  * Animation Management:
  * - Stores animations in a Map with string keys for easy access
  * - Supports playing different animations by name
  * - Automatically resets animations when switching
  * - Updates animation frames based on delta time
- *
+ * <p>
  * Rendering:
  * - Handles sprite flipping through canvas transformations
  * - Applies position offsets for fine-tuned sprite positioning
  * - Preserves GraphicsContext state during rendering
- *
+ * <p>
  * Usage:
  * Extend this class to create specific animated game objects (e.g., characters, effects).
  * Add animations using addAnimation(), then control playback with playAnimation().
@@ -37,34 +37,48 @@ import java.util.Map;
  * @version 2.0
  */
 public abstract class AnimatedSprite extends GameObject {
-    /** Map of animation names to their corresponding Animation objects */
+    /**
+     * Map of animation names to their corresponding Animation objects
+     */
     protected Map<String, Animation> animations = new HashMap<>();
 
-    /** Currently playing animation */
+    /**
+     * Currently playing animation
+     */
     protected Animation currentAnimation;
 
-    /** Name of the currently playing animation */
+    /**
+     * Name of the currently playing animation
+     */
     protected String currentAnimationName;
 
-    /** Flag to flip sprite horizontally (left-right mirror) */
+    /**
+     * Flag to flip sprite horizontally (left-right mirror)
+     */
     protected boolean flipX = false;
 
-    /** Flag to flip sprite vertically (up-down mirror) */
+    /**
+     * Flag to flip sprite vertically (up-down mirror)
+     */
     protected boolean flipY = false;
 
-    /** Horizontal offset for sprite positioning adjustment */
+    /**
+     * Horizontal offset for sprite positioning adjustment
+     */
     protected double offsetX = 0;
 
-    /** Vertical offset for sprite positioning adjustment */
+    /**
+     * Vertical offset for sprite positioning adjustment
+     */
     protected double offsetY = 0;
 
     /**
      * Constructs an AnimatedSprite with specified position and dimensions.
      * Initializes the sprite with default state (no animations, no flipping, no offsets).
      *
-     * @param x the X coordinate of the sprite's position
-     * @param y the Y coordinate of the sprite's position
-     * @param width the width of the sprite in pixels
+     * @param x      the X coordinate of the sprite's position
+     * @param y      the Y coordinate of the sprite's position
+     * @param width  the width of the sprite in pixels
      * @param height the height of the sprite in pixels
      */
     public AnimatedSprite(double x, double y, double width, double height) {
@@ -75,7 +89,7 @@ public abstract class AnimatedSprite extends GameObject {
      * Adds a new animation to this sprite with the specified name.
      * If this is the first animation added, it will automatically start playing.
      *
-     * @param name the unique name identifier for this animation
+     * @param name      the unique name identifier for this animation
      * @param animation the Animation object to add
      */
     public void addAnimation(String name, Animation animation) {

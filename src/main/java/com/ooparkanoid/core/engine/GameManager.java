@@ -286,10 +286,9 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         if (!stateManager.isRunning()) {
             return;
         }
-        paddle.update(dt);
-
         if (isLosingLife) {
             // Chỉ update paddle (để chạy animation nổ)
+            paddle.update(dt);
             if (paddle.isDestroyed()) {
                 return;
             }
@@ -312,10 +311,7 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         roundTimeElapsed += dt;
         totalTimeElapsed += dt;
         stateManager.updateTimers(roundTimeElapsed, totalTimeElapsed);
-
-        // Update all game objects
         paddle.update(dt);
-
         // Update balls (stick to paddle if not launched yet)
         for (Ball b : balls) {
             if (!ballLaunched) {

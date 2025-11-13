@@ -1,5 +1,6 @@
 package com.ooparkanoid.ui;
 
+import com.ooparkanoid.object.Paddle;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -38,25 +39,25 @@ import java.util.Set;
  * Main game scene coordinator that integrates all UI components and game logic.
  * Orchestrates BackgroundSections, AdventureHud, BattleScoreboard, and overlay views.
  * Manages game loop, input handling, mode switching, and state transitions.
- *
+ * <p>
  * Architecture:
  * - Layered scene structure with background, content, and overlay layers
  * - Reactive UI updates through JavaFX bindings
  * - Event-driven input handling with key state management
  * - Mode-specific rendering and input logic
  * - Automatic state synchronization between UI and game logic
- *
+ * <p>
  * Game Modes:
  * - ADVENTURE: Single-player brick breaking with HUD display
  * - LOCAL_BATTLE: Two-player versus mode with scoreboard
- *
+ * <p>
  * Key Features:
  * - Seamless mode switching (F1/F2 keys)
  * - Pause/resume functionality (ESC key)
  * - Mouse and keyboard input support
  * - Automatic game over and pause overlay management
  * - Background music and sound effect integration
- *
+ * <p>
  * Input Controls:
  * - ESC: Pause/Resume
  * - F1: Switch to Adventure mode
@@ -71,61 +72,99 @@ import java.util.Set;
  */
 public class GameSceneRoot {
 
-    /** Main JavaFX scene containing all game UI */
+    /**
+     * Main JavaFX scene containing all game UI
+     */
     private final Scene scene;
 
-    /** Graphics context for canvas rendering */
+    /**
+     * Graphics context for canvas rendering
+     */
     private final GraphicsContext graphicsContext;
 
-    /** Game manager for Adventure mode */
+    /**
+     * Game manager for Adventure mode
+     */
     private final GameManager gameManager;
 
-    /** Battle manager for Local Battle mode */
+    /**
+     * Battle manager for Local Battle mode
+     */
     private final LocalBattleManager battleManager;
 
-    /** State manager for game state coordination */
+    /**
+     * State manager for game state coordination
+     */
     private final GameStateManager stateManager;
 
-    /** Main game loop animation timer */
+    /**
+     * Main game loop animation timer
+     */
     private final AnimationTimer gameLoop;
 
-    /** Canvas for game rendering */
+    /**
+     * Canvas for game rendering
+     */
     private final Canvas canvas;
 
-    /** Layered scene structure with background/content/overlay layers */
+    /**
+     * Layered scene structure with background/content/overlay layers
+     */
     private final SceneLayoutFactory.LayeredScene layeredScene;
 
-    /** Background layer for static backgrounds */
+    /**
+     * Background layer for static backgrounds
+     */
     private final BackgroundLayer backgroundLayer;
 
-    /** Three-section background that adapts to game modes */
+    /**
+     * Three-section background that adapts to game modes
+     */
     private final BackgroundSections backgroundSections;
 
-    /** HUD display for Adventure mode */
+    /**
+     * HUD display for Adventure mode
+     */
     private final AdventureHud adventureHud;
 
-    /** Scoreboard for Battle mode */
+    /**
+     * Scoreboard for Battle mode
+     */
     private final BattleScoreboard battleScoreboard;
 
-    /** Pause overlay view */
+    /**
+     * Pause overlay view
+     */
     private final NeonPauseView pauseView;
 
-    /** Game over overlay view */
+    /**
+     * Game over overlay view
+     */
     private final GameOverView gameOverView;
 
-    /** Stack of pressed keys for movement priority */
+    /**
+     * Stack of pressed keys for movement priority
+     */
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
-    /** Set of currently active keys */
+    /**
+     * Set of currently active keys
+     */
     private final Set<KeyCode> activeKeys = EnumSet.noneOf(KeyCode.class);
 
-    /** Current game mode property */
+    /**
+     * Current game mode property
+     */
     private final ObjectProperty<GameMode> currentMode = new SimpleObjectProperty<>(GameMode.ADVENTURE);
 
-    /** Callback for exiting to main menu */
+    /**
+     * Callback for exiting to main menu
+     */
     private final Runnable onExitToMenuCallback;
 
-    /** Initial game mode */
+    /**
+     * Initial game mode
+     */
     private final GameMode initialMode;
 
     // ==================== Constructors ====================
@@ -151,7 +190,7 @@ public class GameSceneRoot {
      * Initializes all game managers, UI components, and event handlers.
      *
      * @param onExitToMenuCallback callback to execute when exiting to menu
-     * @param initialMode the initial game mode to start with
+     * @param initialMode          the initial game mode to start with
      */
     public GameSceneRoot(Runnable onExitToMenuCallback, GameMode initialMode) {
         this.onExitToMenuCallback = onExitToMenuCallback;
@@ -199,12 +238,15 @@ public class GameSceneRoot {
 
         // Add overlay views (pause and game over)
         pauseView = new NeonPauseView(new NeonPauseView.Callbacks() {
-            @Override public void onResume() {
+            @Override
+            public void onResume() {
                 pauseView.hide();
                 stateManager.resumeGame();
                 scene.getRoot().requestFocus();
             }
-            @Override public void onExit() {
+
+            @Override
+            public void onExit() {
                 gameLoop.stop();
                 SoundManager.getInstance().stopMusic();
                 onExitToMenuCallback.run();
@@ -212,7 +254,8 @@ public class GameSceneRoot {
         });
 
         gameOverView = new GameOverView(new GameOverView.Callbacks() {
-            @Override public void onExit() {
+            @Override
+            public void onExit() {
                 gameLoop.stop();
                 SoundManager.getInstance().stopMusic();
                 onExitToMenuCallback.run();
@@ -230,7 +273,8 @@ public class GameSceneRoot {
 
         // Initialize game loop and start appropriate mode
         gameLoop = createGameLoop();
-        if (initialMode == GameMode.LOCAL_BATTLE) startBattleMode(); else startAdventureMode();
+        if (initialMode == GameMode.LOCAL_BATTLE) startBattleMode();
+        else startAdventureMode();
         updateLayoutForMode(currentMode.get());
         gameLoop.start();
     }
@@ -247,7 +291,8 @@ public class GameSceneRoot {
             // Stop paddle movement when not running
             if (newState != GameState.RUNNING) {
                 if (currentMode.get() == GameMode.ADVENTURE) {
-                    if (gameManager.getPaddle() != null) gameManager.getPaddle().setDx(0);
+                    if (gameManager.getPaddle() != null)
+                        gameManager.getPaddle().setDx(0);
                 } else {
                     battleManager.stopPlayers();
                 }
@@ -260,7 +305,7 @@ public class GameSceneRoot {
 
             // Handle game over state
             if (newState == GameState.GAME_OVER) {
-                if (stateManager.statusMessageProperty().get()==null || stateManager.statusMessageProperty().get().isBlank())
+                if (stateManager.statusMessageProperty().get() == null || stateManager.statusMessageProperty().get().isBlank())
                     stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
                 gameLoop.stop();
                 SoundManager.getInstance().stopMusic();
@@ -304,25 +349,33 @@ public class GameSceneRoot {
                     }
                     return;
                 }
-                case F1 -> { startAdventureMode(); return; }
-                case F2 -> { startBattleMode();    return; }
+                case F1 -> {
+                    startAdventureMode();
+                    return;
+                }
+                case F2 -> {
+                    startBattleMode();
+                    return;
+                }
                 case ENTER -> {
                     if (stateManager.getCurrentState() == GameState.MENU) {
-                        if (currentMode.get() == GameMode.LOCAL_BATTLE) startBattleMode(); else startAdventureMode();
+                        if (currentMode.get() == GameMode.LOCAL_BATTLE) startBattleMode();
+                        else startAdventureMode();
                     }
                     return;
                 }
                 case SPACE -> {
                     if (stateManager.isRunning()) {
                         if (currentMode.get() == GameMode.LOCAL_BATTLE) battleManager.launchBall();
-                        else if (gameManager.getPaddle()!=null) {
+                        else if (gameManager.getPaddle() != null) {
                             if (gameManager.getPaddle().isLaserEnabled()) gameManager.getPaddle().shootLaser();
                             else gameManager.launchBall();
                         }
                     }
                     return;
                 }
-                default -> {}
+                default -> {
+                }
             }
 
             // Mode-specific input (only when running)
@@ -331,12 +384,13 @@ public class GameSceneRoot {
             if (currentMode.get() == GameMode.ADVENTURE) {
                 // Adventure mode: WASD/Arrow keys for paddle movement
                 if (gameManager.getPaddle() == null) return;
-                if ((code==KeyCode.A || code==KeyCode.D || code==KeyCode.LEFT || code==KeyCode.RIGHT)) {
+                if ((code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT)) {
                     if (!pressedStack.contains(code)) pressedStack.push(code);
                 }
             } else {
                 // Battle mode: WASD/Arrow keys for paddle movement
-                if (code==KeyCode.W || code==KeyCode.S || code==KeyCode.UP || code==KeyCode.DOWN) applyBattleMovementFromKeys();
+                if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN)
+                    applyBattleMovementFromKeys();
             }
         });
 
@@ -353,23 +407,24 @@ public class GameSceneRoot {
 
             if (currentMode.get() == GameMode.ADVENTURE) {
                 // Adventure mode: Stop paddle if no movement keys pressed
-                if (gameManager.getPaddle()==null) return;
-                if (code==KeyCode.A || code==KeyCode.D || code==KeyCode.LEFT || code==KeyCode.RIGHT) {
-                    boolean still = pressedStack.stream().anyMatch(k -> k==KeyCode.A || k==KeyCode.D || k==KeyCode.LEFT || k==KeyCode.RIGHT);
+                if (gameManager.getPaddle() == null) return;
+                if (code == KeyCode.A || code == KeyCode.D || code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                    boolean still = pressedStack.stream().anyMatch(k -> k == KeyCode.A || k == KeyCode.D || k == KeyCode.LEFT || k == KeyCode.RIGHT);
                     if (!still) gameManager.getPaddle().setDx(0);
                 }
                 // Debug: Spawn extra ball with B key
-                if (code==KeyCode.B) gameManager.spawnExtraBall();
+                if (code == KeyCode.B) gameManager.spawnExtraBall();
             } else {
                 // Battle mode: Update paddle movement
-                if (code==KeyCode.W || code==KeyCode.S || code==KeyCode.UP || code==KeyCode.DOWN) applyBattleMovementFromKeys();
+                if (code == KeyCode.W || code == KeyCode.S || code == KeyCode.UP || code == KeyCode.DOWN)
+                    applyBattleMovementFromKeys();
             }
         });
 
         // Mouse click handler
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (!stateManager.isRunning() || event.getButton()!=MouseButton.PRIMARY) return;
-            if (currentMode.get()==GameMode.ADVENTURE && gameManager.getPaddle()!=null) {
+            if (!stateManager.isRunning() || event.getButton() != MouseButton.PRIMARY) return;
+            if (currentMode.get() == GameMode.ADVENTURE && gameManager.getPaddle() != null) {
                 if (gameManager.getPaddle().isLaserEnabled()) gameManager.getPaddle().shootLaser();
                 else gameManager.launchBall();
             }
@@ -428,15 +483,15 @@ public class GameSceneRoot {
      * Uses key press stack for movement priority (last pressed key takes precedence).
      */
     private void updatePaddleVelocity() {
-        if (currentMode.get()!=GameMode.ADVENTURE || gameManager.getPaddle()==null) return;
+        if (currentMode.get() != GameMode.ADVENTURE || gameManager.getPaddle() == null) return;
         if (pressedStack.isEmpty()) {
             gameManager.getPaddle().setDx(0);
             return;
         }
 
         KeyCode key = pressedStack.peek();
-        if (key==KeyCode.A || key==KeyCode.LEFT) gameManager.getPaddle().setDx(-Constants.PADDLE_SPEED);
-        else if (key==KeyCode.D || key==KeyCode.RIGHT) gameManager.getPaddle().setDx(Constants.PADDLE_SPEED);
+        if (key == KeyCode.A || key == KeyCode.LEFT) gameManager.getPaddle().setDx(-Constants.PADDLE_SPEED);
+        else if (key == KeyCode.D || key == KeyCode.RIGHT) gameManager.getPaddle().setDx(Constants.PADDLE_SPEED);
         else gameManager.getPaddle().setDx(0);
     }
 
@@ -445,7 +500,7 @@ public class GameSceneRoot {
      * Handles simultaneous key presses for both players.
      */
     private void applyBattleMovementFromKeys() {
-        if (currentMode.get()!=GameMode.LOCAL_BATTLE) return;
+        if (currentMode.get() != GameMode.LOCAL_BATTLE) return;
 
         double v1 = 0, v2 = 0;
 
@@ -466,7 +521,7 @@ public class GameSceneRoot {
      * Delegates rendering to the appropriate game manager.
      */
     private void renderCurrentMode() {
-        if (currentMode.get()==GameMode.ADVENTURE) gameManager.render(graphicsContext);
+        if (currentMode.get() == GameMode.ADVENTURE) gameManager.render(graphicsContext);
         else battleManager.render(graphicsContext);
     }
 
@@ -477,9 +532,11 @@ public class GameSceneRoot {
      * @param event the mouse event containing cursor position
      */
     private void handleMouseMoved(MouseEvent event) {
-        if (currentMode.get()!=GameMode.ADVENTURE || !stateManager.isRunning() || gameManager.getPaddle()==null) return;
+        if (currentMode.get() != GameMode.ADVENTURE || !stateManager.isRunning()
+                || gameManager.getPaddle() == null || !gameManager.getPaddle().isLive())
+            return;
 
-        double targetX = event.getX() - gameManager.getPaddle().getWidth()/2;
+        double targetX = event.getX() - gameManager.getPaddle().getWidth() / 2;
         double clampedX = Math.max(Constants.PLAYFIELD_LEFT,
                 Math.min(targetX, Constants.PLAYFIELD_RIGHT - gameManager.getPaddle().getWidth()));
         gameManager.getPaddle().setX(clampedX);

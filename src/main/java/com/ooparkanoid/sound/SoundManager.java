@@ -173,7 +173,7 @@ public class SoundManager {
     /**
      * Plays a sound effect with custom volume.
      *
-     * @param name the sound identifier to play
+     * @param name   the sound identifier to play
      * @param volume custom volume level (0.0 to 1.0)
      */
     public void play(String name, double volume) {
