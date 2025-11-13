@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import com.ooparkanoid.core.score.FirebaseScoreService;
 import com.ooparkanoid.core.state.GameMode;
-import com.ooparkanoid.AlertBox;
+
 import com.ooparkanoid.graphics.ResourceManager;
 import com.ooparkanoid.ui.*;
 
@@ -304,14 +304,13 @@ public class MainConsole extends Application {
             statusLabel.textProperty().bind(loadingTask.messageProperty());
 
             loadingTask.setOnSucceeded(e -> {
-                System.out.println("✅ Asset loading completed successfully");
+                System.out.println("Asset loading completed successfully");
                 startTransition(); // Transition to menu with curtain effect
             });
 
             loadingTask.setOnFailed(e -> {
-                System.err.println("❌ Error loading game assets:");
+                System.err.println("Error loading game assets:");
                 loadingTask.getException().printStackTrace();
-                AlertBox.display("Critical Error", "Unable to load game assets. Please try again.");
                 Platform.exit();
             });
 
@@ -538,7 +537,7 @@ public class MainConsole extends Application {
             String videoPath = "/Videos/intro.mp4";
             URL videoUrl = getClass().getResource(videoPath);
             if (videoUrl == null) {
-                System.err.println("❌ Video not found for preload: " + videoPath);
+                System.err.println("Video not found for preload: " + videoPath);
                 return;
             }
 
@@ -547,11 +546,11 @@ public class MainConsole extends Application {
             introMediaPlayer.setAutoPlay(false);
 
             introMediaPlayer.setOnError(() -> {
-                System.err.println("❌ Video preload error: " + introMediaPlayer.getError().getMessage());
+                System.err.println("Video preload error: " + introMediaPlayer.getError().getMessage());
                 introMediaPlayer = null;
             });
         } catch (Exception e) {
-            System.err.println("❌ Error initializing media player: " + e.getMessage());
+            System.err.println("Error initializing media player: " + e.getMessage());
             introMediaPlayer = null;
         }
     }
@@ -563,7 +562,7 @@ public class MainConsole extends Application {
      */
     private void playIntroVideo() {
         if (introMediaPlayer == null) {
-            System.err.println("⚠️ Video player not ready. Skipping to game.");
+            System.err.println("Video player not ready. Skipping to game.");
             startGame(nextGameMode);
             return;
         }
@@ -661,7 +660,6 @@ public class MainConsole extends Application {
                 .thenAccept(scores -> Platform.runLater(() -> controller.setScores(scores)))
                 .exceptionally(e -> {
                     Platform.runLater(() -> {
-                        AlertBox.display("Network Error", "Unable to load Firebase leaderboard.");
                         returnToMenu();
                     });
                     return null;

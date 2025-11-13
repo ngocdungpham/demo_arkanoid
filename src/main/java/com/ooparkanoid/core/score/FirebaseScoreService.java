@@ -1,6 +1,6 @@
 package com.ooparkanoid.core.score;
 
-import com.ooparkanoid.AlertBox;
+
 import com.ooparkanoid.core.state.PlayerContext;
 import javafx.application.Platform;
 import org.json.JSONArray;

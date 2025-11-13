@@ -223,11 +223,11 @@ public class AdventureHud {
         box.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 16, 0.4, 0, 6);");
         box.setBackground(Background.EMPTY);
         box.setStyle(null); // Remove drop shadow if desired
-        UiUtils.addCardGlowOnChange(valueLbl);
+        //UiUtils.addCardGlowOnChange(valueLbl);
         return box;
     }
 
-    /**
+    /**z
      * Creates the score display card with distinctive red styling.
      * Features larger font and red background to emphasize score importance.
      *
@@ -249,7 +249,7 @@ public class AdventureHud {
         box.setBackground(new Background(new BackgroundFill(Color.rgb(160, 35, 35, 0.75), new CornerRadii(12), Insets.EMPTY)));
         box.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 18, 0.45, 0, 7);");
 
-        UiUtils.addCardGlowOnChange(valueLbl);
+        //UiUtils.addCardGlowOnChange(valueLbl);
         return box;
     }
 
@@ -279,7 +279,7 @@ public class AdventureHud {
         box.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 18, 0.45, 0, 7);");
         box.setBackground(Background.EMPTY);
         box.setStyle(null); // Remove drop shadow if desired
-        UiUtils.addCardGlowOnChange(rValue);
+        //UiUtils.addCardGlowOnChange(rValue);
         return box;
     }
 }
