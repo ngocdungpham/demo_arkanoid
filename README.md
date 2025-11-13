@@ -146,23 +146,41 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 ## Demo
 
 ### Screenshots
+1. **Intro**
+![Intro](docs/screenshots/intro.png)
 
-**Main Menu**  
-![Main Menu](docs/screenshots/menu.png)
+2. **Login**
+![Login](docs/screenshots/Login.png)
 
-**Gameplay**  
-![Gameplay](docs/screenshots/gameplay.png)
+3. **Login by Google** 
+![Login by Google](docs/screenshots/LoginGoogle.png)
 
-**Power-ups in Action**  
-![Power-ups](docs/screenshots/powerups.png)
+4. **Sign up**  
+![Sign in](docs/screenshots/SignIn.png)
 
-**Leaderboard**  
-![Leaderboard](docs/screenshots/leaderboard.png)
+5. **Loading**
+![Loading](docs/screenshots/Loading.png)
+
+6. **Menu**
+![Menu](docs/screenshots/Menu.png)
+
+7. **Mode Adventure**
+![Mode Adventure](docs/screenshots/Adventure.png)
+
+8. **Mode Versus**
+![Mode Versus](docs/screenshots/Versus.png)
+
+9. **Credits**
+![Credits](docs/screenshots/Credits.png)
+
+10. **Gameplay**  
+![Gameplay](docs/screenshots/GamePlay.png)
+
+11. **Power-ups in Action**  
+![Power-ups in Action](docs/screenshots/PowerUpAction.png)
 
 ### Video Demo
 [![Video Demo](docs/screenshots/video-thumbnail.png)](docs/demo/gameplay.mp4)
-
-*Full gameplay video is available in `docs/demo/gameplay.mp4`*
 
 ---
 
@@ -170,31 +188,33 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 
 ### Planned Features
 1. **Additional game modes**
-   - Time attack mode
-   - Survival mode with endless levels
-   - Co-op multiplayer mode
+   - Time attack mode.
+   - Survival mode with endless levels.
+   - Versus mode with horizontal.
 
-2. **Enhanced gameplay**
-   - Boss battles at end of worlds
-   - More power-up varieties (freeze time, shield wall, etc.)
-   - Achievements system
+2. **Enhanced Gameplay**
+    - Better Scoring: Implement a more rewarding scoring system (e.g., Normal=50, Strong=150) to make points more meaningful.
+    - More Levels: The `LevelManager` makes it easy to add `level7.txt`, `level8.txt`, etc.
+    - Boss Battles: Add special levels with unique boss mechanics.
 
 3. **Technical improvements**
-   - Migrate to LibGDX or JavaFX for better graphics
-   - Add particle effects and advanced animations
-   - Implement AI opponent mode
-   - Add online leaderboard with database backend
+   - Firebase Token Refresh: The `idToken` expires after 1 hour. Implement a mechanism to use the refresh token.
+   - Particle Effects: Add particle effects for brick explosions and ball collisions.
+   - Framework JavaFX for better graphics.
+   - Add particle effects and advanced animations.
 
 ---
 
 ## Technologies Used
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Java | 17+ | Core language |
-| JavaFX | 19.0.2 | GUI framework |
-| Maven | 3.9+ | Build tool |
-| Jackson | 2.15.0 | JSON processing |
+| Technology       | Version     | Purpose                                     |
+|------------------|-------------|---------------------------------------------|
+| Java             | 17+         | Core language                               |
+| JavaFX           | 21.0.2      | GUI, Rendering, and Media framework         |
+| Maven            | 3.8+        | Build tool & Dependency Management          |
+| `org.json`       | 20240303    | JSON processing (for Firebase)              |
+| `java.net.http`  | (Java 11+)  | Asynchronous REST API client (for Firebase) |
+| Google Auth Libs | 1.x / 2.x   | Google OAuth 2.0 flow for desktop apps      |
 
 ---
 
@@ -214,5 +234,3 @@ This project is developed for educational purposes only.
 - The project demonstrates practical application of OOP concepts and design patterns.
 
 ---
-
-*Last updated: [Ngày/Tháng/Năm]*
