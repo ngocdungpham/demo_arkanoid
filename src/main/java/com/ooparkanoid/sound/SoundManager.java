@@ -35,7 +35,7 @@ public class SoundManager {
 
     // Sound playback settings
     private static final long MIN_PLAY_INTERVAL = 150; // Minimum milliseconds between same sound plays
-    private static final int MAX_CONCURRENT_SAME_SOUND = 3;
+    private static final int MAX_CONCURRENT_SAME_SOUND = 1;
     private double sfxVolume = 1.0;
     private double musicVolume = 0.5;
     private boolean sfxEnabled = true;
