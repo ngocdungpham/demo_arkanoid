@@ -6,7 +6,7 @@ import javafx.animation.Timeline;
 import javafx.scene.control.Label;
 import javafx.util.Duration;
 
-/** Tiện ích hiệu ứng nhỏ cho label (glow khi thay đổi text). */
+/** label extension (glow when texts change). */
 public final class UiUtils {
     private UiUtils() {}
 
