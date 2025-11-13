@@ -299,7 +299,7 @@ public class Paddle extends MovableObject {
             return;
         }
         double laserSpeed = 500;
-
+        SoundManager.getInstance().play("laser_shoot");
         // Create two lasers, one from each side of the paddle
         Laser leftLaser = new Laser(x + width * 0.25, y - 25, laserSpeed);
         Laser rightLaser = new Laser(x + width * 0.75, y - 25, laserSpeed);
