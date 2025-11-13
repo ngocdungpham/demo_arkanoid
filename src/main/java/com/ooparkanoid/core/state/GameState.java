@@ -47,6 +47,13 @@ public enum GameState {
     GAME_OVER,
 
     /**
+     * Victory screen displayed when player completes all levels.
+     * Shows final score, statistics, and returns to menu after animation.
+     * No active gameplay in this state.
+     */
+    GAME_WON,
+
+    /**
      * Game mode selection screen.
      * Player chooses between ADVENTURE, LOCAL_BATTLE, or other game modes.
      * Transitions to RUNNING once mode is selected and game starts.

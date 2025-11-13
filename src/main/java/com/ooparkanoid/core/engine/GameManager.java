@@ -368,8 +368,9 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
             if (currentLevel > Constants.MAX_LEVELS) {
                 // All levels completed - Victory!
                 System.out.println("Congratulations! All levels completed!");
+                stateManager.setStatusMessage("You Win! Final Score: " + stateManager.getScore());
                 recordHighScore(Constants.MAX_LEVELS);
-                initializeGame(); // Restart game
+                stateManager.markGameWon(); // Show victory screen
             } else {
                 // Load next level
                 System.out.println("Starting Level " + currentLevel);

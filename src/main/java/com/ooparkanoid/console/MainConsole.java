@@ -578,17 +578,31 @@ public class MainConsole extends Application {
             startGame(nextGameMode);
         }));
 
-        // Allow skipping video
-        Runnable skipAction = () -> {
+        // Store event handlers for proper cleanup using array to allow self-reference
+        final javafx.event.EventHandler<MouseEvent>[] mouseHandlerRef = new javafx.event.EventHandler[1];
+
+        javafx.event.EventHandler<javafx.scene.input.KeyEvent> keyHandler = e -> {
             introMediaPlayer.stop();
             preloadIntroVideo();
             startGame(nextGameMode);
             stage.getScene().setOnKeyPressed(null);
-            stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, null);
+            if (mouseHandlerRef[0] != null) {
+                stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandlerRef[0]);
+            }
         };
 
-        stage.getScene().setOnKeyPressed(e -> skipAction.run());
-        stage.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> skipAction.run());
+        javafx.event.EventHandler<MouseEvent> mouseHandler = e -> {
+            introMediaPlayer.stop();
+            preloadIntroVideo();
+            startGame(nextGameMode);
+            stage.getScene().setOnKeyPressed(null);
+            stage.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandlerRef[0]);
+        };
+
+        mouseHandlerRef[0] = mouseHandler;
+
+        stage.getScene().setOnKeyPressed(keyHandler);
+        stage.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandler);
 
         introMediaPlayer.play();
     }

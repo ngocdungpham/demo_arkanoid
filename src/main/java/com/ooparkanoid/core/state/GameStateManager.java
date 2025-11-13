@@ -177,6 +177,17 @@ public class GameStateManager {
     }
 
     /**
+     * Marks the game as won.
+     * Transitions to GAME_WON state and clears continue option.
+     * Called when player completes all levels.
+     */
+    public void markGameWon() {
+        continueAvailable.set(false);
+        currentState.set(GameState.GAME_WON);
+        statusMessage.set("Congratulations! You won!");
+    }
+
+    /**
      * Checks if the game is currently in RUNNING state.
      * Game loop should only process updates when this returns true.
      *

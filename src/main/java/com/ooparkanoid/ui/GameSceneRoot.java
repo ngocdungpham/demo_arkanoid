@@ -113,6 +113,9 @@ public class GameSceneRoot {
     /** Game over overlay view */
     private final GameOverView gameOverView;
 
+    /** You win overlay view */
+    private final YouWinView youWinView;
+
     /** Stack of pressed keys for movement priority */
     private final Deque<KeyCode> pressedStack = new ArrayDeque<>();
 
@@ -219,7 +222,15 @@ public class GameSceneRoot {
             }
         });
 
-        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView());
+        youWinView = new YouWinView(new YouWinView.Callbacks() {
+            @Override public void onExit() {
+                gameLoop.stop();
+                SoundManager.getInstance().stopMusic();
+                onExitToMenuCallback.run();
+            }
+        });
+
+        layeredScene.root().getChildren().addAll(pauseView.getView(), gameOverView.getView(), youWinView.getView());
 
         // Set up state listeners and input handlers
         setupStateListeners();
@@ -267,6 +278,15 @@ public class GameSceneRoot {
                 gameOverView.show();
             }
 
+            // Handle game won state
+            if (newState == GameState.GAME_WON) {
+                if (stateManager.statusMessageProperty().get()==null || stateManager.statusMessageProperty().get().isBlank())
+                    stateManager.setStatusMessage("You Win! Final Score: " + stateManager.getScore());
+                gameLoop.stop();
+                SoundManager.getInstance().stopMusic();
+                youWinView.show();
+            }
+
             // Handle pause state
             if (newState == GameState.PAUSED) {
                 SoundManager.getInstance().stopMusic();
@@ -306,6 +326,7 @@ public class GameSceneRoot {
                 }
                 case F1 -> { startAdventureMode(); return; }
                 case F2 -> { startBattleMode();    return; }
+
                 case ENTER -> {
                     if (stateManager.getCurrentState() == GameState.MENU) {
                         if (currentMode.get() == GameMode.LOCAL_BATTLE) startBattleMode(); else startAdventureMode();
