@@ -58,7 +58,7 @@ Beyond the basic mechanics, this project integrates modern features including:
 **Used in:** The Brick creation system.
 * Abstract Factory: `BrickFactory.java`.
 * Concrete Factories: `NormalBrickFactory`, `StrongBrickFactory`, `ExplosiveBrickFactory`, etc.
-* Client: `LevelManager.java` uses a Map<Character, BrickFactory> to instantiate the correct Brick subclass based on a character ('N', 'S', 'X') read from a level file.
+* Client: `LevelManager.java` uses a Map<Character, BrickFactory> to instantiate the correct Brick subclass based on a character ('N', 'S', 'X', 'F', '#') read from a level file.
 
 ### 2. Strategy Pattern
 **Used in:** The Power-up system..
