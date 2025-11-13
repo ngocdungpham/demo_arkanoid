@@ -78,11 +78,6 @@ public class SoundManager {
         return instance;
     }
 
-    /**
-     * Initializes and loads all sound effects into memory.
-     * This method is idempotent - calling it multiple times will only load sounds once.
-     * Should be called early in the application lifecycle for better performance.
-     */
     public void init() {
         // Skip if sounds are already loaded
         if (!soundEffects.isEmpty()) {
@@ -104,13 +99,7 @@ public class SoundManager {
         System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
     }
 
-
-    /**
-     * Loads a single sound file from resources and caches it.
-     *
-     * @param name unique identifier for this sound
-     * @param path resource path to the sound file
-     */
+    // Load 1 sound file từ resources
     public void loadSound(String name, String path) {
         URL resource = getClass().getResource(path);
         if (resource == null) {
@@ -174,7 +163,7 @@ public class SoundManager {
                         int count = playCount.getOrDefault(name, 0);
                         playCount.put(name, Math.max(0, count - 1)); // Decrement, never go negative
                     }
-                }, 300, TimeUnit.MILLISECONDS);
+                }, 100, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 System.err.println("Error playing sound: " + name);
             }

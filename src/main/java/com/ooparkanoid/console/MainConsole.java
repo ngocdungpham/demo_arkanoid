@@ -692,7 +692,8 @@ public class MainConsole extends Application {
     public void stop() throws Exception {
         System.out.println("Application shutting down... Setting player offline.");
         SoundManager.getInstance().shutdown();
-
+        ResourceManager resourceManager = ResourceManager.getInstance();
+        resourceManager.clearCache();
         if (PlayerContext.isLoggedIn()) {
             OnlinePresenceService.goOffline(PlayerContext.uid);
         }
@@ -709,8 +710,7 @@ public class MainConsole extends Application {
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        ResourceManager resourceManager = ResourceManager.getInstance();
-        resourceManager.clearCache();
+
         launch();
     }
 }

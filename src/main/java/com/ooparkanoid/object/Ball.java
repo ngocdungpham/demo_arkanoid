@@ -3,7 +3,6 @@ package com.ooparkanoid.object;
 import com.ooparkanoid.graphics.Animation;
 import com.ooparkanoid.graphics.GlowTrail;
 import com.ooparkanoid.graphics.ResourceManager;
-import com.ooparkanoid.graphics.SpriteSheet;
 import com.ooparkanoid.object.bricks.Brick;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -23,10 +22,8 @@ public class Ball extends MovableObject {
     private double dirX, dirY; // Normalized direction vector
 
     // Visual elements
-    private Animation ballAnimation;
     private Image ballSprite;
-    private boolean useAnimation = false;
-    private double rotation = 0; // Current rotation angle in degrees
+    private double rotation = 0;
 
     // Trail effect
     private GlowTrail trail;
@@ -66,21 +63,6 @@ public class Ball extends MovableObject {
     private void loadGraphics() {
         ResourceManager resourceManager = ResourceManager.getInstance();
         ballSprite = resourceManager.getImage("ball.png");
-
-        // Try to load animation sprite sheet
-        SpriteSheet ballSheet = resourceManager.loadSpriteSheet("ball_animation.png", 32, 32);
-        if (ballSheet != null) {
-            // Extract all frames from sprite sheet
-            Image[] frames = new Image[ballSheet.getFrameCount()];
-            for (int i = 0; i < frames.length; i++) {
-                frames[i] = ballSheet.getFrame(i);
-            }
-            ballAnimation = new Animation(frames, 0.05, true);
-            useAnimation = true;
-        } else {
-            // Fallback: use static image if animation is not available
-            useAnimation = false;
-        }
     }
 
     /**
@@ -128,11 +110,6 @@ public class Ball extends MovableObject {
             rotation -= 360;
         }
 
-        // Update sprite animation if available
-        if (useAnimation && ballAnimation != null) {
-            ballAnimation.update(deltaTime);
-        }
-
         // Update position
         move(deltaTime);
 
@@ -166,12 +143,7 @@ public class Ball extends MovableObject {
         gc.translate(x + width / 2, y + height / 2);
         gc.rotate(rotation);
 
-        if (useAnimation && ballAnimation != null) {
-            // Render animated sprite
-            Image frame = ballAnimation.getCurrentFrame();
-            gc.drawImage(frame, -width / 2, -height / 2, width, height);
-        } else if (ballSprite != null) {
-            // Render static sprite
+        if (ballSprite != null) {
             gc.drawImage(ballSprite, -width / 2, -height / 2, width, height);
         } else {
             // Fallback: render procedural ball with gradient
@@ -232,7 +204,7 @@ public class Ball extends MovableObject {
     public void activateSlowBallEffect() {
         trail.setColor(Color.LIGHTBLUE);
         trail.setMaxLength(20);
-        trail.setGlowIntensity(0.7);
+        trail.setGlowIntensity(0.5);
         setGlow(true, Color.LIGHTBLUE);
     }
 
@@ -246,6 +218,8 @@ public class Ball extends MovableObject {
         trail.setGlowIntensity(1.8);
         setGlow(true, Color.ORANGERED);
     }
+
+    // Reset mặc định
 
     /**
      * Activates the invincible ball visual effect.
