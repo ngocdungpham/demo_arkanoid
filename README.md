@@ -122,18 +122,18 @@ This prevents the main game loop from lagging when an audio clip is loaded or pl
 7. **Complete the level**: Destroy all destructible bricks to advance.
 
 ### Power-ups
-| Icon | Name | Effect |
-|------|------|--------|
-| 🟦 | Expand Paddle | Increases paddle width by 35% (x1.35) for 10 seconds |
-| 🟥 | Shrink Paddle | Decreases paddle width by 40% (x0.6) for 10 seconds |
-| ⚡ | Fast Ball | Increases ball speed by 25% (x1.25) for 10 seconds |
-| 🐌 | Slow Ball | Decreases ball speed by 40% (x0.6) for 10 seconds |
-| 🎯 | Multi Ball | Spawns 2 additional balls |
-| 🔫 | Laser Gun | Shoot lasers to destroy bricks for 10 seconds |
-| 🔥 | Magnet | Ball passes through bricks (no bounce) for 10 seconds |
-| 🛡️ | Shield | Ball bounces off the bottom edge for 10 seconds |
-| 💰 | Extra Life | Doubles (x2.0) all score gained for 10 seconds |
-| ❤️ | Extra Life | Instant Effect: Grants 1 extra life |
+| Icon                                     | Name            | Effect |
+|------------------------------------------|-----------------|--------|
+| ![E](docs/screenshots/Expand_E.png)      | Expand Paddle   | Increases paddle width by 35% (x1.35) for 10 seconds |
+| ![C](docs/screenshots/Shrink_C.png)      | Shrink Paddle   | Decreases paddle width by 40% (x0.6) for 10 seconds |
+| ![P](docs/screenshots/fast_P.png)        | Fast Ball       | Increases ball speed by 25% (x1.25) for 10 seconds |
+| ![S](docs/screenshots/Slow_S.png)        | Slow Ball       | Decreases ball speed by 40% (x0.6) for 10 seconds |
+| ![M](docs/screenshots/multi_M.png)       | Multi Ball      | Spawns 2 additional balls |
+| ![L](docs/screenshots/laser_L.png)       | Laser Gun       | Shoot lasers to destroy bricks for 10 seconds |
+| ![F](docs/screenshots/fire_T.png)        | Fire Ball       | Ball passes through bricks (no bounce) for 10 seconds |
+| ![R](docs/screenshots/invincibale_R.png) | Invincible Ball | Ball bounces off the bottom edge for 10 seconds |
+| ![D](docs/screenshots/score_D.png)       | ScoreMultiplier | Doubles (x2.0) all score gained for 10 seconds |
+| ![B](docs/screenshots/life_B.png)        | Extra Life      | Instant Effect: Grants 1 extra life |
 
 ### Scoring System
 - Normal Brick: 100 points
