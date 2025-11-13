@@ -14,38 +14,68 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lớp này chịu trách nhiệm duy nhất cho việc tạo ra danh sách các viên gạch
- * cho một màn chơi cụ thể từ file cấu hình.
- * Nó sử dụng Abstract Factory Pattern để tạo các loại gạch khác nhau.
+ * Manages level loading and brick creation from configuration files.
+ * Implements the Abstract Factory Pattern to create different types of bricks
+ * based on character codes read from level definition files.
+ *
+ * This class has a single responsibility: transforming level files into
+ * playable brick layouts with proper positioning and factory-created instances.
+ *
+ * Design Pattern: Abstract Factory Pattern with Factory Registry
+ *
+ * @author Arkanoid Team
+ * @version 2.0
  */
 public class LevelManager {
 
+    /** Registry mapping character codes to their corresponding brick factories */
     private final Map<Character, BrickFactory> brickFactories;
 
     /**
-     * Constructor của LevelManager.
-     * Nó nhận các texture cần thiết để khởi tạo các factory tương ứng.
-     * Đây là một ví dụ về Dependency Injection.
+     * Constructs a LevelManager with required brick textures.
+     * Initializes and registers all brick factories with their character codes.
+     * Implements Dependency Injection by receiving textures as parameters.
      *
-     * @param normalBrickTexture Texture cho gạch thường.
-     * @param indestructibleBrickTexture Texture cho gạch bất tử.
-     * @param explosiveBrickTexture Texture cho gạch nổ.
+     * Factory Registry:
+     * - 'N' = Normal Brick
+     * - 'S' = Strong Brick (3 hits)
+     * - '#' = Indestructible Brick
+     * - 'F' = Flicker Brick (alternating visibility)
+     * - 'X' = Explosive Brick (area damage)
+     *
+     * @param normalBrickTexture texture for normal bricks
+     * @param indestructibleBrickTexture texture for indestructible bricks
+     * @param explosiveBrickTexture texture for explosive bricks
      */
     public LevelManager(Image normalBrickTexture, Image indestructibleBrickTexture, Image explosiveBrickTexture) {
         brickFactories = new HashMap<>();
-        // Đăng ký tất cả các nhà máy sản xuất gạch
+
+        // Register all brick factories with their character codes
         brickFactories.put('N', new NormalBrickFactory(normalBrickTexture));
-        brickFactories.put('S', new StrongBrickFactory()); // StrongBrick tự quản lý texture
+        brickFactories.put('S', new StrongBrickFactory()); // Self-manages textures
         brickFactories.put('#', new IndestructibleBrickFactory(indestructibleBrickTexture));
-        brickFactories.put('F', new FlickerBrickFactory()); // FlickerBrick tự quản lý texture
+        brickFactories.put('F', new FlickerBrickFactory()); // Self-manages textures
         brickFactories.put('X', new ExplosiveBrickFactory(explosiveBrickTexture));
     }
 
     /**
-     * Đọc một file level và tạo ra một danh sách các đối tượng Brick.
+     * Loads and creates a level from a configuration file.
+     * Reads the level file, parses brick definitions, and creates positioned brick instances.
      *
-     * @param levelNum Số thứ tự của màn chơi cần tải.
-     * @return Một List<Brick> đại diện cho màn chơi. Trả về list rỗng nếu có lỗi.
+     * Level File Format:
+     * - Each character represents a brick type (see factory registry)
+     * - Space ' ' represents empty cell
+     * - Rows and columns are automatically centered in playfield
+     * - Maximum dimensions are enforced (MAX_ROWS_PER_LEVEL x MAX_COLS_PER_LEVEL)
+     *
+     * Positioning Algorithm:
+     * - Calculates total brick layout width based on MAX_COLS_PER_LEVEL
+     * - Centers the layout horizontally within the playfield
+     * - Applies consistent padding between bricks (BRICK_PADDING_X/Y)
+     * - Starts from BRICK_OFFSET_TOP for vertical positioning
+     *
+     * @param levelNum the level number to load (1-based)
+     * @return list of positioned Brick instances, or empty list if level file not found
      */
     public List<Brick> createLevel(int levelNum) {
         List<Brick> bricks = new ArrayList<>();
@@ -58,35 +88,40 @@ public class LevelManager {
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-            // ===== THAY ĐỔI 1: TÍNH TOÁN CĂN GIỮA DỰA TRÊN HẰNG SỐ =====
-            // Không cần đọc dòng đầu tiên nữa. Luôn tính toán dựa trên khung cố định.
-            double totalBricksWidth = Constants.MAX_COLS_PER_LEVEL * Constants.BRICK_WIDTH + (Constants.MAX_COLS_PER_LEVEL - 1) * Constants.BRICK_PADDING_X;
+            // Calculate horizontal centering based on maximum column count
+            double totalBricksWidth = Constants.MAX_COLS_PER_LEVEL * Constants.BRICK_WIDTH
+                                    + (Constants.MAX_COLS_PER_LEVEL - 1) * Constants.BRICK_PADDING_X;
             double startX = Constants.PLAYFIELD_LEFT + (Constants.PLAYFIELD_WIDTH - totalBricksWidth) / 2;
 
             String line;
             int row = 0;
+
             while ((line = reader.readLine()) != null) {
-                // ===== THAY ĐỔI 2: ÁP DỤNG GIỚI HẠN HÀNG =====
+                // Enforce maximum row limit
                 if (row >= Constants.MAX_ROWS_PER_LEVEL) {
-                    System.out.println("Warning: Level " + levelNum + " has more than " + Constants.MAX_ROWS_PER_LEVEL + " rows. Truncating.");
-                    break; // Dừng đọc file nếu quá giới hạn hàng
+                    System.out.println("Warning: Level " + levelNum + " has more than "
+                                     + Constants.MAX_ROWS_PER_LEVEL + " rows. Truncating.");
+                    break;
                 }
 
-                // ===== THAY ĐỔI 3: ÁP DỤNG GIỚI HẠN CỘT =====
+                // Enforce maximum column limit per row
                 int colsToRead = Math.min(line.length(), Constants.MAX_COLS_PER_LEVEL);
+
                 for (int col = 0; col < colsToRead; col++) {
                     char brickChar = line.charAt(col);
-                    if (brickChar == ' ') continue;
+                    if (brickChar == ' ') continue; // Skip empty cells
 
+                    // Calculate brick position with padding
                     double brickX = startX + col * (Constants.BRICK_WIDTH + Constants.BRICK_PADDING_X);
                     double brickY = Constants.BRICK_OFFSET_TOP + row * (Constants.BRICK_HEIGHT + Constants.BRICK_PADDING_Y);
 
+                    // Create brick using registered factory
                     BrickFactory factory = brickFactories.get(brickChar);
                     if (factory != null) {
                         Brick newBrick = factory.createBrick(brickX, brickY);
                         bricks.add(newBrick);
                     } else {
-                        System.err.println("Unknown brick char in level " + levelNum + ": '" + brickChar + "'");
+                        System.err.println("Unknown brick character in level " + levelNum + ": '" + brickChar + "'");
                     }
                 }
                 row++;

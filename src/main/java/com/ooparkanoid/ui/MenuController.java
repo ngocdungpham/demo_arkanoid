@@ -55,7 +55,7 @@ public class MenuController implements Initializable {
     static final String BACKGROUND_IMAGE ="/picture/menu.jpg";
 
     // ---- Data ----
-    final List<String> items = List.of("Adventure", "VERSUS", "SETTINGS", "CREDITS","HELP", "EXIT");
+    final List<String> items = List.of("Adventure", "VERSUS", "CREDITS", "EXIT");
 
     // ---- Runtime state ----
     final List<StackPane> cards = new ArrayList<>();

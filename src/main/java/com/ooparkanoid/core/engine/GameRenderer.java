@@ -13,20 +13,62 @@ import javafx.scene.paint.Color;
 
 import java.util.List;
 
+/**
+ * Handles rendering of all game objects and UI elements.
+ * Responsible for drawing game objects to the canvas and displaying active power-up effects.
+ * Separates rendering logic from game logic following Single Responsibility Principle.
+ *
+ * Rendering order (back to front):
+ * 1. Clear canvas
+ * 2. Bricks
+ * 3. Paddle
+ * 4. Balls
+ * 5. Power-ups
+ * 6. Score popups
+ * 7. Active effects HUD
+ *
+ * @author Arkanoid Team
+ * @version 2.0
+ */
 public class GameRenderer {
+    /** Manager for tracking active power-up effects and their durations */
     private final PowerUpEffectManager effectManager;
 
-    // References to renderable objects
+    // ==================== Renderable Game Objects ====================
+    /** Player-controlled paddle */
     private Paddle paddle;
+
+    /** Active balls in play */
     private List<Ball> balls;
+
+    /** Bricks in current level */
     private List<Brick> bricks;
+
+    /** Active power-ups falling on screen */
     private List<PowerUp> powerUps;
+
+    /** Floating score indicators for visual feedback */
     private List<Score> scores;
 
+    /**
+     * Constructs a GameRenderer with specified effect manager.
+     *
+     * @param effectManager the power-up effect manager for displaying active effects
+     */
     public GameRenderer(PowerUpEffectManager effectManager) {
         this.effectManager = effectManager;
     }
 
+    /**
+     * Injects game object references for rendering.
+     * Must be called before render() to avoid null pointer exceptions.
+     *
+     * @param paddle the player's paddle
+     * @param balls list of active balls
+     * @param bricks list of bricks in current level
+     * @param powerUps list of active power-ups
+     * @param scores list of floating score indicators
+     */
     public void setGameObjects(Paddle paddle, List<Ball> balls, List<Brick> bricks, List<PowerUp> powerUps, List<Score> scores) {
         this.paddle = paddle;
         this.balls = balls;
@@ -36,52 +78,63 @@ public class GameRenderer {
     }
 
     /**
-     * Phương thức chính để vẽ tất cả các đối tượng game lên màn hình
+     * Main rendering method that draws all game objects to the canvas.
+     * Renders objects in proper z-order (back to front) and includes HUD elements.
+     *
+     * @param g the GraphicsContext to draw to
      */
     public void render(GraphicsContext g) {
         if (paddle == null || balls == null || effectManager == null) {
             return;
         }
 
-        // Xóa màn hình
+        // Clear canvas
         g.clearRect(0, 0, Constants.WIDTH, Constants.HEIGHT);
 
-        // Vẽ Paddle
+        // Render paddle
         if (paddle != null) {
             paddle.render(g);
         }
 
-        // Vẽ Ball
-        for (Ball b : balls) b.render(g);
+        // Render all active balls
+        for (Ball b : balls) {
+            b.render(g);
+        }
 
-        // Vẽ tất cả Bricks còn lại
+        // Render all bricks
         for (Brick brick : bricks) {
             brick.render(g);
         }
 
-        // RENDER POWERUPS
+        // Render falling power-ups
         for (PowerUp p : powerUps) {
             p.render(g);
         }
 
-        // RENDER SCORES POPUP
+        // Render floating score popups
         for (Score text : scores) {
             text.render(g);
         }
 
-        // ===== DISPLAY ACTIVE EFFECTS (HUD) =====
+        // Render HUD overlay showing active effects
         renderActiveEffects(g);
     }
 
+    /**
+     * Renders the HUD overlay showing active power-up effects and their remaining time.
+     * Displays effect names with color-coded text in the playfield area.
+     * Each effect type has a unique color for easy identification.
+     *
+     * @param g the GraphicsContext to draw to
+     */
     private void renderActiveEffects(GraphicsContext g) {
-        // Chỉ vẽ lên vùng chơi (Playfield) để tránh ghi đè lên HUD
+        // Position HUD within playfield to avoid overlapping with UI
         double effectTextX = Constants.PLAYFIELD_LEFT + 10;
-        int yOffset = 80; // Bắt đầu ở Playfield
+        int yOffset = 80;
 
         g.setFont(javafx.scene.text.Font.font("Arial", 16));
 
-        // Lặp lại logic vẽ HUD từ GameManager cũ, sử dụng effectManager
-
+        // Fast Ball effect (red)
         double fastTime = effectManager.getRemainingTime("FAST_BALL");
         if (fastTime > 0) {
             g.setFill(Color.RED);
@@ -89,6 +142,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Slow Ball effect (purple)
         double slowTime = effectManager.getRemainingTime("SLOW_BALL");
         if (slowTime > 0) {
             g.setFill(Color.PURPLE);
@@ -96,6 +150,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Expand Paddle effect (green)
         double expandTime = effectManager.getRemainingTime("EXPAND_PADDLE");
         if (expandTime > 0) {
             g.setFill(Color.GREEN);
@@ -103,6 +158,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Shrink Paddle effect (orange)
         double shrinkTime = effectManager.getRemainingTime("SHRINK_PADDLE");
         if (shrinkTime > 0) {
             g.setFill(Color.ORANGE);
@@ -110,6 +166,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Invincible Ball effect (gold)
         double invincibleTime = effectManager.getRemainingTime("INVINCIBLE_BALL");
         if (invincibleTime > 0) {
             g.setFill(Color.GOLD);
@@ -117,6 +174,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Score Multiplier effect (light green)
         double scoreMultTime = effectManager.getRemainingTime("SCORE_MULTIPLIER");
         if (scoreMultTime > 0) {
             g.setFill(Color.LIGHTGREEN);
@@ -124,6 +182,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Fire Ball effect (orange-red)
         double fireTime = effectManager.getRemainingTime("FIRE_BALL");
         if (fireTime > 0) {
             g.setFill(Color.ORANGERED);
@@ -131,6 +190,7 @@ public class GameRenderer {
             yOffset += 20;
         }
 
+        // Laser Paddle effect (light blue)
         double laserTime = effectManager.getRemainingTime("LASER_PADDLE");
         if (laserTime > 0) {
             g.setFill(Color.LIGHTBLUE);

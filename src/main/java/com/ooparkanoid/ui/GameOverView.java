@@ -14,46 +14,104 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
 /**
- * Hiển thị màn hình Game Over nhỏ gọn với hiệu ứng 2 mảnh ghép lại theo chiều ngang (dải giữa)
- * và tự động quay về menu sau 2s. Phần còn lại trong suốt.
+ * Displays a compact Game Over screen with a horizontal sliding animation effect.
+ * Shows two halves sliding in from left and right to form a central band, then automatically
+ * returns to menu after 2 seconds. The rest of the screen remains transparent.
+ *
+ * Animation Sequence:
+ * 1. Two red bands slide in from left/right to meet in center (0.5s)
+ * 2. "GAME OVER" text fades in (0.3s)
+ * 3. Wait for 2 seconds to display
+ * 4. Text fades out (0.3s) while bands slide out (0.5s)
+ * 5. Automatically trigger exit callback
+ *
+ * Features:
+ * - Smooth sliding animation with easing
+ * - Semi-transparent red band background
+ * - Large, stylized "GAME OVER" text with drop shadow
+ * - Automatic timeout with callback execution
+ * - Non-blocking animation with proper cleanup
+ *
+ * Visual Design:
+ * - Dark red semi-transparent band (height: 120px)
+ * - White Orbitron font with red drop shadow
+ * - Transparent overlay (doesn't block other UI)
+ * - Centered horizontal layout
+ *
+ * Usage:
+ * Create with Callbacks implementation, call show() to display.
+ * Animation runs automatically and calls onExit() when complete.
+ *
+ * @author Arkanoid Team
+ * @version 2.0
  */
 public class GameOverView {
 
+    /** Root overlay container (transparent background) */
     private final StackPane root;
-    private final Pane container; // Container giới hạn chiều cao cho dải ngang
+
+    /** Container limiting height for the horizontal band */
+    private final Pane container;
+
+    /** Left half of the sliding band */
     private final Pane leftHalf;
+
+    /** Right half of the sliding band */
     private final Pane rightHalf;
+
+    /** "GAME OVER" title label */
     private final Label title;
+
+    /** Callback interface for exit handling */
     private final Callbacks callbacks;
+
+    /** Currently playing animation (for cleanup) */
     private Animation currentAnimation;
 
-    // --- Cấu hình dải ngang ---
-    private static final double BAND_HEIGHT = 120.0; // Chiều cao của dải Game Over
-    private static final double HALF_WIDTH = Constants.WIDTH / 2.0; // Rộng của mỗi mảnh ghép
-    private static final Color BAND_COLOR = Color.web("#880000").deriveColor(0, 1, 1, 0.5); // Đỏ đậm mờ
+    // ==================== Band Configuration ====================
+    /** Height of the Game Over band */
+    private static final double BAND_HEIGHT = 120.0;
 
+    /** Width of each sliding half */
+    private static final double HALF_WIDTH = Constants.WIDTH / 2.0;
+
+    /** Background color for the band (dark red, semi-transparent) */
+    private static final Color BAND_COLOR = Color.web("#880000").deriveColor(0, 1, 1, 0.5);
+
+    /**
+     * Callback interface for handling Game Over screen completion.
+     * Implement onExit() to handle navigation back to menu or other actions.
+     */
     public interface Callbacks {
+        /** Called when the Game Over animation completes and screen should exit */
         void onExit();
     }
 
+    /**
+     * Constructs a GameOverView with the specified callback handler.
+     * Initializes all UI components with proper positioning and styling.
+     * Sets up the sliding band animation components.
+     *
+     * @param cb callback handler for exit events
+     */
     public GameOverView(Callbacks cb) {
         this.callbacks = cb;
 
-        // 1. Root overlay: TRONG SUỐT HOÀN TOÀN
+        // Root overlay: COMPLETELY TRANSPARENT
         root = new StackPane();
         root.setPrefSize(Constants.WIDTH, Constants.HEIGHT);
         root.setVisible(false);
         root.setMouseTransparent(true);
         root.setStyle("-fx-background-color: transparent;");
 
-        // 2. Container: Đặt ở giữa màn hình, giới hạn chiều cao, chứa 2 mảnh ghép
+        // Container: Centered, height-limited, contains sliding halves
         container = new Pane();
         container.setPrefSize(Constants.WIDTH, BAND_HEIGHT);
         container.setMaxSize(Constants.WIDTH, BAND_HEIGHT);
-        // Clip là cần thiết để ẩn phần bị TranslateX (ví dụ: khi leftHalf ở -HALF_WIDTH)
+        // Clip necessary to hide parts moved by TranslateX
         container.setClip(new javafx.scene.shape.Rectangle(Constants.WIDTH, BAND_HEIGHT));
 
-        // 3. Title label
+        // Title label
         title = new Label("GAME OVER");
         title.setFont(Font.font("Orbitron", FontWeight.EXTRA_BOLD, 80));
         title.setTextFill(Color.WHITE);
@@ -63,25 +121,33 @@ public class GameOverView {
         title.setViewOrder(-1);
         StackPane.setAlignment(title, Pos.CENTER);
 
-        // 4. Left Half Pane (Mảnh ghép 1)
+        // Left Half Pane (first piece)
         leftHalf = createHalfPane(BAND_COLOR, HALF_WIDTH, BAND_HEIGHT);
-        leftHalf.setTranslateX(-HALF_WIDTH); // Bắt đầu ở ngoài bên trái
-        leftHalf.setLayoutX(0); // <--- QUAN TRỌNG: Đặt vị trí ban đầu là 0
+        leftHalf.setTranslateX(-HALF_WIDTH); // Start outside left
+        leftHalf.setLayoutX(0); // IMPORTANT: Initial position is 0
 
-        // 5. Right Half Pane (Mảnh ghép 2)
+        // Right Half Pane (second piece)
         rightHalf = createHalfPane(BAND_COLOR, HALF_WIDTH, BAND_HEIGHT);
-        rightHalf.setTranslateX(HALF_WIDTH); // Bắt đầu ở ngoài bên phải
-        rightHalf.setLayoutX(HALF_WIDTH); // <--- QUAN TRỌNG: Đặt vị trí ban đầu là HALF_WIDTH
+        rightHalf.setTranslateX(HALF_WIDTH); // Start outside right
+        rightHalf.setLayoutX(HALF_WIDTH); // IMPORTANT: Initial position is HALF_WIDTH
 
-        // Thêm các mảnh ghép vào Container
+        // Add pieces to Container
         container.getChildren().addAll(leftHalf, rightHalf);
 
-        // Thêm Container và Title vào Root
+        // Add Container and Title to Root
         root.getChildren().addAll(container, title);
         StackPane.setAlignment(container, Pos.CENTER);
     }
 
-    // Hàm tạo Pane với kích thước và màu sắc cụ thể
+    /**
+     * Creates a pane with specified dimensions and background color.
+     * Used for creating the sliding band halves.
+     *
+     * @param color background color for the pane
+     * @param width width of the pane
+     * @param height height of the pane
+     * @return configured Pane with styling applied
+     */
     private Pane createHalfPane(Color color, double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -90,37 +156,42 @@ public class GameOverView {
         return pane;
     }
 
+    /**
+     * Shows the Game Over screen with sliding animation.
+     * If already visible, does nothing. Stops any current animation.
+     * Animation sequence: slide in → show text → wait → slide out → exit.
+     */
     public void show() {
         if (root.isVisible()) return;
 
         if (currentAnimation != null) currentAnimation.stop();
 
-        // 1. Đặt lại trạng thái ban đầu
+        // Reset to initial state
         root.setVisible(true);
-        // Thiết lập vị trí TranslateX ban đầu
+        // Set initial TranslateX positions
         leftHalf.setTranslateX(-HALF_WIDTH);
         rightHalf.setTranslateX(HALF_WIDTH);
         title.setOpacity(0.0);
 
-        // 2. Phase 1: Slide In (0.5s)
+        // Phase 1: Slide In (0.5s)
         Duration slideInDuration = Duration.millis(500);
 
         Timeline slideIn = new Timeline(
-                // Dịch chuyển leftHalf từ -HALF_WIDTH về 0
+                // Move leftHalf from -HALF_WIDTH to 0
                 new KeyFrame(slideInDuration,
                         new KeyValue(leftHalf.translateXProperty(), 0, Interpolator.EASE_BOTH)),
-                // Dịch chuyển rightHalf từ HALF_WIDTH về 0
+                // Move rightHalf from HALF_WIDTH to 0
                 new KeyFrame(slideInDuration,
                         new KeyValue(rightHalf.translateXProperty(), 0, Interpolator.EASE_BOTH))
         );
 
-        // 3. Phase 2: Show Text, Wait, Slide Out & Exit
+        // Phase 2: Show Text, Wait, Slide Out & Exit
         slideIn.setOnFinished(e -> {
-            // A. Show Text (0.3s)
+            // Show Text (0.3s)
             FadeTransition fadeInText = new FadeTransition(Duration.millis(300), title);
             fadeInText.setToValue(1.0);
 
-            // B. Wait (2.0s)
+            // Wait (2.0s)
             PauseTransition delay = new PauseTransition(Duration.seconds(2.0));
             delay.setOnFinished(ev -> hideAndExit());
 
@@ -132,19 +203,24 @@ public class GameOverView {
         currentAnimation.play();
     }
 
+    /**
+     * Hides the Game Over screen with reverse sliding animation and triggers exit.
+     * Called automatically after the display timeout.
+     * Animation sequence: fade out text → slide out bands → hide → call callback.
+     */
     private void hideAndExit() {
-        // 1. Fade out text first (0.3s)
+        // Fade out text first (0.3s)
         FadeTransition fadeOutText = new FadeTransition(Duration.millis(300), title);
         fadeOutText.setToValue(0.0);
 
-        // 2. Phase 3: Slide Out (0.5s)
+        // Phase 3: Slide Out (0.5s)
         Duration slideOutDuration = Duration.millis(500);
 
         Timeline slideOut = new Timeline(
-                // Dịch chuyển leftHalf từ 0 về -HALF_WIDTH (trái)
+                // Move leftHalf from 0 to -HALF_WIDTH (left)
                 new KeyFrame(slideOutDuration,
                         new KeyValue(leftHalf.translateXProperty(), -HALF_WIDTH, Interpolator.EASE_BOTH)),
-                // Dịch chuyển rightHalf từ 0 về HALF_WIDTH (phải)
+                // Move rightHalf from 0 to HALF_WIDTH (right)
                 new KeyFrame(slideOutDuration,
                         new KeyValue(rightHalf.translateXProperty(), HALF_WIDTH, Interpolator.EASE_BOTH))
         );
@@ -156,11 +232,19 @@ public class GameOverView {
             }
         });
 
-        // Chơi tuần tự: fadeOutText -> slideOut
+        // Play sequentially: fadeOutText → slideOut
         SequentialTransition transition = new SequentialTransition(fadeOutText, slideOut);
         currentAnimation = transition;
         currentAnimation.play();
     }
 
-    public Node getView() { return root; }
+    /**
+     * Gets the root node for this Game Over view.
+     * Add this to your scene graph to display the Game Over screen.
+     *
+     * @return the root StackPane containing all Game Over UI elements
+     */
+    public Node getView() {
+        return root;
+    }
 }

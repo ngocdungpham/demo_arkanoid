@@ -37,7 +37,7 @@ public class FastBallEffect implements PowerUpEffect {
             } else {
                 ball.setSpeed(Constants.DEFAULT_SPEED);
             }
-            ball.resetTrainEffect();
+            ball.resetTrailEffect();
         }
         originalSpeeds.clear();
     }

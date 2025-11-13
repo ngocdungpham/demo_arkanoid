@@ -17,16 +17,56 @@ import javafx.util.Duration;
 import com.ooparkanoid.core.engine.LocalBattleManager;
 import com.ooparkanoid.core.state.GameMode;
 
+/**
+ * Displays live score counters for local battle mode with visual feedback.
+ * Shows Player 1 and Player 2 life counters with color-coded styling and flash animations.
+ * Automatically updates when lives change and provides visual feedback for damage taken.
+ *
+ * Features:
+ * - Real-time life counter updates for both players
+ * - Color-coded player labels (red for P1, blue for P2)
+ * - Flash animation when player takes damage
+ * - Automatic visibility management based on game mode
+ * - Semi-transparent background with drop shadows for readability
+ *
+ * Visual Design:
+ * - Large, bold Arial font for high visibility
+ * - Rounded corner backgrounds with player-specific colors
+ * - Flash animation (opacity pulse) on life loss
+ * - Centered horizontal layout with spacer between players
+ *
+ * Usage:
+ * Create instance, call bindTo() with LocalBattleManager and GameMode property.
+ * Add getRoot() to scene graph. Counters update automatically.
+ *
+ * @author Arkanoid Team
+ * @version 2.0
+ */
 public class BattleScoreboard {
 
+    /** Root container using HBox for horizontal layout */
     private final HBox root;
+
+    /** Player 1 life counter label */
     private final Label p1;
+
+    /** Player 2 life counter label */
     private final Label p2;
 
+    /** Base opacity for normal display state */
     private static final double BASE_OPACITY = 0.75;
+
+    /** Flash animation timeline for Player 1 */
     private Timeline p1Flash;
+
+    /** Flash animation timeline for Player 2 */
     private Timeline p2Flash;
 
+    /**
+     * Constructs a BattleScoreboard with default styling and layout.
+     * Creates player labels with initial "P1: 0" and "P2: 0" text.
+     * Sets up horizontal layout with centered alignment and spacing.
+     */
     public BattleScoreboard() {
         p1 = createCounterLabel("P1: 0", Color.web("#FF6F61"));
         p2 = createCounterLabel("P2: 0", Color.web("#3FA9F5"));
@@ -38,14 +78,29 @@ public class BattleScoreboard {
         root.setMouseTransparent(true);
     }
 
-    public HBox getRoot() { return root; }
+    /**
+     * Gets the root HBox container for this scoreboard.
+     *
+     * @return the HBox containing the scoreboard layout
+     */
+    public HBox getRoot() {
+        return root;
+    }
 
+    /**
+     * Binds the scoreboard to a LocalBattleManager and GameMode property.
+     * Sets up automatic visibility management and life counter updates.
+     * Listeners will update counters and trigger flash animations on life loss.
+     *
+     * @param battleManager the LocalBattleManager providing life data
+     * @param modeProp the GameMode property for visibility control
+     */
     public void bindTo(LocalBattleManager battleManager, ObjectProperty<GameMode> modeProp) {
         BooleanBinding visible = modeProp.isEqualTo(GameMode.LOCAL_BATTLE);
         root.visibleProperty().bind(visible);
         root.managedProperty().bind(visible);
 
-        // Listeners cập nhật counter + flash
+        // Set up listeners for counter updates and flash animations
         battleManager.playerOneLivesProperty().addListener((obs, oldVal, newVal) -> {
             updateCounter(p1, "P1", newVal);
             if (oldVal != null && newVal != null && newVal.intValue() < oldVal.intValue()) flash(p1, true);
@@ -57,10 +112,16 @@ public class BattleScoreboard {
             else p2.setOpacity(BASE_OPACITY);
         });
 
-        // init
+        // Initialize counters with current values
         resetCounters(battleManager);
     }
 
+    /**
+     * Resets the scoreboard counters to current battle manager values.
+     * Updates both player labels and resets opacity to base level.
+     *
+     * @param battleManager the LocalBattleManager providing current life values
+     */
     public void resetCounters(LocalBattleManager battleManager) {
         updateCounter(p1, "P1", battleManager.playerOneLivesProperty().get());
         updateCounter(p2, "P2", battleManager.playerTwoLivesProperty().get());
@@ -68,7 +129,16 @@ public class BattleScoreboard {
         p2.setOpacity(BASE_OPACITY);
     }
 
-    // ===== helpers =====
+    // ==================== Helper Methods ====================
+
+    /**
+     * Creates a styled counter label for a player.
+     * Applies consistent styling with player-specific accent color.
+     *
+     * @param text initial text for the label
+     * @param accent player-specific accent color for background
+     * @return configured Label with styling applied
+     */
     private Label createCounterLabel(String text, Color accent) {
         Label label = new Label(text);
         label.setTextFill(Color.WHITE);
@@ -83,11 +153,27 @@ public class BattleScoreboard {
         return label;
     }
 
+    /**
+     * Updates a counter label with new life value.
+     * Formats the text as "Player: lives" with non-negative clamping.
+     *
+     * @param lbl the label to update
+     * @param who player identifier ("P1" or "P2")
+     * @param lives new life count value
+     */
     private void updateCounter(Label lbl, String who, Number lives) {
         int v = lives == null ? 0 : lives.intValue();
         lbl.setText(String.format("%s: %d", who, Math.max(0, v)));
     }
 
+    /**
+     * Triggers a flash animation on a label when player takes damage.
+     * Creates a brief opacity pulse to draw attention to life loss.
+     * Stops any existing flash animation for the same player.
+     *
+     * @param label the label to animate
+     * @param isP1 true if this is Player 1's label, false for Player 2
+     */
     private void flash(Label label, boolean isP1) {
         Timeline existing = isP1 ? p1Flash : p2Flash;
         if (existing != null) existing.stop();
