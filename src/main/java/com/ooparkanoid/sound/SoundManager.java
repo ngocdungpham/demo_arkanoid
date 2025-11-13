@@ -78,6 +78,27 @@ public class SoundManager {
         return instance;
     }
 
+    public void init() {
+        // Skip if sounds are already loaded
+        if (!soundEffects.isEmpty()) {
+            return;
+        }
+
+        // Load all sound effects
+        loadSound("bounce", "/sounds/paddle.mp3");
+        loadSound("break", "/sounds/break.mp3");
+        loadSound("powerup", "/sounds/powerup.wav");
+        loadSound("lose_life", "/sounds/lose_life.wav");
+        loadSound("transition", "/sounds/transition.mp3");
+        loadSound("card_transition", "/sounds/card_transition.mp3");
+        loadSound("selected", "/sounds/selected.mp3");
+        loadSound("pause", "/sounds/pause.mp3");
+        loadSound("laser_shoot", "/sounds/laser_shoot.WAV");
+        loadSound("laser_hit", "/sounds/laser_hit.wav");
+
+        System.out.println("✅ Loaded " + soundEffects.size() + " sound effects");
+    }
+
     // Load 1 sound file từ resources
     public void loadSound(String name, String path) {
         URL resource = getClass().getResource(path);

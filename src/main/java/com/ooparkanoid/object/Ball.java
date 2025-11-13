@@ -22,7 +22,6 @@ public class Ball extends MovableObject {
     private double dirX, dirY; // Normalized direction vector
 
     // Visual elements
-    private Animation ballAnimation;
     private Image ballSprite;
     private double rotation = 0;
 
@@ -109,11 +108,6 @@ public class Ball extends MovableObject {
         rotation += speed * deltaTime * 5;
         if (rotation >= 360) {
             rotation -= 360;
-        }
-
-        // Update sprite animation if available
-        if (useAnimation && ballAnimation != null) {
-            ballAnimation.update(deltaTime);
         }
 
         // Update position
@@ -226,7 +220,6 @@ public class Ball extends MovableObject {
     }
 
     // Reset mặc định
-    public void resetTrainEffect() {
 
     /**
      * Activates the invincible ball visual effect.

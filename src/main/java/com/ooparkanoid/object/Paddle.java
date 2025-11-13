@@ -46,8 +46,6 @@ public class Paddle extends MovableObject {
 
     private Image paddleSprite;
     private Image laserGunSprite;
-    private Image paddleSpriteVerticalLeft;
-    private Image paddleSpriteVerticalRight;
     private Image paddleSpriteVerticalLeft; // paddle left side
     private Image paddleSpriteVerticalRight; // paddle right side
     private SpriteSheet explosionSheet;
@@ -119,7 +117,7 @@ public class Paddle extends MovableObject {
                     SPAWN_FRAME_WIDTH,
                     SPAWN_FRAME_HEIGHT,
                     0, 0);
-            spawnAnimation = loadAnimationFromSheet(spawnSheet, 4, 0.3, false);
+            spawnAnimation = loadAnimationFromSheet(spawnSheet, 4, 0.5, false);
         } else {
             System.err.println("Failed to load paddle_spawn_sheet.png");
         }
@@ -183,15 +181,6 @@ public class Paddle extends MovableObject {
 
     public boolean isDestroyed() {
         return currentState == State.DESTROYED;
-    }
-
-    public boolean isExplosionFinished() {
-        if (currentState != State.DESTROYED) return false;
-
-        if (explosionAnimation == null) {
-            return true;
-        }
-        return explosionAnimation.isFinished();
     }
 
     public void reset() {
@@ -335,8 +324,9 @@ public class Paddle extends MovableObject {
                 }
 
                 if (laserEnabled) {
-                    rederLaserPaddle(gc);
+                    renderLaserPaddle(gc);
                 }
+
                 for (Laser laser : lasers) {
                     laser.render(gc);
                 }
@@ -359,7 +349,7 @@ public class Paddle extends MovableObject {
                         double frameWidth = frame.getWidth();
                         double frameHeight = frame.getHeight();
                         gc.drawImage(frame, x + (width - frameWidth) / 2,
-                                y + (height - frameHeight) / 2);
+                                y + (height - frameHeight) / 2 - 20);
                     }
                 }
                 return;

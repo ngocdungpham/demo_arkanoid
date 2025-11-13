@@ -35,79 +35,119 @@ import java.util.Random;
  * - Power-up effects and timers
  * - Rendering coordination
  * - Game flow control (life loss, level completion, game over)
- *
+ * <p>
  * This class follows the Single Responsibility Principle by delegating specific tasks
  * to dedicated managers (CollisionHandler, LevelManager, PowerUpEffectManager, GameRenderer).
- *
+ * <p>
  * Design Pattern: Implements Singleton pattern and Observer pattern (via callbacks).
  *
  * @author Arkanoid Team
  * @version 2.0
  */
 public class GameManager implements CollisionHandler.GameFlowCallbacks {
-    /** Singleton instance */
+    /**
+     * Singleton instance
+     */
     private static GameManager instance;
 
     // ==================== Game Objects ====================
-    /** Player-controlled paddle */
+    /**
+     * Player-controlled paddle
+     */
     private Paddle paddle;
 
-    /** Active balls in play */
+    /**
+     * Active balls in play
+     */
     private List<Ball> balls = new ArrayList<>();
 
-    /** Bricks in current level */
+    /**
+     * Bricks in current level
+     */
     private List<Brick> bricks;
 
-    /** Floating score indicators for visual feedback */
+    /**
+     * Floating score indicators for visual feedback
+     */
     private final List<Score> scores = new ArrayList<>();
 
-    /** Active power-ups falling on screen */
+    /**
+     * Active power-ups falling on screen
+     */
     private final List<PowerUp> powerUps = new ArrayList<>();
 
     // ==================== Core Systems ====================
-    /** Manages game state (score, lives, UI updates) - single source of truth */
+    /**
+     * Manages game state (score, lives, UI updates) - single source of truth
+     */
     private final GameStateManager stateManager;
 
-    /** Handles level loading and brick creation */
+    /**
+     * Handles level loading and brick creation
+     */
     private LevelManager levelManager;
 
-    /** Manages power-up effects and their durations */
+    /**
+     * Manages power-up effects and their durations
+     */
     private PowerUpEffectManager effectManager;
 
-    /** Provides context to power-up effects (access to paddle and balls) */
+    /**
+     * Provides context to power-up effects (access to paddle and balls)
+     */
     private GameContext gameContext;
 
-    /** Handles all collision detection and resolution */
+    /**
+     * Handles all collision detection and resolution
+     */
     private CollisionHandler collisionHandler;
 
-    /** Handles rendering of game objects and UI elements */
+    /**
+     * Handles rendering of game objects and UI elements
+     */
     private GameRenderer gameRenderer;
 
     // ==================== Game State ====================
-    /** Time elapsed in current round/level (seconds) */
+    /**
+     * Time elapsed in current round/level (seconds)
+     */
     private double roundTimeElapsed;
 
-    /** Total time elapsed across all rounds (seconds) */
+    /**
+     * Total time elapsed across all rounds (seconds)
+     */
     private double totalTimeElapsed;
 
-    /** Current level number (1-based) */
+    /**
+     * Current level number (1-based)
+     */
     private int currentLevel;
 
-    /** Random number generator for game logic */
+    /**
+     * Random number generator for game logic
+     */
     private Random random;
 
-    /** Flag indicating whether ball has been launched from paddle */
+    /**
+     * Flag indicating whether ball has been launched from paddle
+     */
     private boolean ballLaunched = false;
     private boolean isLosingLife = false;
 
     // ==================== Visual Assets ====================
-    /** Texture for normal bricks */
+    /**
+     * Texture for normal bricks
+     */
     private Image normalBrickTexture;
 
-    /** Texture for indestructible bricks */
+    /**
+     * Texture for indestructible bricks
+     */
     private Image indestructibleBrickTexture;
 
-    /** Texture for explosive bricks */
+    /**
+     * Texture for explosive bricks
+     */
     private Image explosiveBrickTexture;
 
     public GameManager() {
@@ -168,7 +208,7 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Initializes or resets the entire game to starting state.
      * Sets up paddle, balls, bricks, and all game systems.
      * Loads the first level and prepares for gameplay.
-     *
+     * <p>
      * This method is called on game start and when restarting after game over.
      */
     public void initializeGame() {
@@ -348,12 +388,13 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         }
 
         // FIX: Đọc mạng từ stateManager
-        if (stateManager.getLives() <= 0 && !isLosingLife && !paddle.isSpawning() ) {
-        // Check for game over (no lives remaining)
-        if (stateManager.getLives() <= 0) {
-            stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
-            recordHighScore();
-            stateManager.markGameOver();
+        if (stateManager.getLives() <= 0 && !isLosingLife && !paddle.isSpawning()) {
+            // Check for game over (no lives remaining)
+            if (stateManager.getLives() <= 0) {
+                stateManager.setStatusMessage("Game Over! Final Score: " + stateManager.getScore());
+                recordHighScore();
+                stateManager.markGameOver();
+            }
         }
     }
 
@@ -363,7 +404,7 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Handles life loss when all balls fall off screen.
      * Clears active effects, decrements lives, and either resets ball position or triggers game over.
      * Called by CollisionHandler via callback interface when last ball is lost.
-     *
+     * <p>
      * Implementation of GameFlowCallbacks.loseLife()
      */
     @Override
@@ -372,33 +413,12 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         isLosingLife = true;
         paddle.destroy();
         if (!balls.isEmpty()) return;
-
-        // Get current state from state manager (single source of truth)
-        int currentScore = stateManager.getScore();
-        int currentLives = stateManager.getLives();
-
-        currentLives--; // Decrement lives
-
-        effectManager.clearAll();
-        powerUps.clear();
-        SoundManager.getInstance().play("lose_life");
-
-        // Update state manager with new life count
-        stateManager.updateStats(currentScore, currentLives);
-
-        if (currentLives > 0) {
-            resetBallAndPaddlePosition();
-            stateManager.setStatusMessage("Lives remaining: " + currentLives);
-        } else {
-            // Game over - delegate to flow checker
-            checkGameFlowConditions();
-        }
     }
 
     /**
      * Spawns a random power-up at the specified location.
      * Called by CollisionHandler when a brick is destroyed and power-up drop is triggered.
-     *
+     * <p>
      * Implementation of GameFlowCallbacks.spawnPowerUp()
      *
      * @param x X coordinate for power-up spawn (typically brick center)
@@ -412,9 +432,6 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
         }
     }
 
-    private void recordHighScore() {
-        recordHighScore(currentLevel);
-    }
     // ==================== High Score Management ====================
 
     /**
@@ -472,16 +489,12 @@ public class GameManager implements CollisionHandler.GameFlowCallbacks {
      * Renders all game objects and UI elements to the graphics context.
      * Delegates to GameRenderer for actual drawing operations.
      *
-     * @param gc the GraphicsContext to render to
+     * @param g the GraphicsContext to render to
      */
     public void render(GraphicsContext g) {
         gameRenderer.render(g);
     }
 
-    // --- Getters & Public Methods ---
-    public Paddle getPaddle() {
-        return paddle;
-    }
     // ==================== Public API ====================
 
     /**
